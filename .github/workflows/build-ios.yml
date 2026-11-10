@@ -8,6 +8,10 @@ on:
         description: TestFlightへアップロードする（App Store審査申請はしない）
         type: boolean
         default: true
+      intel_runner:
+        description: Apple Silicon環境の混雑時にIntel版macOS 26を使用する
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -61,7 +65,7 @@ jobs:
 
   build:
     needs: prepare
-    runs-on: macos-26
+    runs-on: ${{ inputs.intel_runner && 'macos-26-intel' || 'macos-26' }}
     timeout-minutes: 90
     env:
       BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
