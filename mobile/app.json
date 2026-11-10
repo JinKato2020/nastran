@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Nastran はじめの一歩",
+    "name": "FEMノート for nas",
     "slug": "nastran-learning",
     "version": "1.0.0",
     "orientation": "default",
@@ -19,6 +19,6 @@
     "plugins": [
       "expo-sharing"
     ],
-    "icon": "./assets/icon-msc-nastran-white.png"
+    "icon": "./assets/icon-fem-note-for-nas.png"
   }
 }

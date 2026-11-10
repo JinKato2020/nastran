@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="MSC Nastran">
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="FEMノート for nas">
   <rect width="1024" height="1024" fill="#fff"/>
-  <g fill="#000" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle">
-    <text x="512" y="495" font-size="244">MSC</text>
-    <text x="512" y="707" font-size="166">Nastran</text>
+  <g id="wordmark" fill="#000" font-weight="700" text-anchor="middle" transform="translate(3 5)">
+    <text x="512" y="476" font-size="148" font-family="Noto Sans JP, Yu Gothic, Meiryo, sans-serif">FEMノート</text>
+    <text x="512" y="652" font-size="128" font-family="Arial, Helvetica, sans-serif">for nas</text>
   </g>
 </svg>
