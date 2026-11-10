@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Nastran はじめの一歩",
+    "slug": "nastran-learning",
+    "version": "1.0.0",
+    "orientation": "default",
+    "scheme": "nastranlearning",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.safa.nastran",
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.safa.nastranlearning"
+    },
+    "plugins": [
+      "expo-sharing"
+    ],
+    "icon": "./assets/icon.png"
+  }
+}

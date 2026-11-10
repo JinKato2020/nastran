@@ -1,0 +1,132 @@
+name: Nastran iOS Build
+run-name: Nastran iOS · run ${{ github.run_number }}
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nastran-ios-build
+  cancel-in-progress: false
+
+env:
+  CI: '1'
+  EXPO_NO_TELEMETRY: '1'
+  APP_STORE_APP_ID: '6816586481'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: mobile
+    outputs:
+      build_number: ${{ steps.apple.outputs.build_number }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - name: Check signing secrets
+        env:
+          IOS_DIST_CERT_BASE64: ${{ secrets.IOS_DIST_CERT_BASE64 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          IOS_PROVISIONING_PROFILE_NASTRAN_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_NASTRAN_BASE64 }}
+        run: |
+          for name in IOS_DIST_CERT_BASE64 IOS_DIST_CERT_PASSWORD IOS_TEAM_ID IOS_PROVISIONING_PROFILE_NASTRAN_BASE64; do
+            if [ -z "${!name}" ]; then echo "::error::Missing Repository secret: $name"; exit 1; fi
+          done
+      - run: npm ci
+      - run: npm run content
+      - run: npm run typecheck
+      - run: npm run test:core
+      - name: Check Apple app and build number
+        id: apple
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: node tools/apple-build-preflight.cjs
+
+  build:
+    needs: prepare
+    runs-on: macos-26
+    timeout-minutes: 90
+    env:
+      BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: xcodebuild -version
+      - run: npm ci
+      - run: npm run content
+      - name: Generate iOS project
+        run: npx expo prebuild --platform ios --clean --no-install
+      - name: Install CocoaPods dependencies
+        working-directory: mobile/ios
+        run: pod install
+      - name: Install distribution signing material
+        env:
+          IOS_DIST_CERT_BASE64: ${{ secrets.IOS_DIST_CERT_BASE64 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          IOS_PROVISIONING_PROFILE_NASTRAN_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_NASTRAN_BASE64 }}
+        run: bash tools/install-ios-signing.sh
+      - name: Configure app signing
+        env:
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        run: |
+          node tools/configure-ios-ci.cjs
+          PROJECT_NAME=$(find ios -maxdepth 1 -name '*.xcodeproj' -exec basename {} .xcodeproj \;)
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "ios/$PROJECT_NAME/Info.plist"
+      - name: Archive iOS app
+        run: |
+          set -o pipefail
+          xcodebuild -workspace "ios/$PROJECT_NAME.xcworkspace" -scheme "$PROJECT_NAME" \
+            -configuration Release -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/Nastran.xcarchive" archive \
+            2>&1 | tee "$RUNNER_TEMP/nastran-xcode.log" | xcbeautify
+      - name: Export signed IPA
+        run: |
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Nastran.xcarchive" \
+            -exportPath "$RUNNER_TEMP/nastran-ipa" -exportOptionsPlist "$SIGNING_DIR/ExportOptions.plist"
+          test -n "$(find "$RUNNER_TEMP/nastran-ipa" -name '*.ipa' -print -quit)"
+          echo "### Nastran 署名付きIPA（Build $BUILD_NUMBER）" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Artifactsからダウンロードできます。TestFlightへのアップロードは行っていません。' >> "$GITHUB_STEP_SUMMARY"
+      - name: Save IPA artifact
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: nastran-ios-ipa-${{ needs.prepare.outputs.build_number }}
+          path: ${{ runner.temp }}/nastran-ipa/*.ipa
+          if-no-files-found: error
+          retention-days: 14
+      - name: Save Xcode log on failure
+        if: failure()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: nastran-xcode-log-${{ github.run_number }}
+          path: ${{ runner.temp }}/nastran-xcode.log
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Remove runner signing material
+        if: always()
+        run: |
+          if [ -n "${KEYCHAIN_PATH:-}" ] && [ -f "$KEYCHAIN_PATH" ]; then security delete-keychain "$KEYCHAIN_PATH"; fi
+          if [ -n "${PROFILE_UUID:-}" ]; then
+            rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+            rm -f "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+          fi
+          rm -rf "$RUNNER_TEMP/nastran-signing"

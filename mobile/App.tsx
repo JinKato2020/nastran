@@ -1,0 +1,151 @@
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, AppState, BackHandler, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Clipboard from 'expo-clipboard';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+import { COURSE, DOWNLOADS, readerHTML, titleFor } from './src/content';
+import { EMPTY_STATE, externalURL, filePayload, position, progress, courseProgress, restore, samePlace, type Position, type SavedState } from './src/protocol';
+
+const STORAGE_KEY='nastran-learning-state-v1';
+type Entry=Position&{key:string};
+let entryNumber=0;
+const newEntry=(p:Position):Entry=>({...p,key:String(++entryNumber)});
+
+function Reader({entry,saved,onMessage,onExternal,onNavigate,onRestart,webRef}:{entry:Entry;saved:SavedState;onMessage:(event:WebViewMessageEvent)=>void;onExternal:(url:string)=>void;onNavigate:(p:Position)=>void;onRestart:()=>void;webRef:React.RefObject<WebView<object>|null>}){
+  // Freeze the initial HTML: progress and scroll messages must not reload the reader.
+  const [source]=useState(()=>({html:readerHTML(entry,saved.progress,entry.key,saved.courseProgress),baseUrl:'https://nastran.invalid/'+entry.path}));
+  const [error,setError]=useState(false);
+  return <View style={styles.reader}>
+    <WebView<object> ref={webRef} source={source} originWhitelist={['*']} style={styles.reader} javaScriptEnabled domStorageEnabled
+      allowsBackForwardNavigationGestures={false} setSupportMultipleWindows={false} allowFileAccess={false} mixedContentMode="never"
+      onMessage={onMessage} onError={()=>setError(true)} onContentProcessDidTerminate={onRestart} onRenderProcessGone={onRestart}
+      onOpenWindow={({nativeEvent})=>onExternal(nativeEvent.targetUrl)}
+      onShouldStartLoadWithRequest={req=>{
+        if(req.url==='about:blank'||req.url.startsWith('about:blank#'))return true;
+        try{const u=new URL(req.url);if(u.origin==='https://nastran.invalid'){
+          if(u.pathname.slice(1)===entry.path)return true;
+          const p=position({path:u.pathname.slice(1),hash:u.hash,y:0});if(p)onNavigate(p);return false;
+        }}catch{return false;}
+        onExternal(req.url);return false;
+      }} />
+    {error&&<View style={styles.error}><Text style={styles.body}>教材を表示できませんでした。</Text><Pressable style={styles.primary} onPress={onRestart}><Text style={styles.primaryText}>もう一度開く</Text></Pressable></View>}
+  </View>;
+}
+
+function LearningApp(){
+  const [saved,setSaved]=useState<SavedState>(EMPTY_STATE);
+  const savedRef=useRef(saved);
+  const [loaded,setLoaded]=useState(false);
+  const [entry,setEntry]=useState<Entry|null>(null);
+  const entryRef=useRef<Entry|null>(null);
+  const current=useRef<Position|null>(null);
+  const readerReported=useRef(false);
+  const trail=useRef<Position[]>([]);
+  const webRef=useRef<WebView<object>>(null);
+  const [menu,setMenu]=useState(false);
+  const [tab,setTab]=useState<'learn'|'next'|'reference'|'saved'>('learn');
+  const [sharing,setSharing]=useState(false);
+  const shareBusy=useRef(false);
+  const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
+  const storageFailed=useRef(false);
+  const readyToSave=useRef(false);
+  const writeQueue=useRef<Promise<void>>(Promise.resolve());
+  const [locationTitle,setLocationTitle]=useState('');
+  function persist(){
+    if(!readyToSave.current)return Promise.resolve();
+    if(timer.current)clearTimeout(timer.current);
+    const snapshot=JSON.stringify(savedRef.current);
+    writeQueue.current=writeQueue.current.then(()=>AsyncStorage.setItem(STORAGE_KEY,snapshot)).catch(()=>{if(!storageFailed.current){storageFailed.current=true;Alert.alert('学習記録を保存できません','教材は読めますが、端末の空き容量などを確認してください。');}});
+    return writeQueue.current;
+  }
+  function updateSaved(next:SavedState){savedRef.current=next;setSaved(next);if(timer.current)clearTimeout(timer.current);timer.current=setTimeout(()=>{void persist();},500);}
+  useEffect(()=>{
+    let active=true;
+    AsyncStorage.getItem(STORAGE_KEY).then(raw=>{if(active){const s=restore(raw);savedRef.current=s;setSaved(s);}}).catch(()=>Alert.alert('学習記録を読み込めません','教材はこのまま読むことができます。')).finally(()=>{if(active){readyToSave.current=true;setLoaded(true);}});
+    const sub=AppState.addEventListener('change',state=>{if(state!=='active')void persist();});
+    return()=>{active=false;sub.remove();if(timer.current)clearTimeout(timer.current);};
+  },[]);
+  function open(p:Position,remember=true){
+    if(remember&&current.current)trail.current=[...trail.current.slice(-49),current.current];
+    const e=newEntry(p);current.current=p;readerReported.current=false;entryRef.current=e;setEntry(e);setLocationTitle(titleFor(p));setMenu(false);
+    updateSaved({...savedRef.current,last:p});
+  }
+  function home(){void persist();entryRef.current=null;setEntry(null);current.current=null;trail.current=[];setMenu(false);}
+  function back(){const previous=trail.current.pop();if(previous)open(previous,false);else home();}
+  useEffect(()=>{const sub=BackHandler.addEventListener('hardwareBackPress',()=>{if(menu){setMenu(false);return true;}if(entry){back();return true;}return false;});return()=>sub.remove();},[entry,menu]);
+  async function external(raw:string){const url=externalURL(raw);if(!url)return;try{await Linking.openURL(url);}catch{Alert.alert('リンクを開けません','原典PDFなどの外部ページには、インターネット接続が必要です。');}}
+  function reply(session:string,id:unknown,ok:boolean,error?:string){
+    if(session!==entryRef.current?.key||typeof id!=='string'||!/^\d{1,8}$/.test(id))return;
+    webRef.current?.injectJavaScript(`window.__nastranReply(${JSON.stringify(id)},${ok},${JSON.stringify(error||'')});true;`);
+  }
+  async function share(name:unknown,base64:unknown){
+    const f=filePayload(name,base64);
+    if(shareBusy.current)throw new Error('開いている共有メニューを閉じてから、もう一度お試しください。');
+    shareBusy.current=true;setSharing(true);
+    let folder:string|null=null;
+    try{
+      if(!await Sharing.isAvailableAsync())throw new Error('この端末ではファイル共有を利用できません。');
+      if(!FileSystem.cacheDirectory)throw new Error('保存用の作業場所を開けません。');
+      folder=FileSystem.cacheDirectory+'nastran-share-'+Date.now()+'/';
+      await FileSystem.makeDirectoryAsync(folder,{intermediates:true});
+      const uri=folder+f.name;
+      await FileSystem.writeAsStringAsync(uri,f.base64,{encoding:FileSystem.EncodingType.Base64});
+      await Sharing.shareAsync(uri,{mimeType:f.zip?'application/zip':'application/octet-stream',UTI:f.zip?'public.zip-archive':'public.data',dialogTitle:'ファイルに保存・共有'});
+    }finally{if(folder)await FileSystem.deleteAsync(folder,{idempotent:true}).catch(()=>{});shareBusy.current=false;setSharing(false);}
+  }
+  async function message(event:WebViewMessageEvent){
+    let m:Record<string,unknown>;
+    try{if(event.nativeEvent.data.length>5*1024*1024)return;m=JSON.parse(event.nativeEvent.data);if(!m||typeof m!=='object'||m.session!==entryRef.current?.key)return;}catch{return;}
+    const session=m.session as string;
+    try{
+      if(m.type==='courseProgress'){updateSaved({...savedRef.current,courseProgress:courseProgress(m.value)});}
+      else if(m.type==='progress'){updateSaved({...savedRef.current,progress:progress(m.value)});}
+      else if(m.type==='position'){
+        const p=position(m);if(!p||p.path!==entryRef.current?.path)return;
+        if(readerReported.current&&current.current&&!samePlace(current.current,p))trail.current=[...trail.current.slice(-49),current.current];
+        readerReported.current=true;
+        current.current=p;setLocationTitle(titleFor(p));updateSaved({...savedRef.current,last:p});
+      }else if(m.type==='navigate'){const p=position({...m,y:0});if(p)open(p);}
+      else if(m.type==='external'){if(typeof m.url==='string')await external(m.url);}
+      else if(m.type==='copy'){if(typeof m.text!=='string'||m.text.length>1024*1024)throw new Error('コピーする内容を確認できません。');await Clipboard.setStringAsync(m.text);reply(session,m.id,true);}
+      else if(m.type==='share'){await share(m.name,m.base64);reply(session,m.id,true);}
+      else if(m.type==='asset'){const file=typeof m.path==='string'?DOWNLOADS[m.path]:null;if(!file)throw new Error('配布ファイルが見つかりません。');await share(file.name,file.base64);reply(session,m.id,true);}
+      else if(m.type==='notice'&&typeof m.message==='string')Alert.alert('操作を確認してください',m.message.slice(0,250));
+    }catch(e){const text=e instanceof Error?e.message:'操作を完了できませんでした。';reply(session,m.id,false,text);}
+  }
+  function bookmark(){const p=current.current;if(!p)return;const old=savedRef.current.bookmarks;const exists=old.some(b=>samePlace(b,p));updateSaved({...savedRef.current,bookmarks:exists?old.filter(b=>!samePlace(b,p)):[p,...old].slice(0,100)});}
+  const complete=JSON.parse(saved.courseProgress).length;
+  const finished:string[]=JSON.parse(saved.courseProgress);
+  type CourseItem={key?:string;title:string;description:string;path:string;hash:string;goal?:string;kind?:string};
+  const homeItems:CourseItem[]=tab==='learn'?COURSE.steps:tab==='next'?COURSE.next:COURSE.reference;
+  const menuGroups:{title:string;items:CourseItem[]}[]=[{title:'はじめて学ぶ · 6ステップ',items:COURSE.steps},{title:'入門の次に学ぶ',items:COURSE.next},{title:'調べる・実務',items:COURSE.reference}];
+  const marked=saved.bookmarks.some(b=>samePlace(b,current.current));
+  if(!loaded)return <SafeAreaView style={styles.app}><ActivityIndicator style={styles.loading} color="#3259d8"/><Text style={styles.loadingText}>教材を準備しています</Text></SafeAreaView>;
+  return <SafeAreaView style={styles.app} edges={['top','bottom']}>
+    <StatusBar style="dark"/>
+    {entry?<>
+      <View style={styles.toolbar}><Pressable accessibilityRole="button" onPress={back} style={styles.toolButton}><Text style={styles.toolText}>‹ 戻る</Text></Pressable><Text style={styles.readerTitle} numberOfLines={2}>{locationTitle}</Text><Pressable onPress={bookmark} accessibilityRole="button" accessibilityLabel={marked?'しおりを外す':'しおりを付ける'} accessibilityState={{selected:marked}} style={styles.starButton}><Text style={[styles.star,marked&&styles.marked]}>{marked?'★':'☆'}</Text></Pressable><Pressable onPress={()=>setMenu(true)} accessibilityRole="button" style={styles.toolButton}><Text style={styles.toolText}>目次</Text></Pressable></View>
+      <Reader key={entry.key} entry={entry} saved={saved} onMessage={message} onExternal={external} onNavigate={open} onRestart={()=>{if(current.current)open(current.current,false);}} webRef={webRef}/>
+      {sharing&&<View style={styles.shareStatus} accessibilityLiveRegion="polite"><Text style={styles.shareText}>共有メニューで「ファイルに保存」を選べます</Text></View>}
+    </>:<ScrollView contentContainerStyle={styles.home}>
+      <View style={styles.brandRow}><View style={styles.logo}><Text style={styles.logoText}>N·</Text></View><View><Text style={styles.brand}>Nastran</Text><Text style={styles.brandSub}>はじめの一歩</Text></View><View style={styles.offline}><Text style={styles.offlineText}>オフライン教材</Text></View></View>
+      <Text style={styles.hero}>棒1本から、{ '\n' }解析を一周する。</Text><Text style={styles.lead}>最初は、6つのステップを順番に。{ '\n' }予想・入力・実行・確認をつなげましょう。</Text>
+      <View style={styles.progressCard}><Text style={styles.progressLabel}>入門6ステップ・進み具合</Text><Text style={styles.progressNumber}>{complete}<Text style={styles.progressUnit}> / 6ステップ</Text></Text><View style={styles.progressTrack}><View style={[styles.progressFill,{width:`${complete/6*100}%`}]}/></View><Pressable style={styles.primary} onPress={()=>open(saved.last||{path:'index.html',hash:'#chapter-1',y:0},false)} accessibilityRole="button"><Text style={styles.primaryText}>{saved.last?'続きから読む →':'教材を読み始める →'}</Text></Pressable>{saved.last&&<Text style={styles.lastTitle}>{titleFor(saved.last)}</Text>}</View>
+      <View style={styles.tabs}>{([['learn','入門'],['next','次の学習'],['reference','調べる'],['saved','しおり']] as const).map(([value,label])=><Pressable key={value} style={[styles.tab,tab===value&&styles.selectedTab]} onPress={()=>setTab(value)} accessibilityRole="tab" accessibilityState={{selected:tab===value}}><Text style={styles.tabText}>{label}</Text></Pressable>)}</View>
+      {tab!=='saved'&&<Text style={styles.groupIntro}>{tab==='learn'?'初めての方は、ここから順番に進みます。':tab==='next'?'入門の後、知りたい現象を選びます。減衰は動解析の後に進みます。':'必要なカード・番号を調べる辞書と、実務で使う道具です。'}</Text>}
+      {tab!=='saved'?homeItems.map((l,i)=><Pressable key={l.path+l.hash} style={styles.lesson} onPress={()=>open({path:l.path,hash:l.hash,y:0},false)} accessibilityRole="button"><View style={styles.lessonNumber}><Text style={styles.lessonNumberText}>{l.key&&finished.includes(l.key)?'✓':tab==='learn'?String(i+1).padStart(2,'0'):'→'}</Text></View><View style={styles.lessonCopy}><Text style={styles.category}>{tab==='learn'?'入門 '+(i+1)+' / 6':l.kind||'発展'}</Text><Text style={styles.lessonTitle}>{l.title}</Text><Text style={styles.description}>{l.description}</Text></View><Text style={styles.arrow}>›</Text></Pressable>):saved.bookmarks.length?saved.bookmarks.map((p,i)=><View key={p.path+p.hash} style={styles.bookmarkRow}><Pressable style={styles.bookmarkOpen} onPress={()=>open(p,false)} accessibilityRole="button"><Text style={styles.lessonTitle}>{titleFor(p)}</Text><Text style={styles.description}>保存した場所を開く →</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="しおりを削除" style={styles.toolButton} onPress={()=>updateSaved({...savedRef.current,bookmarks:savedRef.current.bookmarks.filter((_,n)=>n!==i)})}><Text style={styles.toolText}>削除</Text></Pressable></View>):<Text style={styles.empty}>教材の右上の☆を押すと、{ '\n' }後で読みたい場所を保存できます。</Text>}
+      <View style={styles.about}><Text style={styles.aboutTitle}>このアプリについて</Text><Text style={styles.aboutText}>MSC Nastran 2020 SP1の公開資料と2025.1エラーメッセージ集に基づく日本語教材です。Nastran本体を実行する機能はありません。教材と例題ファイルはオフラインで利用できます。原典PDFなどの外部リンクには通信が必要です。</Text><Text style={styles.aboutText}>入門の学習記録としおりは、このアプリ内の端末データとして保存します。以前の11章の読了記録も保持しています。アプリを削除すると失われます。</Text><Text style={styles.version}>Nastran はじめの一歩 · 1.0.0</Text></View>
+    </ScrollView>}
+    <Modal visible={menu} animationType="slide" onRequestClose={()=>setMenu(false)}><SafeAreaView style={styles.app}><View style={styles.menuHeading}><Text style={styles.menuTitle}>教材の目次</Text><Pressable onPress={()=>setMenu(false)} style={styles.toolButton}><Text style={styles.toolText}>閉じる</Text></Pressable></View><ScrollView contentContainerStyle={styles.menuBody}><Pressable onPress={home} style={styles.menuRow}><Text style={styles.lessonTitle}>ホームへ戻る</Text></Pressable>{menuGroups.map(group=><View key={group.title}><Text style={styles.menuSection}>{group.title}</Text>{group.items.map(l=><Pressable key={l.path+l.hash} style={styles.menuRow} onPress={()=>open({path:l.path,hash:l.hash,y:0})}><Text style={styles.lessonTitle}>{l.title}</Text><Text style={styles.description}>{l.description}</Text></Pressable>)}</View>)}</ScrollView></SafeAreaView></Modal>
+  </SafeAreaView>;
+}
+export default function App(){return <SafeAreaProvider><LearningApp/></SafeAreaProvider>;}
+
+const styles=StyleSheet.create({
+ groupIntro:{fontSize:13,lineHeight:23,color:"#637b9a",marginBottom:16},
+ app:{flex:1,backgroundColor:'#f6f8fc'},reader:{flex:1,backgroundColor:'#f6f8fc'},loading:{marginTop:100},loadingText:{textAlign:'center',marginTop:20,color:'#526784'},home:{padding:22,paddingBottom:40,maxWidth:760,width:'100%',alignSelf:'center'},brandRow:{flexDirection:'row',alignItems:'center',gap:12},logo:{width:45,height:45,borderRadius:12,backgroundColor:'#3259d8',alignItems:'center',justifyContent:'center'},logoText:{color:'white',fontSize:28,fontWeight:'700'},brand:{fontSize:22,fontWeight:'700',color:'#182c49'},brandSub:{fontSize:11,color:'#61799a',marginTop:2},offline:{marginLeft:'auto',padding:7,borderRadius:6,backgroundColor:'#e6f2eb'},offlineText:{fontSize:10,color:'#39745a'},hero:{fontSize:29,lineHeight:42,fontWeight:'700',color:'#1d3555',marginTop:32},lead:{fontSize:14,lineHeight:25,color:'#677e9b',marginTop:12},progressCard:{padding:22,backgroundColor:'#eaf0ff',borderRadius:14,marginTop:25,borderWidth:1,borderColor:'#cfddf7'},progressLabel:{fontSize:13,color:'#5672a2'},progressNumber:{fontSize:32,fontWeight:'700',color:'#315bc2',marginTop:8},progressUnit:{fontSize:14,color:'#6d84aa'},progressTrack:{height:5,borderRadius:3,backgroundColor:'#cddaf4',marginVertical:16},progressFill:{height:5,borderRadius:3,backgroundColor:'#3b65d6'},primary:{backgroundColor:'#3259d8',padding:15,borderRadius:8,alignItems:'center',minHeight:48},primaryText:{fontSize:15,fontWeight:'600',color:'white'},lastTitle:{fontSize:12,lineHeight:20,color:'#637da7',marginTop:12},tabs:{flexDirection:'row',gap:8,marginTop:28,marginBottom:16},tab:{flex:1,padding:10,alignItems:'center',borderRadius:8},selectedTab:{backgroundColor:'#e8eef9'},tabText:{fontSize:12,fontWeight:'600',color:'#45648e'},lesson:{flexDirection:'row',alignItems:'center',gap:14,padding:18,borderRadius:10,backgroundColor:'white',borderWidth:1,borderColor:'#dbe4f0',marginBottom:10},lessonNumber:{width:32,height:34,borderRadius:6,backgroundColor:'#edf3ff',alignItems:'center',justifyContent:'center'},lessonNumberText:{fontSize:12,color:'#4974be',fontWeight:'600'},lessonCopy:{flex:1},category:{fontSize:10,color:'#8196b5',marginBottom:5},lessonTitle:{fontSize:17,fontWeight:'600',color:'#28486c',lineHeight:25},description:{fontSize:12,lineHeight:21,color:'#7187a4',marginTop:5},arrow:{fontSize:26,color:'#8ca2c0'},about:{marginTop:25,padding:20,borderTopWidth:1,borderColor:'#d8e1ee'},aboutTitle:{fontSize:15,fontWeight:'600',color:'#4e698f'},aboutText:{fontSize:12,lineHeight:23,color:'#7085a2',marginTop:12},version:{fontSize:11,color:'#92a2bb',marginTop:18},toolbar:{flexDirection:'row',alignItems:'center',paddingHorizontal:10,paddingVertical:6,gap:4,borderBottomWidth:1,borderColor:'#d6e0f0',backgroundColor:'#fff'},toolButton:{minHeight:44,minWidth:44,paddingHorizontal:10,alignItems:'center',justifyContent:'center'},toolText:{fontSize:13,color:'#4267ad'},readerTitle:{flex:1,fontSize:13,fontWeight:'600',lineHeight:19,color:'#344f74'},starButton:{width:44,height:44,alignItems:'center',justifyContent:'center'},star:{fontSize:27,color:'#7490b9'},marked:{color:'#b98929'},shareStatus:{padding:10,backgroundColor:'#e8f0ff'},shareText:{fontSize:12,textAlign:'center',color:'#4d6a94'},menuHeading:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:20,paddingTop:10},menuTitle:{fontSize:22,fontWeight:'700',color:'#254566'},menuBody:{padding:20},menuRow:{paddingVertical:17,borderBottomWidth:1,borderColor:'#dce4f0'},menuSection:{fontSize:15,fontWeight:'700',color:'#5376a6',marginTop:28,marginBottom:7},menuChapter:{fontSize:15,color:'#436186',lineHeight:24},bookmarkRow:{backgroundColor:'white',borderRadius:9,borderWidth:1,borderColor:'#dce4f0',marginBottom:10,padding:16,flexDirection:'row',alignItems:'center'},bookmarkOpen:{flex:1},empty:{fontSize:15,lineHeight:29,color:'#7187a4',padding:26,textAlign:'center'},body:{fontSize:15,lineHeight:26,color:'#526b8e'},error:{position:'absolute',top:0,right:0,bottom:0,left:0,justifyContent:'center',gap:20,padding:30,backgroundColor:'#f6f8fc'}
+});

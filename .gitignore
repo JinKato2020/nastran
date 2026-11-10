@@ -1,0 +1,17 @@
+node_modules/
+.expo/
+.build/
+.qa/
+__pycache__/
+*.pyc
+*.log
+.env*
+*.p8
+*.p12
+*.mobileprovision
+*.pem
+credentials.json
+mobile/ios/
+mobile/android/
+*.pdf
+sites/nastran-learning/dist/reference/

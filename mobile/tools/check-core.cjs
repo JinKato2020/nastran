@@ -1,0 +1,39 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),ts=require('typescript');
+require.extensions['.ts']=(mod,file)=>mod._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,file);
+const root=path.resolve(__dirname,'..'),p=require('../src/protocol.ts'),content=require('../src/content.ts');
+assert.equal(p.position({path:'../../secret',hash:'',y:0}),null);
+assert.equal(p.externalURL('javascript:alert(1)'),null);
+assert.equal(p.externalURL('https://name:secret@example.com'),null);
+assert.equal(p.progress('[1,1,12,-1,"2",3]'),'[1,3]');
+assert.equal(p.courseProgress('["input","input","model","invalid",3]'),'["input","model"]');
+assert.equal(p.courseProgress('invalid'),'[]');
+assert.equal(p.restore('{"progress":"[1,3]"}').courseProgress,'[]');
+for(const [oldPath,oldHash,path,hash] of [
+ ['workflow.html','#rules','input.html','#rules'],['workflow.html','#build','input.html','#complete'],
+ ['index.html','#chapter-4','basics.html','#node'],['index.html','#chapter-5','basics.html','#constraints'],
+ ['index.html','#chapter-6','input.html','#executive'],['index.html','#chapter-8','workflow.html','#results']
+]){
+ const old={path:oldPath,hash:oldHash,y:1500},expected={path,hash,y:0};
+ const saved=p.restore(JSON.stringify({last:old,bookmarks:[old],progress:'[1]',courseProgress:'["purpose"]'}));
+ assert.deepEqual(saved.last,expected);assert.deepEqual(saved.bookmarks,[expected]);
+ assert.equal(saved.progress,'[1]');assert.equal(saved.courseProgress,'["purpose"]');
+}
+assert.equal(content.COURSE.steps.length,6);assert.equal(content.COURSE.next.length,5);assert.equal(content.COURSE.reference.length,5);
+assert.deepEqual(p.restore('invalid'),p.EMPTY_STATE);
+assert.deepEqual(p.restore('null'),p.EMPTY_STATE);
+assert.throws(()=>p.filePayload('../bad.bdf','YQ=='));
+assert.throws(()=>p.filePayload('test.exe','YQ=='));
+assert.throws(()=>p.filePayload('test.bdf','not base64'));
+assert.equal(p.filePayload('model.bdf','YQ==').name,'model.bdf');
+assert(p.position({path:'errors.html',hash:'#error-2025.0',y:0}));
+assert.equal(content.titleFor({path:'errors.html',hash:'#error-2025.0',y:0}),'エラー検索と意味 · 2025.0');
+const dest=path.join(root,'.qa/reader');fs.mkdirSync(dest,{recursive:true});
+for(const l of content.LESSONS){
+ const html=content.readerHTML({path:l.id,hash:l.hash,y:0},'[1,3]','test');
+ assert(!html.includes('/*__BOOT__*/'));assert(!html.includes('<!--NATIVE_BOOTSTRAP-->'));
+ assert(html.includes("connect-src 'none'"));assert(!/<script\s+src=/.test(html));
+ fs.writeFileSync(path.join(dest,l.id),html);
+}
+assert(!content.readerHTML({path:'index.html',hash:'#</script><script>alert(1)</script>',y:0},'[]','test').includes('"hash":"#</script>'));
+for(const [rel,f]of Object.entries(content.DOWNLOADS))assert.deepEqual(Buffer.from(f.base64,'base64'),fs.readFileSync(path.join(root,'../sites/nastran-learning/dist',rel)));
+console.log('PASS: routes, progress restore, outbound URLs, filename/base64 checks, all offline documents, script-safe bootstrap, exact ZIP/BAT bytes.');

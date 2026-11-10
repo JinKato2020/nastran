@@ -1,0 +1,24 @@
+{
+  "steps": [
+    {"key":"purpose","title":"解析の目的と単位","description":"何を求めるかを決め、N・mm・MPaをそろえる","path":"index.html","hash":"#chapter-1","goal":"力・変位・応力の違いと、この教材の単位を説明できる。","topics":[["index.html#chapter-2","線形静解析で求めるもの"],["index.html#chapter-3","単位をそろえる"]]},
+    {"key":"model","title":"点・要素・支え・力","description":"模型の部品をつなぎ、動きを止め、力を加える","path":"basics.html","hash":"#node","goal":"節点、要素、物性、材料の役割と、拘束・荷重の違いが分かる。","topics":[["basics.html#node","点と要素"],["basics.html#properties","物性と材料"],["basics.html#constraints","拘束を操作する"],["basics.html#loads","荷重を与える"]]},
+    {"key":"input","title":"入力ファイルを作る","description":"入力の区画と8文字の欄を学び、BDFを保存する","path":"input.html","hash":"#executive","goal":"SOL・条件の選択・モデルの定義を区別し、8文字の空欄を保って保存できる。","topics":[["input.html#executive","4つの役割"],["input.html#rules","8文字・空欄・継続行"],["input.html#complete","完成BDFを保存"]]},
+    {"key":"example","title":"棒1本を手計算と結ぶ","description":"1000 Nで引く棒の入力と、予想する答えをつなぐ","path":"index.html","hash":"#chapter-7","goal":"どの点が、どちらへ、どれだけ動くかを予想できる。","topics":[["index.html#chapter-7","棒の例題"],["input.html#complete","同じ条件のBDF"]]},
+    {"key":"results","title":"実行して結果を確かめる","description":"BDFを実行し、F06・変位・反力・応力を順に読む","path":"workflow.html","hash":"#run","goal":"終了したことと、正しい模型を計算したことを分けて確認できる。","topics":[["workflow.html#run","保存と実行"],["workflow.html#files","ファイルの役割"],["workflow.html#results","F06の読み方"]]},
+    {"key":"practice","title":"条件を変えて確かめる","description":"荷重・長さ・太さ・硬さを一つずつ変えて予想する","path":"index.html","hash":"#chapter-9","goal":"条件を変えたとき、変位と応力がどう変わるかを説明できる。","topics":[["index.html#chapter-9","予想する演習"],["index.html#lab","棒の実験室"]]}
+  ],
+  "next": [
+    {"title":"片持ち梁の3モデル","description":"ばね・梁・立体の使い分け","path":"modeling.html","hash":"","goal":"目的に合う模型を選ぶ"},
+    {"title":"座標と応力の符号","description":"CP/CD・要素の軸・シェルの表裏","path":"coordinates.html","hash":"","goal":"同じ軸・位置の結果を比べる"},
+    {"title":"動解析をはじめる","description":"固有振動・周波数応答・過渡応答","path":"dynamics.html","hash":"","goal":"時間や振動を含む問題へ進む"},
+    {"title":"減衰の種類と使い分け","description":"粘性・構造・モード・Rayleigh","path":"damping.html","hash":"","goal":"動解析の後で、減衰を選ぶ"},
+    {"title":"亀裂先端のモデル化","description":"特異性・応力拡大係数・専用要素","path":"fracture.html","hash":"","goal":"応力評価と模型の限界を学ぶ発展編"}
+  ],
+  "reference": [
+    {"title":"Bulkカード図鑑","description":"全27カードの全フィールドを調べる","path":"bulk.html","hash":"","kind":"辞書"},
+    {"title":"解析カードの相関図","description":"カード間の参照番号をたどる","path":"relations.html","hash":"#sol-101","kind":"辞書"},
+    {"title":"エラー検索と意味","description":"番号・F06の文から確認手順を探す","path":"errors.html","hash":"","kind":"困ったとき"},
+    {"title":"INCLUDEファイルの作成","description":"入力を分割し、条件を差し替える","path":"include.html","hash":"","kind":"実務"},
+    {"title":"コマンドと並列バッチ","description":"実行の自動化・SMP・DMP","path":"batch.html","hash":"","kind":"実務"}
+  ]
+}

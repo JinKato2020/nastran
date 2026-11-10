@@ -1,0 +1,175 @@
+"""Exercise the actual inlined mobile reader bridge in Edge. No iOS simulation claim."""
+from pathlib import Path
+import base64
+import json
+from playwright.sync_api import sync_playwright
+ROOT=Path(__file__).resolve().parent.parent
+bundle=json.loads((ROOT/'src/generated/lessons.json').read_text(encoding='utf-8'))
+errors=[]
+with sync_playwright() as p:
+    browser=p.chromium.launch(headless=True,executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')
+    def reader(name,width=390):
+        # Playwright polling uses eval; this harness-only option leaves shipped CSP unchanged.
+        page=browser.new_page(viewport={'width':width,'height':844},bypass_csp=True)
+        page.on('pageerror',lambda e:errors.append(str(e)))
+        # Acknowledgements mimic the native transport, while testing real DOM/Blob code.
+        page.evaluate('''() => {window.messages=[];window.ReactNativeWebView={postMessage(raw){const m=JSON.parse(raw);messages.push(m);if(m.id)setTimeout(()=>window.__nastranReply(m.id,true),0);}};}''')
+        page.set_content((ROOT/'.qa/reader'/name).read_text(encoding='utf-8'),wait_until='load')
+        page.wait_for_function('messages.some(m=>m.type==="ready")')
+        return page
+    for l in bundle['catalog']:
+        page=reader(l['id'],320)
+        assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),l['id']
+        page.close()
+    page=reader('index.html')
+    assert page.locator('#progress-text').inner_text()=='2 / 11'
+    page.locator('#chapter-1 .learning-legacy summary').click()
+    page.locator('[data-complete="1"]').uncheck()
+    assert page.evaluate('messages.filter(m=>m.type==="progress").at(-1).value')=='[3]'
+    page.locator('#chapter-1 .learning-next').click()
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#chapter-2")')
+    page.locator('#chapter-2 .learning-next').click()
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#chapter-3")')
+    page.locator('#chapter-3 #course-complete').check()
+    assert page.evaluate('messages.filter(m=>m.type==="courseProgress").at(-1).value')=='["purpose"]'
+    page.locator('#chapter-3 .learning-next').click()
+    assert page.evaluate('messages.filter(m=>m.type==="navigate").at(-1).path')=='basics.html'
+    page.evaluate("location.hash='lab'")
+    page.locator('.live-code>summary').click()
+    page.locator('#download-deck').click()
+    page.wait_for_function('messages.some(m=>m.type==="share")')
+    m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
+    deck=base64.b64decode(m['base64']).decode('ascii')
+    assert m['name']=='axial_rod.bdf' and 'BEGIN BULK' in deck
+    assert all(len(l)==80 for l in deck.split('BEGIN BULK\n')[1].split('ENDDATA')[0].splitlines())
+    page.close()
+    page=reader('include.html')
+    page.select_option('#include-load','2000')
+    page.locator('#save-include').click()
+    page.wait_for_function('messages.some(m=>m.type==="share")')
+    m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
+    data=base64.b64decode(m['base64'])
+    assert m['name']=='main.bdf' and b"INCLUDE 'load_2000.inc'\r\n" in data
+    assert b'\n' not in data.replace(b'\r\n',b'')
+    page.locator('#copy-include').click()
+    page.wait_for_function('messages.some(m=>m.type==="copy")')
+    assert page.evaluate('messages.filter(m=>m.type==="copy").at(-1).text').encode('ascii')==data
+    page.locator('a[download]').click()
+    assert page.evaluate('messages.filter(m=>m.type==="asset").at(-1).path')=='downloads/nastran_include_example.zip'
+    page.locator('#include-parent [data-open-file="mesh.inc"]').click()
+    page.locator('#include-fields a[href="bulk.html#GRID"]').first.click()
+    assert page.evaluate('messages.filter(m=>m.type==="navigate").at(-1).hash')=='#GRID'
+    page.locator('.guide-sources a').first.click()
+    assert page.evaluate('messages.filter(m=>m.type==="external").at(-1).url').startswith('https://documentation-be.hexagon.com/')
+    page.locator('.include-view').screenshot(path=str(ROOT/'.qa/include-reader.png'))
+    page.close()
+    page=reader('batch.html')
+    page.select_option('#script-choice','run_two_parallel.bat')
+    page.locator('#save-batch').click()
+    page.wait_for_function('messages.some(m=>m.type==="share")')
+    m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
+    assert m['name']=='run_two_parallel.bat'
+    assert base64.b64decode(m['base64'])==(ROOT.parent/'sites/nastran-learning/dist/downloads/run_two_parallel.bat').read_bytes()
+    page.close()
+    page=reader('bulk.html')
+    page.select_option('#card-picker','SPC1')
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#SPC1")')
+    assert page.locator('.card-title h2').inner_text()=='SPC1'
+    page.close()
+    page=reader('dynamics.html')
+    page.locator('[data-sol="112"]').click()
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#input-112")')
+    page.locator('#save-dynamics').click()
+    page.wait_for_function('messages.some(m=>m.type==="share")')
+    m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
+    assert m['name']=='sdof_sol112.bdf'
+    assert base64.b64decode(m['base64']).decode('ascii')==page.evaluate('NastranDynamics.models["112"].text')
+    page.locator('[data-field="TLOAD1-0-5"]').click()
+    page.locator('#field-TLOAD1-0-5').wait_for()
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#field-TLOAD1-0-5")')
+    page.close()
+    page=reader('relations.html')
+    page.locator('.rel-tabs a[href="#sol-112"]').click()
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#sol-112")')
+    page.locator('[data-rel-node="0:load"]').click()
+    page.locator('#relation-dialog').wait_for(state='visible')
+    assert page.locator('#relation-dialog-title').inner_text()=='TLOAD1'
+    page.locator('#relation-card-link').click()
+    page.wait_for_function('messages.some(m=>m.type==="navigate"&&m.path==="dynamics.html"&&m.hash==="#card-TLOAD1")')
+    page.locator('#relation-close').click()
+    page.locator('a[download]').click()
+    page.wait_for_function('messages.some(m=>m.type==="asset"&&m.path==="downloads/nastran_card_relations.zip")')
+    page.close()
+    page=reader('fracture.html')
+    page.select_option('#crack-node-picker','10')
+    assert 'GRID 110' in page.locator('#crack-node-detail').inner_text()
+    page.select_option('#crack-card-picker','PRAC2D')
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#crack-card-PRAC2D")')
+    page.locator('#save-crack').click()
+    page.wait_for_function('messages.some(m=>m.type==="share")')
+    m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
+    assert m['name']=='crac2d_kfield_patch.bdf'
+    assert base64.b64decode(m['base64']).decode('ascii')==page.evaluate('NastranFracture.deck')
+    page.locator('#copy-crack').click()
+    page.wait_for_function('messages.some(m=>m.type==="copy")')
+    assert page.evaluate('messages.filter(m=>m.type==="copy").at(-1).text')==page.evaluate('NastranFracture.deck')
+    page.locator('a[download]').click()
+    page.wait_for_function('messages.some(m=>m.type==="asset"&&m.path==="downloads/nastran_crack_tip_example.zip")')
+    page.close()
+    page=reader('damping.html')
+    page.select_option('#damp-zeta','0.05')
+    assert page.locator('#damp-conversion strong').all_inner_texts()==['0.05','0.1','10','0.1']
+    page.select_option('#damp-example','rayleigh')
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#damp-example-rayleigh")')
+    page.locator('#save-damping').click()
+    page.wait_for_function('messages.some(m=>m.type==="share")')
+    m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
+    assert m['name']=='damping_rayleigh_sol112.bdf'
+    assert base64.b64decode(m['base64']).decode('ascii')==page.evaluate('NastranDamping.variants.rayleigh.deck')
+    page.locator('#copy-damping').click()
+    page.wait_for_function('messages.some(m=>m.type==="copy")')
+    assert page.evaluate('messages.filter(m=>m.type==="copy").at(-1).text')==page.evaluate('NastranDamping.variants.rayleigh.deck')
+    page.locator('a[href="#damp-field-ALPHA1-3"]').click()
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#damp-field-ALPHA1-3")')
+    assert '虚部' in page.locator('#damp-field-ALPHA1-3').inner_text()
+    page.locator('a[download]').click()
+    page.wait_for_function('messages.some(m=>m.type==="asset"&&m.path==="downloads/nastran_damping_examples.zip")')
+    page.close()
+    page=reader('modeling.html')
+    page.locator('[data-model="detailed"]').click()
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#model-detailed")')
+    assert page.locator('#model-count').inner_text()=='621節点 / 80要素'
+    page.locator('#save-model').click()
+    page.wait_for_function('messages.some(m=>m.type==="share")')
+    m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
+    assert m['name']=='cantilever_detailed.bdf'
+    assert base64.b64decode(m['base64']).decode('ascii')==page.evaluate('NastranModeling.models.detailed.deck')
+    page.locator('#copy-model').click()
+    page.wait_for_function('messages.some(m=>m.type==="copy")')
+    assert page.evaluate('messages.filter(m=>m.type==="copy").at(-1).text')==page.evaluate('NastranModeling.models.detailed.deck')
+    page.select_option('#model-input-picker','standard')
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#model-input-standard")')
+    page.select_option('#model-row-filter','key')
+    page.locator('a[href="bulk.html#PBAR/I1"]').click()
+    page.wait_for_function('messages.some(m=>m.type==="navigate"&&m.path==="bulk.html"&&m.hash==="#PBAR/I1")')
+    page.locator('a[download]').click()
+    page.wait_for_function('messages.some(m=>m.type==="asset"&&m.path==="downloads/nastran_cantilever_three_models.zip")')
+    page.close()
+    page=reader('errors.html')
+    page.locator('#error-query').fill('2025.0')
+    page.locator('#error-search-form button[type=submit]').click()
+    page.locator('[data-key="2025.0"]').click()
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#error-2025.0")')
+    page.locator('#error-copy').click()
+    page.wait_for_function('messages.some(m=>m.type==="copy"&&m.text.includes("原典項目 2025.0"))')
+    page.locator('#error-detail a[target=_blank]').click()
+    assert page.evaluate('messages.filter(m=>m.type==="external").at(-1).url').endswith('#page=215')
+    page.locator('#error-detail .error-related a').first.click()
+    assert page.evaluate('messages.filter(m=>m.type==="navigate").at(-1).path')=='coordinates.html'
+    page.locator('#error-clear').click()
+    assert page.locator('.error-result').count()==30
+    assert not page.locator('#error-detail').inner_text().strip()
+    page.close()
+    assert not errors,errors
+    browser.close()
+print('PASS: all offline mobile pages; chapter/progress bridge; routes and card diagrams; clipboard acknowledgement; Blob/BDF/INCLUDE/BAT bytes; image ZIP transport. Native iOS share sheet not tested.')

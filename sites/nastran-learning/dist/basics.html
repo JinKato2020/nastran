@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<html lang="ja"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>点・要素・支え・力 — Nastran 入門2</title><link href="bulk.css" rel="stylesheet"/><link href="workflow.css" rel="stylesheet"/><link href="fields.css" rel="stylesheet"/><link href="field-guide.css" rel="stylesheet"/><link rel="stylesheet" href="learning.css"></head>
+<body data-learning-page="basics.html"><a class="skip" href="#node">本文へ移動</a><header class="topbar"><a class="brand" href="index.html"><span class="brand-icon">N·</span><span>Nastran<small>はじめの一歩</small></span></a><nav class="header-links"><a href="bulk.html#GRID">GRIDの全項目</a><a href="input.html">入力の順番</a></nav></header>
+<main class="basics-main"><div class="basics-hero"><div class="eyebrow">カードを読む前の、小さな準備</div><h1>「点を置く」と<br/>「動きを止める」は、別のこと。</h1><p class="hero-lead">節点、自由度、拘束。まずは難しい言葉を、<br/>物差しを支える場面に置き換えて考えましょう。</p></div>
+<nav aria-label="基礎の目次" class="basic-nav"><a href="#node">節点とは</a><a href="#properties">物性と材料</a><a href="#dof">6つの動き</a><a href="#constraints">拘束の方法</a><a href="#loads">荷重</a><a href="#ids">番号の役割</a><a href="#blanks">空欄の意味</a><a href="#units">数字と単位</a></nav>
+<section class="basic-section" id="node"><span class="step-no">01</span><h2>節点は、位置と動きを計算する「点」。</h2><p>物差しの左端と右端に、印を付けるところを想像してください。その印が<strong>節点（せってん）</strong>です。NastranではGRIDカードで節点の位置を登録します。ものが触れる「接点」とは区別して呼びます。</p>
+<div class="basic-diagram"><svg aria-label="GRID 1とGRID 2の2点を、棒または梁の要素で結ぶ。点を置くだけでは物差しは作られない。" role="img" viewbox="0 0 600 230"><rect fill="#e7eefc" height="36" rx="5" stroke="#9bb2d9" width="380" x="110" y="88"></rect><path d="M110 106H490" stroke="#587fc3" stroke-width="3"></path><circle cx="110" cy="106" fill="white" r="10" stroke="#3259d8" stroke-width="3"></circle><circle cx="490" cy="106" fill="white" r="10" stroke="#3259d8" stroke-width="3"></circle><text text-anchor="middle" x="110" y="64">GRID 1</text><text text-anchor="middle" x="490" y="64">GRID 2</text><text text-anchor="middle" x="300" y="160">つなぐ役目は「要素」</text><text class="diagram-small" text-anchor="middle" x="300" y="194">棒ならCROD、梁ならCBAR</text></svg></div>
+<div class="basic-cards"><article><h3>GRIDだけでは、点があるだけ</h3><p>GRIDに書くのは位置や動きの基準です。太さ・材質・ばねのような硬さが、点を置くだけで生まれるわけではありません。</p></article><article><h3>要素が点どうしをつなぐ</h3><p>CRODやCBARなどの要素が、どの節点をつなぐかを指定します。断面や材料の情報と合わせて、どれくらい変形するかを計算します。</p></article><article><h3>同じ場所でも、別の番号なら別の点</h3><p>節点1と節点2の座標が同じでも、自動では接続されません。「近くに見えるから力が伝わる」と判断せず、要素や結合の指定を確認します。</p></article></div>
+<p class="reference">原典：QRG PDF 2151–2152（GRID）、1668（CROD）、1504（CBAR）。<a href="bulk.html#GRID">GRIDの全フィールドを読む →</a></p></section><section class="basic-section" id="properties"><div class="eyebrow">基本の模型をつなぐ</div><h2>要素・物性・材料は、役割が違う。</h2><p>要素は節点を結び、どのように力を伝えるかを表します。プロパティは断面積や板厚など、材料はヤング率などを与えます。</p>
+<pre><code class="language-text">GRID 1 ── CROD 100 ── GRID 2
+              │ PID = 200
+              ▼
+          PROD 200       断面積 A = 100 mm²
+              │ MID = 300
+              ▼
+          MAT1 300       ヤング率 E = 210000 N/mm²
+</code></pre>
+<p>節点座標だけでは、棒の太さも材料の硬さも決まりません。例題では、要素がプロパティを参照し、そのプロパティが材料を参照します。</p>
+<table>
+<thead>
+<tr>
+<th>表したい挙動</th>
+<th>主な要素の例</th>
+<th>注目する情報</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>棒の軸方向の引張り・圧縮</td>
+<td>CROD</td>
+<td>断面積、材料。曲げ剛性は持たない</td>
+</tr>
+<tr>
+<td>梁の曲げを含む変形</td>
+<td>CBAR、CBEAM</td>
+<td>断面特性、断面の向き、材料</td>
+</tr>
+<tr>
+<td>薄板の面内変形・曲げ</td>
+<td>CQUAD4、CTRIA3</td>
+<td>板厚、法線方向、材料</td>
+</tr>
+<tr>
+<td>厚み方向も含む立体的な変形</td>
+<td>CHEXA、CTETRAなど</td>
+<td>三次元の形状、材料</td>
+</tr>
+</tbody>
+</table>
+<p>要素は、対象の形と調べたい挙動に合わせて選びます。例えば、曲げ変形を調べたい部材にCRODを使っても、その曲げを表現できません。CRODにはねじり剛性も設定できますが、今回の例題は軸方向だけを扱います。</p>
+<p>原典の対応箇所は第3章のPDF 60〜63ページ、第4章のPDF 88〜89ページ、第9章のPDF 330〜331ページです。</p></section>
+<section class="basic-section" id="dof"><span class="step-no">02</span><h2>自由度は、「どのように動けるか」の番号。</h2><p>小さな箱なら、横・前後・上下へ動かせます。それとは別に、箱の向きも変えられます。この<strong>3つの移動と3つの回転</strong>を、Nastranでは成分1〜6で表します。「並進（へいしん）」は、向きを変えずに移動することです。</p>
+<div class="dof-catalog"><article><b>1</b><h3>X方向へ移動</h3><p>左右へすべらせる動き。変位の表示はT1。</p></article><article><b>2</b><h3>Y方向へ移動</h3><p>前後へすべらせる動き。変位の表示はT2。</p></article><article><b>3</b><h3>Z方向へ移動</h3><p>上下へ動かす動き。変位の表示はT3。</p></article><article><b>4</b><h3>X軸まわりに回転</h3><p>X方向の串を通し、その串のまわりに回すイメージ。表示はR1。</p></article><article><b>5</b><h3>Y軸まわりに回転</h3><p>Y方向の串のまわりに回す動き。表示はR2。</p></article><article><b>6</b><h3>Z軸まわりに回転</h3><p>Z方向の串のまわりに回す動き。表示はR3。</p></article></div>
+<p class="callout">ここではCD=0として、基本座標のX・Y・Zで説明しています。<strong>実際の成分方向はGRIDのCDで決まります。</strong> また、接続する要素によって使う動きが異なります。通常のソリッド要素は節点の並進を使い、梁のような節点の回転自由度は直接持ちません。いつでも全節点を123456で固定する、という意味ではありません。</p>
+<p><strong>123は「1・2・3を選ぶ」という意味。</strong> 数の百二十三でも、123 mmという変位でもありません。例えば13なら、1と3だけを選び、2は選びません。1つの欄に、空白やコンマを挟まず書きます。</p><p class="reference"><a href="coordinates.html#systems">軸の意味は座標系の教材で確認する →</a></p></section>
+<section class="basic-section" id="constraints"><span class="step-no">03</span><h2>拘束は、「この動きは止める」と決めること。</h2><p>物差しの片端を机にしっかり取り付けるように、模型の支え方を決めます。<strong>拘束した位置には必要に応じて反力が生じ、外からの力を支えます。</strong> 拘束は力を与える指定ではありません。支え方を変えると、変形も応力も変わります。</p>
+<div class="constraint-lab"><div class="paper"><h3>節点1で、止める動きを選ぶ</h3><p class="small-note">チェックした成分を0にします。向きはCD=0で、GRDSETの共通拘束はないものとします。模型を解く操作ではなく、入力の意味を学ぶ操作です。</p><div id="dof-checkboxes"></div><div class="constraint-presets"><button data-components="123">移動だけ止める</button><button data-components="123456">6成分を止める</button><button data-components="456">回転だけ止める</button><button data-components="">指定を外す</button></div><label class="constraint-method">どこに書く？<select id="constraint-method"><option value="SPC1">SPC1 · 解析ケースで選ぶ拘束</option><option value="PS">GRIDのPS · 常に効く拘束</option></select></label></div><div class="paper dof-result"><div id="dof-illustration"></div><p class="component-value" id="component-value"></p><div aria-live="polite" id="component-reading"></div></div></div>
+<details class="guide-details"><summary>選んだ内容を、8文字フィールドで見る</summary><div><div id="constraint-case"></div><div class="nf-view" id="constraint-fields"></div><p>この断片には要素や材料がないため、そのまま解析する完成BDFではありません。チェックを外した成分も、別の拘束や結合があれば自由には動けないことがあります。</p></div></details>
+<div class="constraint-methods"><article><h3>GRIDのPS：常に効く「0の拘束」</h3><p>その節点を登録する行に、止める成分を書きます。Case ControlでSPCを選ばなくても有効です。ケースごとに支え方を切り替える用途には向きません。</p><a href="bulk.html#GRID">PS欄を読む →</a></article><article><h3>SPC1：同じ動きをまとめて0にする</h3><p>拘束セットの番号SID、止める成分C、対象の節点Giを並べます。SPC1の末尾の「1」は成分1だけという意味ではありません。C=123456なども指定できます。</p><a href="bulk.html#SPC1">SPC1の全項目 →</a></article><article><h3>SPC：節点・成分・変位値を組にする</h3><p>Gで点、Cで動き、Dで指定する変位値を決めます。D=0.ならその動きを止めます。Dは力ではありません。非ゼロの値を与える強制変位にも使われます。</p><a href="bulk.html#SPC">SPCの全項目 →</a></article><article><h3>SPCD：選んだ拘束の変位値を与える</h3><p>例えば「右端を0.1 mmだけ動かす」という入力です。SOL 101では対象成分を選択済みのSPC/SPC1にも含め、SPCDのセットはLOADで選びます。</p><a href="bulk.html#SPCD">SPCDの全項目 →</a></article><article><h3>SPCADD：拘束セットをまとめる</h3><p>左側の支えセット10と、別の支えセット11を、まとめてセット100として選ぶ使い方です。成分番号や節点番号の足し算はしません。</p><a href="bulk.html#SPCADD">SPCADDの全項目 →</a></article><article><h3>RBE2・RBE3：点の動きどうしを関係付ける</h3><p>点を地面へ固定する指定とは違います。中心と周囲の動きに関係を作ります。全体の支えがなければ、結び付いた点は一緒に動けます。</p><a href="bulk.html#RBE2">RBE2 →</a> · <a href="bulk.html#RBE3">RBE3 →</a></article></div>
+<p class="callout"><strong>「たくさん止めるほど正しい」わけではありません。</strong> 支えが足りないと模型全体がすべったり回ったりして解けないことがあります。止めすぎると、実物より変形しにくくなります。実物がどこに、どの向きに支えられているかから考えます。</p><p class="reference">原典：QRG PDF 2151（GRID）、3156–3163（SPC / SPC1 / SPCADD / SPCD）、3029–3037（RBE2 / RBE3）。</p><p class="callout">SOL 101には、局所的に剛性がない、または非常に弱い自由度を自動拘束するAUTOSPCがあります。自動拘束で計算できても、意図した支持とは限りません。F06のGrid Point Singularity Tableなどで、対象の節点と方向を確認します。</p></section><section class="basic-section" id="loads"><div class="eyebrow">基本の模型をつなぐ</div><h2>荷重は、どこへ・どちらへ・どれだけ。</h2><p>節点に集中力を与える例です。</p>
+<div id="loads-fields"></div><details class="nf-source"><summary>固定長テキストを見る</summary><pre id="loads-example"><code class="language-text">FORCE         20       2       0   1000.      1.      0.      0.                
+</code></pre></details>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>この例の値</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SID</td>
+<td>20</td>
+<td>荷重セット番号</td>
+</tr>
+<tr>
+<td>G</td>
+<td>2</td>
+<td>力を加える節点</td>
+</tr>
+<tr>
+<td>CID</td>
+<td>0</td>
+<td>力の方向を指定する座標系</td>
+</tr>
+<tr>
+<td>F</td>
+<td>1000.</td>
+<td>ベクトルに掛ける倍率</td>
+</tr>
+<tr>
+<td>N1、N2、N3</td>
+<td>1.、0.、0.</td>
+<td>方向を表すベクトルの成分</td>
+</tr>
+</tbody>
+</table>
+<p>実際の力ベクトルは <code>F × (N1, N2, N3)</code> です。この例では基本座標系のX方向に1000 Nとなります。ベクトルは自動的に単位長さへ正規化されないため、<code>(2, 0, 0)</code>に変えると力は2000 Nになります。</p>
+<p>解析で使うときは、Case Controlに <code>LOAD = 20</code> と書きます。Bulk Dataに条件を定義することと、解析で使用する条件を選ぶことは別の操作です。</p>
+<p>原典の対応箇所は第6章のPDF 232〜235ページ、第7章のPDF 250〜251ページです。</p></section>
+<section class="basic-section" id="ids"><span class="step-no">04</span><h2>番号は、「どの設定を使うか」の名前札。</h2><div class="basic-cards"><article><h3>自分に付ける番号</h3><p>GRIDのIDは節点自身、要素のEIDは要素自身の番号です。同じ種類の中では区別できる番号にします。番号の大小で形や強さは変わりません。</p></article><article><h3>別のカードを探す番号</h3><p>CRODのPID=200は「PRODのPID=200を使う」という指定。PRODのMID=300は「MAT1のMID=300を使う」という指定です。</p></article><article><h3>まとめて選ぶ番号</h3><p>SPC1のSID=10は拘束のグループ名です。Case ControlのSPC = 10で選びます。ここに節点番号を書くのではありません。</p></article></div><div class="id-example"><span>CROD<br/><b>PID 200</b></span><i>→</i><span>PROD 200<br/><b>MID 300</b></span><i>→</i><span>MAT1 300<br/><b>材料の硬さなど</b></span></div><p>例えばSPC1のSIDもGRIDのIDも10にできますが、両者は別の役割です。初心者のうちは番号を付ける範囲を分けると、取り違えを減らせます。</p></section>
+<section class="basic-section" id="blanks"><h2>入力の空欄を確認するとき</h2><p>空欄・整数と実数・8文字の継続行は、入門3の入力規則にまとめています。</p><a href="input.html#rules">説明を開く →</a></section>
+<section class="basic-section" id="units"><h2>単位を確認するとき</h2><p>単位の組合せ・質量と密度の換算は、入門1の「単位をそろえる」で一度まとめて学びます。</p><a href="index.html#chapter-3">説明を開く →</a></section>
+<aside class="guide-sources"><strong>原典と適用範囲</strong><p>MSC Nastran 2020 SP1の通常の線形構造静解析（SOL 101）を中心にした入門です。熱解析などの節点の扱いはここでは説明していません。図と操作は入力の意味の説明で、ソルバーを実行するものではありません。</p><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2020_Quick_Reference_Guide.pdf">Quick Reference Guide ↗</a><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide.pdf">静解析ガイド ↗</a></aside><footer><a href="bulk.html#GRID">GRIDの全フィールドを読む →</a><a href="index.html">教材のトップへ</a></footer></main><script src="fields.js"></script><script src="basics.js"></script><script>NastranFields.render(document.getElementById("loads-fields"),document.getElementById("loads-example").textContent);</script><script src="learning-data.js"></script><script src="learning.js"></script></body></html>
