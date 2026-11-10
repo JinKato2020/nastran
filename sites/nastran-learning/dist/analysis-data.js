@@ -1,33 +1,438 @@
-(() => {
- 'use strict';
- const D=window.NastranDynamics;
- const pdf=(book,page)=>'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_'+book+'/raw/resource/enus/MSC_Nastran_2020_'+book+'.pdf#page='+page;
- const ref=(book,page,label)=>({url:pdf(book,page),label:label+' · PDF '+page});
- const refs={dynamic:page=>ref('Dynamic_Analysis_User_Guide',page,'動解析ガイド'),statics:page=>ref('Linear_Static_Analysis_User_Guide',page,'静解析ガイド'),qrg:page=>ref('Quick_Reference_Guide',page,'QRG'),thermal:page=>ref('Thermal_Analysis_User_Guide',page,'熱解析ガイド')};
- function fixed(v){if(v.length>10||v.some(x=>String(x).length>8||/[^\x20-\x7e]|,/.test(String(x))))throw Error('Invalid small field');return Array.from({length:10},(_,i)=>String(v[i]??'').padEnd(8)).join('');}
- const row=values=>({name:values[0],line:0,values,text:fixed(values)});
- const model=(name,exec,control,rows,complete=true)=>({name,exec,control,rows,complete,text:[...exec,...control,'BEGIN BULK',...rows.map(r=>r.text),'ENDDATA',''].join('\r\n')});
- const models={};
- models.heat=model('rod_heat_sol153.bdf',['SOL 153','CEND'],['TITLE = LINEAR ROD CONDUCTION','ANALYSIS = HEAT','SPC = 10','TEMPERATURE(INITIAL) = 20','NLPARM = 100','THERMAL = ALL','FLUX = ALL','SPCFORCES = ALL'],[
-  ['NLPARM','100','1'],['GRID','1','','0.','0.','0.'],['GRID','2','','0.5','0.','0.'],['GRID','3','','1.','0.','0.'],['CROD','1','5','1','2'],['CROD','2','5','2','3'],['PROD','5','15','0.01'],['MAT4','15','10.'],['SPC','10','1','','400.','3','','300.'],['TEMPD','20','350.'],['TEMP','20','1','400.','3','300.']
- ].map(row));
- for(const [sol,base] of [['108','111'],['109','112']]){
-  const original=D.models[base],rows=original.rows.filter(r=>!['EIGRL','TABDMP1'].includes(r.name)&&!(r.name==='PARAM'&&r.values[1]==='KDAMP'));
-  rows.push(row(['CDAMP2','300','0.04','1','1','0','0']));
-  const control=original.control.filter(s=>!/^\s*(METHOD|SDAMPING)\s*=/.test(s)).map(s=>s.startsWith('TITLE')?'TITLE = SDOF DIRECT SOL '+sol:s);
-  models[sol]=model('sdof_sol'+sol+'.bdf',['SOL '+sol,'CEND'],control,rows);
- }
- models.buckling=model('buckling_control_fragment.bdf',['SOL 105','CEND'],['$ FRAGMENT: ADD STRUCTURE, MATERIAL, SPC AND LOAD','SPC = 10','DISPLACEMENT = ALL','SUBCASE 1','    LOAD = 20','SUBCASE 2','    STATSUB(BUCKLING) = 1','    METHOD = 30'],[row(['EIGRL','30','','','3'])],false);
- for(const sol of ['103','111','112'])models[sol]={...D.models[sol],complete:true};
- const entries=[
-  {key:'static',title:'静解析',sol:'SOL 101',summary:'時間に依存しない荷重・拘束条件に対し、線形弾性体の変位、反力、応力を求めます。慣性・減衰の効果は含めません。',equation:'K u = F',symbols:'K：剛性行列、u：変位、F：外力。拘束条件を反映した自由度について解きます。',flow:['SOL 101','SPC / LOAD','GRID → 要素 → 物性 → 材料','変位・反力・応力'],inputs:[['モデル','要素種と材料・断面／板厚を選択。座標系と単位系を統一。'],['境界・荷重','SPCで拘束セット、LOADで静的荷重セットを選択。'],['結果要求','DISPLACEMENT・SPCFORCES・STRESS・FORCEを目的に応じて要求。']],outputs:['変位量・変形形状が支持条件と荷重方向に対応しているか。','反力と外力の釣合い。応力の座標系・評価位置・単位。'],checks:['線形性を利用した荷重倍率の検算。接触状態の変化や大変形には別の解析設定が必要です。','局所最大応力は特異点やメッシュ依存性を含むため、値だけで判断しません。'],links:[['input.html#complete','棒の引張り：完成BDF'],['modeling.html','片持ち梁：簡易・標準・詳細モデル'],['workflow.html#results','結果の読み方']],sources:[refs.statics(39),refs.statics(46)]},
-  {key:'modes',title:'固有値解析',sol:'SOL 103 · 実固有値',summary:'質量と剛性から、無減衰の固有振動数と固有モードを求めます。強制振動の振幅を求める解析ではありません。',equation:'K φ = ω² M φ　 /　 f = ω / (2π)',symbols:'M：質量行列、φ：固有モード、ω：固有角振動数 [rad/s]、f：固有振動数 [Hz]。',flow:['SOL 103','METHOD = 30','EIGRL 30','固有振動数・モード形'],inputs:[['質量','密度・集中質量・非構造質量を定義。剛性だけの静解析モデルをそのまま使わない。'],['抽出条件','METHODでEIGRLを選び、周波数範囲・必要モード数を指定。'],['拘束','支持条件によって固有振動数が変化。自由支持モデルには剛体モードが現れる。']],outputs:['固有振動数、モード形、正規化方法を確認。表示変位の大きさは実応答振幅ではありません。','励振方向への寄与、必要なモードの取りこぼし、低い固有値の原因を確認。'],checks:['無減衰1自由度例：k=100 N/mm、m=0.01 tonneで fₙ≈15.9155 Hz。','モード数とメッシュを増やし、対象の固有振動数が安定するか確認します。'],examples:['103'],exampleNote:'1自由度のばね・質量モデル。節点1のT1を残し、T2〜R3を拘束します。',links:[['dynamics.html#modes','固有振動とモードの解説'],['dynamics.html#input-103','固有値例題の詳しい入力']],sources:[refs.dynamic(54),refs.qrg(1959)]},
-  {key:'heat',title:'熱伝導解析',sol:'SOL 153 / 159',summary:'定常または時間変化する温度分布と熱流を求めます。求めた温度を構造解析に渡す熱応力評価とは、解析段階を分けます。',equation:'定常：Kₜ T = Q　 /　 非定常：Cₜ Ṫ + Kₜ T = Q(t)',symbols:'Kₜ：熱伝導行列、Cₜ：熱容量行列、T：温度、Q：熱負荷。',flow:['SOL 153 / 159','ANALYSIS = HEAT','熱物性・温度境界・熱負荷','温度・熱流束・熱収支'],inputs:[['物性・モデル','MAT4のKで熱伝導率を指定。非定常ではCP・密度も必要。形状・面積と単位を整合させる。'],['境界・初期温度','SPCで境界温度。SOL 153はTEMPERATURE(INITIAL)、SOL 159はICでTEMP/TEMPDを選択。初期温度と温度境界を一致させる。'],['熱負荷・計算条件','熱流束はQBDY1とCHBDY系の面定義。SOL 153はNLPARM、SOL 159はTSTEPNLで計算条件を指定。構造線形過渡用のBulk TSTEPと区別。']],outputs:['THERMAL：節点温度。FLUX：温度勾配・熱流束。SPCFORCES：温度拘束を維持する熱流。','入熱と出熱の釣合い。非定常では蓄熱も含めて評価。熱流量 [W] と熱流束 [W/m²] を区別。'],checks:['例題：長さ1 m、面積0.01 m²、熱伝導率10 W/(m·K)、端点400 K / 300 K。中点350 K、+X方向の熱流束1000 W/m²、熱流量10 W。','この例は一定物性・側面断熱の棒です。端点温度で駆動するため、LOAD/QBDY1は不要です。'],examples:['heat'],exampleNote:'定常熱伝導の3節点・2要素モデル。m・W・K系。SPCの成分欄は空欄とし、TEMPDの初期値をTEMPで端点だけ上書きします。',links:[['input.html#rules','8文字の入力規則']],sources:[refs.thermal(99),refs.thermal(52),refs.qrg(3157),refs.qrg(3321)]},
-  {key:'modal-frequency',title:'モーダル周波数応答解析',sol:'SOL 111',summary:'固有モードを基底とする座標系で調和荷重への定常応答を求め、物理座標へ戻します。採用したモードの範囲が応答精度に影響します。',equation:'u ≈ Φ q　 /　 (Kᵣ − ω²Mᵣ + iωCᵣ) Q = Fᵣ',symbols:'Φ：採用モード、添字r：モード座標へ縮約した行列・荷重。',flow:['METHOD → EIGRL','DLOAD → RLOAD1 → DAREA','FREQUENCY / SDAMPING','複素変位・速度・加速度'],inputs:[['固有モード','METHOD/EIGRLで抽出範囲を指定。必要に応じて残余応答も検討。'],['加振','FREQUENCY/FREQ1で計算周波数、RLOAD1で周波数関数と荷重参照を指定。'],['減衰','この例はSDAMPING/TABDMP1でモード減衰比2%を指定。']],outputs:['共振周波数、振幅、位相。実部だけでは複素応答の振幅を表しません。','モード数と周波数刻みを変え、ピークの位置と大きさの収束を確認。'],checks:['加振周波数の上限と固有値抽出範囲は同じ意味ではありません。','モードを増やして結果が変わる場合、打切り誤差や残余応答を確認します。'],examples:['111'],exampleNote:'1自由度モデルに100 Nの調和荷重。0〜40 Hz、0.1 Hz刻み、減衰比2%。',links:[['dynamics.html#frequency','周波数応答の理論グラフ'],['damping.html','減衰の使い分け']],sources:[refs.dynamic(151),refs.dynamic(156)]},
-  {key:'direct-frequency',title:'直接周波数応答解析',sol:'SOL 108',summary:'各加振周波数について、物理自由度の複素連立方程式を直接解きます。モード打切りはありませんが、モデル・周波数点数に応じて計算量が増えます。',equation:'(K − ω²M + iωC) U = F',symbols:'U・F：複素振幅、C：粘性減衰行列。この式は線形粘性減衰の表現です。',flow:['SOL 108','DLOAD → RLOAD1 → DAREA','FREQUENCY → FREQ1','周波数ごとの複素応答'],inputs:[['荷重・周波数','動荷重の参照関係とFREQ1はSOL 111の例と共通。'],['物理減衰','この例はCDAMP2でc=0.04 N·s/mmの粘性ダンパーを定義。'],['モード法との差','この例ではMETHOD/EIGRLとモード減衰表を外す。SOL番号だけの置換にしない。']],outputs:['振幅・位相、共振付近の細かい周波数走査、支持点での応答。','同じ質量・剛性・等価な減衰を用い、モード法の結果と比較。'],checks:['k=100 N/mm、m=0.01 tonne、ζ=0.02から c=2ζ√(km)=0.04 N·s/mm。','1自由度例は全モードを含むため、モード法との比較に適します。一般のモデルでは減衰の等価性も確認します。'],examples:['108'],exampleNote:'既存のSOL 111例から動荷重と周波数を維持し、CDAMP2による物理減衰へ変更した独自例題。',links:[['analysis.html#modal-frequency','モーダル法と比較'],['bulk.html#CDAMP2','CDAMP2の入力']],sources:[refs.dynamic(142),refs.dynamic(156),refs.qrg(1532)]},
-  {key:'transient',title:'過渡応答解析',sol:'SOL 109 / 112',summary:'荷重・変位などの時間波形に対する応答を求めます。直接法SOL 109は物理自由度、モード法SOL 112は採用モードの応答を時間積分します。',equation:'M ü + C u̇ + K u = F(t)',symbols:'u・u̇・ü：変位・速度・加速度。初期状態と荷重履歴に依存します。',flow:['直接109 / モード112','DLOAD → TLOAD1 → TABLED1','TSTEP・初期条件・減衰','変位・速度・加速度の時刻歴'],inputs:[['時間波形','TLOAD1からTABLED1の時刻・倍率を参照。空間分布はDAREAなどで別に指定。'],['時間刻み','TSTEPで刻み・ステップ数・出力間隔。出力を間引いても計算の刻みは変わらない。'],['解法と減衰','112はMETHOD/EIGRLとモード減衰、109の掲載例はCDAMP2。初期変位・速度は両例とも0。']],outputs:['時刻歴の最大・最小・発生時刻、荷重終了後の自由振動と減衰。','時間刻み・計算時間を変えた収束。112ではモード打切りも確認。'],checks:['0.04秒で終了する最大100 Nの三角形荷重を入力し、1秒まで計算します。','周波数応答の定常ピークと、有限時間の荷重による最大値は直接一致しません。'],examples:['109','112'],exampleNote:'共通のk・m・ζで直接法とモード法を比較。計算刻み0.0005秒、出力は毎ステップ。',links:[['dynamics.html#transient','過渡応答と荷重波形'],['damping.html','減衰の設定']],sources:[refs.dynamic(212),refs.dynamic(220),refs.qrg(3320)]},
-  {key:'fracture',title:'亀裂先端解析',sol:'線形弾性破壊力学 · CRAC2D',summary:'亀裂先端の特異場を表す要素・近傍メッシュを使い、応力拡大係数などを評価します。専用要素は数学的な応力特異性を消すものではありません。',equation:'σᵢⱼ ∝ K / √(2πr)',symbols:'r：亀裂先端からの距離、K：応力拡大係数。線形弾性の亀裂先端近傍での代表的な関係です。',flow:['亀裂形状・荷重・拘束','CRAC2D → PRAC2D → MAT1','先端近傍と周囲の接続','K・モード・適用範囲'],inputs:[['モデル','亀裂方向、節点配置、材料、平面応力／平面ひずみの仮定を確認。'],['要素','既存教材はCRAC2Dの局所18節点例題。全構造のモデルとは分けて扱う。'],['評価','最大節点応力の値だけで評価せず、Kとメッシュ・境界の影響を確認。']],outputs:['Kのモード・符号・単位と、出力位置・成分の対応。','既知解や遠方境界を変えた結果との比較。'],checks:['先端の最大応力はメッシュ細分化で発散し得ます。専用要素の使用だけで有限値へ収束するとは限りません。','大規模塑性や進展を扱う場合は、線形弾性破壊力学の適用範囲を見直します。'],links:[['fracture.html','18節点例題・全フィールド解説'],['bulk.html#CRAC2D','CRAC2Dの入力']],sources:[refs.qrg(1657)]},
-  {key:'buckling',title:'座屈解析',sol:'SOL 105 · 線形固有値座屈',summary:'基準荷重に対する応力状態から幾何剛性を求め、座屈荷重係数と座屈モードを算出します。座屈後の変形経路を追う解析ではありません。',equation:'[K + λ Kɢ(Pref)] φ = 0　 /　 Pcr = λ Pref',symbols:'λ：荷重係数、Pref：比例増加させる基準荷重、Kɢ：その応力状態に対応する幾何剛性。先行荷重なしの基本形です。',flow:['静的SUBCASE 1 → LOAD','STATSUB(BUCKLING) = 1','METHOD → EIGRL','荷重係数λ・座屈形状'],inputs:[['基準状態','静的SUBCASEで基準荷重と拘束を設定。座屈SUBCASEからSTATSUBで参照。'],['抽出条件','METHOD/EIGRLで抽出条件。座屈時のEIGRLの範囲は荷重係数でありHzではない。'],['先行荷重','一定の先行荷重はSTATSUB(PRELOAD)で区別。全荷重はP₀+λPrefとなり、P₀までλ倍しない。']],outputs:['正の荷重係数と対応するモード形。負の固有値は逆方向の基準荷重との関係も確認。','理想柱ならEuler荷重Pcr=π²EI/(有効長)²と比較。モード形は実変位量ではありません。'],checks:['STATSUBの参照番号は静的SUBCASE番号であり、LOADのSIDではありません。','小変形・弾性の理想化です。初期不整・塑性・大変形を含む実際の限界荷重を保証しません。'],examples:['buckling'],exampleNote:'制御文とEIGRLの入力断片です。GRID・要素・材料・SPC 10・荷重20を別途定義する必要があります。このファイルだけでは解析できません。',links:[['basics.html#constraints','支持条件の設定'],['modeling.html','梁・シェル・立体のモデル化']],sources:[refs.statics(488),refs.statics(497),refs.qrg(621),refs.qrg(1959)]}
- ];
- window.NastranAnalysis={entries,models,fixed};
-})();
+window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
+  {
+    "key": "static",
+    "title": "静解析",
+    "sol": "SOL 101",
+    "summary": "NAS101 Workshop 1の単純支持トラスで、荷重セットの組合せ、部材の軸力、支持反力の釣合いを確認します。",
+    "inputs": [
+      [
+        "形状・材料",
+        "7節点・11本のCROD。長さの単位in、荷重lbf、E=1.76×10⁶ psi、断面積5.25 in²。節点座標と接続は全文のGRID・CRODで確認します。"
+      ],
+      [
+        "支持条件",
+        "左端GRID1は成分12、右端GRID7は成分2を拘束。全節点のGRID PS=3456で面外並進と回転を止めます。SPCADD 2がSPC1セット1と3を結び、Case ControlのSPC=2で選択します。"
+      ],
+      [
+        "荷重の選択",
+        "GRID2・4・6に各1500 lbfの下向き荷重と1300 lbfの左向き荷重。FORCEセット1・3をLOAD 2で合成し、LOAD=2で選択します。"
+      ]
+    ],
+    "outputs": [
+      "DISPLACEMENTで全体の変形方向、SPCFORCESで支持反力、STRESSで各CRODの軸応力を確認します。",
+      "原典PDF27の反力：左端X=3900 lbf、Y=2900 lbf、右端Y=1600 lbf。左＋右のY反力4500 lbfは鉛直外力の合計と一致します。",
+      "水平荷重の作用高さも含めてモーメントを照合します。左右反力を単純に2250 lbfずつと予想すると、水平荷重によるモーメントを見落とします。"
+    ],
+    "checks": [
+      "支持点の変位成分と荷重方向を基本座標系で照合する。",
+      "軸応力の引張り・圧縮符号を変形と部材の方向に照らす。原典結果は実行済みの本アプリ結果ではありません。"
+    ],
+    "examples": [
+      "static"
+    ],
+    "availability": "",
+    "sources": [
+      {
+        "url": "https://www.scc.kit.edu/scc/sw/msc/Nas101/lesson_01.pdf",
+        "label": "NAS101 Workshop 1: Simply Supported Truss · PDF 3, 23, 27"
+      }
+    ],
+    "links": [
+      [
+        "theory.html#static",
+        "静解析の理論"
+      ],
+      [
+        "workflow.html#results",
+        "F06・OP2の読み方"
+      ],
+      [
+        "batch.html",
+        "実行コマンド・並列計算"
+      ]
+    ]
+  },
+  {
+    "key": "modes",
+    "title": "固有値解析",
+    "sol": "SOL 103",
+    "summary": "NAS102 Workshop 1の片持ち板から5つの固有振動数を抽出します。この板を後続の周波数応答・過渡応答でも使用します。",
+    "inputs": [
+      [
+        "共通板モデル",
+        "5 in×2 in×0.1 inの板、55 GRID・40 CQUAD4。E=3.0×10⁷ psi、ν=0.3、重量密度0.282 lbf/in³。WTMASS=0.00259で質量へ換算し、COUPMASS=1を保持します。"
+      ],
+      [
+        "支持",
+        "左辺GRID1・12・23・34・45の成分12345をSPC1で拘束します。成分6を勝手に追加せず、原典の支持とシェルの回転自由度の扱いを確認します。"
+      ],
+      [
+        "固有値条件",
+        "METHOD=1がEIGRL 1を選択し、ND=5で5モードを要求します。外力を与えずに、質量と剛性、支持条件から固有値を計算します。"
+      ]
+    ],
+    "outputs": [
+      "原典PDF23の周波数は133.6996、689.7916、843.8915、2212.030、2379.052 Hz。固有値表のCYCLES欄と比較します。",
+      "モード形は任意の規格化倍率です。応答変位と混同せず、曲げ・ねじりの形、固定辺の動き、モード順序を確認します。"
+    ],
+    "checks": [
+      "低次モードが極端に低い場合は拘束・未接続・単位を点検する。",
+      "周波数だけでなくモード形も比較する。材料密度とWTMASSを同時に変更して二重換算しない。"
+    ],
+    "examples": [
+      "modes"
+    ],
+    "availability": "",
+    "sources": [
+      {
+        "url": "https://www.scc.kit.edu/scc/sw/msc/Nas102/prob01.pdf",
+        "label": "NAS102 Workshop 1: Modal Analysis of a Flat Plate · PDF 3, 4, 18, 19, 20, 23"
+      }
+    ],
+    "links": [
+      [
+        "theory.html#modes",
+        "固有値解析の理論"
+      ],
+      [
+        "workflow.html#results",
+        "F06・OP2の読み方"
+      ],
+      [
+        "batch.html",
+        "実行コマンド・並列計算"
+      ]
+    ]
+  },
+  {
+    "key": "heat",
+    "title": "熱伝導解析",
+    "sol": "SOL 153",
+    "summary": "Patran 2021の公開ガイド第2章に沿って、温度指定・入熱・対流を同じ板で扱います。求める量は板内部の温度と熱流で、熱応力は別の解析です。",
+    "inputs": [
+      [
+        "形状・物性",
+        "幅1 m×高さ3 m×厚さ0.1 m。0.2 m間隔、5×15=75四角形要素。熱伝導率204 W/(m·K)、密度2707 kg/m³、比熱896 J/(kg·K)。後二者は非定常解析への拡張で蓄熱に関係します。"
+      ],
+      [
+        "既知温度と未知温度",
+        "下辺を50°Cに保持します。左側の周囲温度20°Cは流体の温度であり、板の左辺温度そのものを20°Cに固定しません。板内部と左・右辺の温度は求める結果です。"
+      ],
+      [
+        "入出熱・断熱",
+        "右辺へ内向き5000 W/m²。左辺はh=10 W/(m²·K)で20°Cの周囲と対流します。上辺・表裏には熱交換を定義しない2次元モデルです。この断熱扱いは条件の省略から読み取るモデル仮定です。"
+      ],
+      [
+        "入力への対応",
+        "原典PDF28–30でメッシュ、37–46で境界条件を作成します。MAT4・板要素の物性・温度拘束・熱流束・対流面と周囲温度の対応を確認し、PatranからMSC Nastran入力を出力します。"
+      ]
+    ],
+    "outputs": [
+      "原典PDF51には温度分布のコンターが掲載されています。これは表形式の数値出力ではないため、図から読み取った温度を厳密な正解値にはしません。",
+      "独自の熱収支検算：右辺の面積3×0.1=0.3 m²、総入熱5000×0.3=1500 W。定常状態では、温度を維持する下辺と左辺の対流から出る正味熱量がこの入熱と釣り合います。",
+      "温度境界の反力に相当する熱流と対流面の熱流を集計します。上下の温度差だけで放熱先を判断しません。"
+    ],
+    "checks": [
+      "境界の熱流束と面積から熱流量を別々に計算する。",
+      "定常反復の開始温度を非定常の初期温度と混同しない。非定常への拡張は原典第7章を参照。"
+    ],
+    "examples": null,
+    "availability": "原典にはPatranでの一連の作成手順があります。完全なDATリスト・直接ダウンロードできるDATは未取得です。画面の条件説明を「公式の完成入力ファイル」とは扱いません。",
+    "sources": [
+      {
+        "url": "https://nexus.hexagon.com/community/cfs-file/__key/communityserver-discussions-components-files/816/DOC12832-_2D00_-patran_5F00_2021_5F00_nastran_5F00_thermal.pdf",
+        "label": "Patran 2021 Interface to MSC Nastran Thermal, Chapter 2: Getting Started – A Guided Exercise · PDF 21, 22, 23, 28, 29, 30, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 51"
+      }
+    ],
+    "links": [
+      [
+        "theory.html#heat",
+        "熱伝導解析の理論"
+      ],
+      [
+        "workflow.html#results",
+        "F06・OP2の読み方"
+      ],
+      [
+        "batch.html",
+        "実行コマンド・並列計算"
+      ]
+    ]
+  },
+  {
+    "key": "modal-frequency",
+    "title": "モーダル周波数応答解析",
+    "sol": "SOL 111",
+    "summary": "NAS102 Workshop 6の板に、一様な調和圧力と位相の異なる集中力を与えます。参照番号をたどり、荷重分布・振幅・位相を確認します。",
+    "inputs": [
+      [
+        "板と支持",
+        "5 in×2 in×0.1 inの板、55 GRID・40 CQUAD4。E=3.0×10⁷ psi、ν=0.3、重量密度0.282 lbf/in³。WTMASS=0.00259で質量へ換算し、COUPMASS=1を保持します。 左辺GRID1・12・23・34・45の成分12345をSPC1で拘束します。成分6を勝手に追加せず、原典の支持とシェルの回転自由度の扱いを確認します。"
+      ],
+      [
+        "モード・減衰",
+        "METHOD=100→EIGRLで10～2000 Hzのモードを抽出。SDAMPING=100→TABDMP1 CRITで減衰比0.03。FREQ1の20 Hz刻みに加えFREQ4で共振周辺を補います。"
+      ],
+      [
+        "圧力の経路",
+        "LOADSET=100→LSEQ 100→PLOAD2 400が全40要素へ1 psiを定義。DLOADの倍率0.1により実効圧力0.1 psiになります。RLOAD2 400のEXCITEID=300をLSEQのEXCITEIDと対応させます。"
+      ],
+      [
+        "集中力の経路",
+        "RLOAD2 500→DAREA 600がGRID11の成分3へ1 lbfを定義。DPHASE 320で−45°。両荷重をDLOAD 100で合成します。"
+      ]
+    ],
+    "outputs": [
+      "原典PDF21：GRID11の成分3は133.6996 Hzで振幅0.1699121 in。周波数、振幅、位相を同じ条件で比較します。",
+      "GRID11・33・55の応答を比べ、圧力と偏心した集中力が板の曲げ・ねじりへどう寄与するかを確認します。"
+    ],
+    "checks": [
+      "Workshop 5の直接法例とは荷重と減衰の定義が違います。そのまま振幅差を解法の誤差と解釈しない。",
+      "モード上限と周波数刻みを変えて、ピーク値が安定するか確認する。"
+    ],
+    "examples": [
+      "modal-frequency"
+    ],
+    "availability": "",
+    "sources": [
+      {
+        "url": "https://www.scc.kit.edu/scc/sw/msc/Nas102/prob06.pdf",
+        "label": "NAS102 Workshop 6: Modal Frequency Response Analysis · PDF 15, 16, 17, 21"
+      }
+    ],
+    "links": [
+      [
+        "theory.html#modal-frequency",
+        "モーダル周波数応答解析の理論"
+      ],
+      [
+        "workflow.html#results",
+        "F06・OP2の読み方"
+      ],
+      [
+        "batch.html",
+        "実行コマンド・並列計算"
+      ]
+    ]
+  },
+  {
+    "key": "direct-frequency",
+    "title": "直接周波数応答解析",
+    "sol": "SOL 108",
+    "summary": "NAS102 Workshop 5の板先端へ単一の調和集中力を与え、20～1000 Hzの応答を物理自由度で解きます。",
+    "inputs": [
+      [
+        "板と支持",
+        "5 in×2 in×0.1 inの板、55 GRID・40 CQUAD4。E=3.0×10⁷ psi、ν=0.3、重量密度0.282 lbf/in³。WTMASS=0.00259で質量へ換算し、COUPMASS=1を保持します。 左辺GRID1・12・23・34・45の成分12345をSPC1で拘束します。成分6を勝手に追加せず、原典の支持とシェルの回転自由度の扱いを確認します。"
+      ],
+      [
+        "荷重と減衰",
+        "DLOAD=500→RLOAD2 500→DAREA 600がGRID11の成分3へ1 lbfを与えます。TABLED1 310は振幅倍率1。PARAM G=0.06は構造減衰で、粘性減衰比を直接指定した値ではありません。"
+      ],
+      [
+        "周波数・出力",
+        "FREQUENCY=100→FREQ1、20 Hz開始・20 Hz間隔・49増分、合計50点。DISPLACEMENT(SORT2,PHASE)=111はSET 111の3節点の複素応答を振幅と位相で要求します。"
+      ]
+    ],
+    "outputs": [
+      "原典PDF19：GRID11、20 Hz、成分3の振幅0.008817999 in、位相356.4954°。位相は−3.5046°と同じ角度です。",
+      "20 Hz刻みではピーク周辺を十分に捉えない場合があります。粗い走査で共振位置を見つけ、その付近を細分化します。"
+    ],
+    "checks": [
+      "振幅を実部、PHASEを時間遅れそのものと混同しない。",
+      "応答の単位、力の成分、構造減衰Gを原典条件と照合する。"
+    ],
+    "examples": [
+      "direct-frequency"
+    ],
+    "availability": "",
+    "sources": [
+      {
+        "url": "https://www.scc.kit.edu/scc/sw/msc/Nas102/prob05.pdf",
+        "label": "NAS102 Workshop 5: Direct Frequency Response Analysis · PDF 14, 15, 19"
+      }
+    ],
+    "links": [
+      [
+        "theory.html#direct-frequency",
+        "直接周波数応答解析の理論"
+      ],
+      [
+        "workflow.html#results",
+        "F06・OP2の読み方"
+      ],
+      [
+        "batch.html",
+        "実行コマンド・並列計算"
+      ]
+    ]
+  },
+  {
+    "key": "transient",
+    "title": "過渡応答解析",
+    "sol": "SOL 109 / 112",
+    "summary": "NAS102 Workshop 3・4の板へ有限時間の正弦波荷重を与え、加振中と加振終了後の変位を追います。二つの例は荷重条件が異なります。",
+    "inputs": [
+      [
+        "板と支持",
+        "5 in×2 in×0.1 inの板、55 GRID・40 CQUAD4。E=3.0×10⁷ psi、ν=0.3、重量密度0.282 lbf/in³。WTMASS=0.00259で質量へ換算し、COUPMASS=1を保持します。 左辺GRID1・12・23・34・45の成分12345をSPC1で拘束します。成分6を勝手に追加せず、原典の支持とシェルの回転自由度の扱いを確認します。"
+      ],
+      [
+        "直接法 SOL109",
+        "一様圧力1 psiとGRID11の50 lbf。250 Hz、0～0.008 sの2周期。TLOAD2の位相は圧力−90°、集中力＋90°。G=0.06、W3=1571 rad/sで過渡応答用の減衰へ変換します。"
+      ],
+      [
+        "モード法 SOL112",
+        "5モード、減衰比0.03。一様圧力1 psiとGRID11の25 lbf。集中力はDELAY 610で0.004 s遅れ、0.004～0.012 sに作用。TLOAD2の位相はいずれも−90°です。"
+      ],
+      [
+        "時間・参照番号",
+        "TSTEP 100は100増分×0.0004 s、出力間隔1。LOADSET→LSEQ→PLOAD2で圧力分布、DLOAD→TLOAD2で波形と倍率、DAREAで集中力の位置を選びます。"
+      ]
+    ],
+    "outputs": [
+      "原典PDF21の時刻歴と、GRID11・33・55の成分3を比較します。加振終了後も自由振動が残ること、減衰によって振幅が低下することを確認します。",
+      "歴史的出力の例：0.0004 sにおけるGRID11のT3はSOL109で−0.02173625 in、SOL112で0.0001873720 in。ただし2020 SP1 QRG PDF3305 Remark18には旧版TLOAD2との1時間ステップの相違が記載されており、現行版で同時刻の一致を合格条件にはできません。"
+    ],
+    "checks": [
+      "時間刻みを小さくし、波形のピーク・位相が安定するか確認する。",
+      "直接法とモード法の比較には荷重倍率・位相・遅延・減衰をそろえた別検討が必要です。掲載2例をそのまま比較しない。"
+    ],
+    "examples": [
+      "transient-direct",
+      "transient-modal"
+    ],
+    "availability": "",
+    "sources": [
+      {
+        "url": "https://www.scc.kit.edu/scc/sw/msc/Nas102/prob03.pdf",
+        "label": "NAS102 Workshop 3: Direct Transient Response Analysis · PDF 16, 17, 21"
+      },
+      {
+        "url": "https://www.scc.kit.edu/scc/sw/msc/Nas102/prob04.pdf",
+        "label": "NAS102 Workshop 4: Modal Transient Response Analysis · PDF 16, 17, 21"
+      }
+    ],
+    "links": [
+      [
+        "theory.html#transient",
+        "過渡応答解析の理論"
+      ],
+      [
+        "workflow.html#results",
+        "F06・OP2の読み方"
+      ],
+      [
+        "batch.html",
+        "実行コマンド・並列計算"
+      ]
+    ]
+  },
+  {
+    "key": "fracture",
+    "title": "亀裂先端解析",
+    "sol": "SOL 400",
+    "summary": "MSC Nastran 2025.1 Verification Guide §6.45の中央亀裂板を参照し、四分点要素とVCCTによる破壊力学量の評価を学びます。",
+    "inputs": [
+      [
+        "形状・材料",
+        "NAFEMS R0020 Test1.1。b=20、a=10、h=20の1/4モデル、平面ひずみ、E=207000、ν=0.3。原典の単位系に整合させ、記載のないmm・MPaを原典指定と断定しません。"
+      ],
+      [
+        "境界条件",
+        "上辺に一様引張応力100。左辺はuₓ=0。下面は亀裂先端より右側だけuᵧ=0とし、亀裂面は自由。下面全体を拘束すると亀裂の開口が失われます。"
+      ],
+      [
+        "先端要素と評価",
+        "原典モデルはQUAD8と四分点TRIA6、評価はVCCT。CRAC2Dとは別のモデルです。四分点要素は先端の特異場を表すために用い、先端の物理的な特異性を消すものではありません。"
+      ],
+      [
+        "原典データ",
+        "モデル名nvcct001、配布先としてtpl/verifman/nafemsが示されています。完全な節点・要素リストはPDFにないため、図から推測したメッシュを原典DATとはしません。"
+      ]
+    ],
+    "outputs": [
+      "原典PDF387：エネルギー解放率G=2.4665、KI=749.0、K₀=560.5、KI/K₀=1.3364。参照解の正規化値は1.325です。",
+      "比較対象は先端節点の最大応力ではなく、K・Gとその収束です。掲載値の差は約0.86%。この数字は原典の結果で、本アプリで実行した結果ではありません。"
+    ],
+    "checks": [
+      "亀裂面の自由条件、対称拘束、四分点位置、平面ひずみ設定を確認する。",
+      "旧版のE値に相違があるため、本教材は確認した2025.1版の207000を使用します。"
+    ],
+    "examples": null,
+    "availability": "原典PDFでモデル条件と結果は確認済みですが、nvcct001の完全なDATは未取得です。モデル名と入手先を記録し、未完成の制御部を完成DATとして配布しません。",
+    "sources": [
+      {
+        "url": "https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Verification_Guide/raw/resource/enus/MSC_Nastran_2025.1_Verification_Guide.pdf",
+        "label": "Verification Guide 2025.1 §6.45 / NAFEMS R0020 Test1.1: Center Cracked Plate in Tension · PDF 385, 386, 387"
+      }
+    ],
+    "links": [
+      [
+        "theory.html#fracture",
+        "亀裂先端解析の理論"
+      ],
+      [
+        "workflow.html#results",
+        "F06・OP2の読み方"
+      ],
+      [
+        "batch.html",
+        "実行コマンド・並列計算"
+      ]
+    ]
+  },
+  {
+    "key": "buckling",
+    "title": "座屈解析",
+    "sol": "SOL 105",
+    "summary": "2024.1 Linear Static GuideのEuler梁検証例で、基準静荷重と座屈固有値の関係を確認します。",
+    "inputs": [
+      [
+        "梁と断面",
+        "長さ10 m、10個のCBAR。断面0.1 m×0.02 m、A=0.002 m²、I1=6.667×10⁻⁸ m⁴、I2=1.667×10⁻⁶ m⁴。E=7.1×10¹⁰ Pa、ν=0.33、ρ=2700 kg/m³。GRID100を梁断面の方向指定に使用します。"
+      ],
+      [
+        "支持・基準荷重",
+        "左端GRID1は123と4を拘束、右端GRID11は23を拘束。右端へX方向−1000 N。両端の横変位を止め、片端の軸変位と剛体ねじりを止めたモデルです。"
+      ],
+      [
+        "二つのSUBCASE",
+        "SUBCASE1でLOAD=10の静解析、SUBCASE2でMETHOD=10の座屈抽出。EIGRLのND=5。STATSUBを省くと最初の静解析SUBCASEを参照するSOL105の規則を用いています。"
+      ]
+    ],
+    "outputs": [
+      "原典PDF512：最低固有値λ=0.4671909。基準圧縮力1000 Nに掛け、最低座屈荷重の大きさは約467.2 Nです。",
+      "5番目の固有値は11.68153で約11681.5 N。これは強軸方向の最初の座屈に対応し、弱軸方向の高次モードと番号だけで混同しません。",
+      "固有値表のCYCLES欄を振動数として読みません。SOL105では荷重倍率と座屈形状を読み取ります。"
+    ],
+    "checks": [
+      "PBARのI1/I2とCBARの要素軸を確認し、Euler式の対応する断面二次モーメントを用いる。",
+      "原典の弱軸手計算の記号表記には不整合があるため、数値6.667×10⁻⁸ m⁴で照合する。初期不整や塑性を含む耐力とは区別する。"
+    ],
+    "examples": [
+      "buckling"
+    ],
+    "availability": "",
+    "sources": [
+      {
+        "url": "https://documentation-be.hexagon.com/bundle/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide.pdf",
+        "label": "Classical Euler Beam Buckling, bukeuler.dat · PDF 510, 511, 512, 512, 513, 514, 515"
+      }
+    ],
+    "links": [
+      [
+        "theory.html#buckling",
+        "座屈解析の理論"
+      ],
+      [
+        "workflow.html#results",
+        "F06・OP2の読み方"
+      ],
+      [
+        "batch.html",
+        "実行コマンド・並列計算"
+      ]
+    ]
+  }
+]};

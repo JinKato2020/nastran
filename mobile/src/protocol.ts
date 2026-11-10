@@ -1,6 +1,6 @@
 export type Position = { path: string; hash: string; y: number };
 export type SavedState = { version: 1; progress: string; courseProgress: string; last: Position | null; bookmarks: Position[]; textScale: number };
-export const PAGE_IDS = ['index.html','basics.html','input.html','bulk.html','coordinates.html','workflow.html','batch.html','include.html','dynamics.html','relations.html','fracture.html','damping.html','modeling.html','errors.html','analysis.html'] as const;
+export const PAGE_IDS = ['index.html','basics.html','input.html','bulk.html','coordinates.html','workflow.html','batch.html','include.html','dynamics.html','relations.html','fracture.html','damping.html','modeling.html','errors.html','analysis.html','theory.html'] as const;
 export const EMPTY_STATE: SavedState = { version: 1, progress: '[]', courseProgress:'[]', last: null, bookmarks: [], textScale: 1 };
 export function courseProgress(value: unknown): string {
   try {const rows=JSON.parse(String(value));const valid=['purpose','model','input','example','results','practice'];return JSON.stringify(Array.isArray(rows)?[...new Set(rows.filter(k=>valid.includes(k)))]:[]);}catch{return '[]';}

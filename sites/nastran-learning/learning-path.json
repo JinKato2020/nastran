@@ -209,6 +209,13 @@
   "navigation": {
     "intro": [
       {
+        "title": "はじめの一歩",
+        "description": "目的・モデル・入力・実行・結果の6ステップ",
+        "path": "index.html",
+        "hash": "#home",
+        "kind": "基礎コース"
+      },
+      {
         "title": "解析の目的・単位系",
         "description": "荷重・変位・応力と整合した単位系",
         "path": "index.html",
@@ -246,60 +253,74 @@
     ],
     "materials": [
       {
-        "title": "境界条件・拘束",
-        "description": "自由度、SPC1、GRIDのPS、剛体運動",
-        "path": "basics.html",
-        "hash": "#constraints",
-        "kind": "モデルの定義"
+        "title": "静解析の理論",
+        "description": "釣合い・線形性・変位から応力へ",
+        "path": "theory.html",
+        "hash": "#static",
+        "kind": "解析の理論"
       },
       {
-        "title": "荷重とセットの選択",
-        "description": "荷重方向・倍率・Case Controlでの選択",
-        "path": "basics.html",
-        "hash": "#loads",
-        "kind": "モデルの定義"
+        "title": "固有値解析の理論",
+        "description": "固有振動数・モード形・規格化",
+        "path": "theory.html",
+        "hash": "#modes",
+        "kind": "解析の理論"
       },
       {
-        "title": "モデル化の考え方",
-        "description": "片持ち梁をばね・梁・立体で比較",
-        "path": "modeling.html",
-        "hash": "",
-        "kind": "モデルの定義"
+        "title": "熱伝導の理論",
+        "description": "熱収支・伝導・対流・断熱",
+        "path": "theory.html",
+        "hash": "#heat",
+        "kind": "解析の理論"
       },
       {
-        "title": "減衰",
-        "description": "粘性・構造・モード・Rayleighの使い分け",
-        "path": "damping.html",
-        "hash": "",
-        "kind": "応答の設定"
+        "title": "モーダル周波数応答の理論",
+        "description": "モード重ね合わせ・打切り・共振",
+        "path": "theory.html",
+        "hash": "#modal-frequency",
+        "kind": "解析の理論"
       },
       {
-        "title": "並列計算・バッチ実行",
-        "description": "SMP・DMP・複数ジョブの実行",
-        "path": "batch.html",
-        "hash": "",
-        "kind": "実行・管理"
+        "title": "直接周波数応答の理論",
+        "description": "複素振幅・位相・動剛性",
+        "path": "theory.html",
+        "hash": "#direct-frequency",
+        "kind": "解析の理論"
       },
       {
-        "title": "INCLUDEとファイル分割",
-        "description": "モデルと条件の分割・差し替え",
-        "path": "include.html",
-        "hash": "",
-        "kind": "実行・管理"
+        "title": "過渡応答の理論",
+        "description": "初期条件・時間積分・時間刻み",
+        "path": "theory.html",
+        "hash": "#transient",
+        "kind": "解析の理論"
       },
       {
-        "title": "解析カードの相関図",
-        "description": "カードと参照番号のつながり",
-        "path": "relations.html",
-        "hash": "#sol-101",
-        "kind": "入力の参照"
+        "title": "亀裂先端の理論",
+        "description": "特異性・KとG・四分点要素",
+        "path": "theory.html",
+        "hash": "#fracture",
+        "kind": "解析の理論"
       },
       {
-        "title": "静解析の基礎コース",
-        "description": "目的・入力・手計算・実行・確認の6ステップ",
-        "path": "index.html",
-        "hash": "#chapter-1",
-        "kind": "基礎コース"
+        "title": "座屈の理論",
+        "description": "分岐・固有値・初期不整",
+        "path": "theory.html",
+        "hash": "#buckling",
+        "kind": "解析の理論"
+      },
+      {
+        "title": "境界条件の理論",
+        "description": "自由度・剛体運動・支持の理想化",
+        "path": "theory.html",
+        "hash": "#boundary",
+        "kind": "共通理論"
+      },
+      {
+        "title": "減衰の理論",
+        "description": "エネルギー散逸・減衰比・減衰モデル",
+        "path": "theory.html",
+        "hash": "#damping",
+        "kind": "共通理論"
       }
     ],
     "analyses": [
@@ -347,10 +368,10 @@
       },
       {
         "title": "亀裂先端解析",
-        "description": "特異場・応力拡大係数・専用要素",
+        "description": "公開検証例・四分点要素・VCCT",
         "path": "analysis.html",
         "hash": "#fracture",
-        "kind": "CRAC2D"
+        "kind": "SOL 400"
       },
       {
         "title": "座屈解析",
@@ -358,6 +379,43 @@
         "path": "analysis.html",
         "hash": "#buckling",
         "kind": "SOL 105"
+      }
+    ],
+    "operations": [
+      {
+        "title": "境界条件と荷重の入力",
+        "description": "拘束自由度・荷重方向・参照セットの指定",
+        "path": "basics.html",
+        "hash": "#constraints",
+        "kind": "入力・実行"
+      },
+      {
+        "title": "並列計算・バッチ実行",
+        "description": "SMP・DMP・複数ジョブの実行",
+        "path": "batch.html",
+        "hash": "",
+        "kind": "実行・管理"
+      },
+      {
+        "title": "INCLUDEとファイル分割",
+        "description": "モデルと条件の分割・差し替え",
+        "path": "include.html",
+        "hash": "",
+        "kind": "実行・管理"
+      },
+      {
+        "title": "解析カードの相関図",
+        "description": "カードと参照番号のつながり",
+        "path": "relations.html",
+        "hash": "#sol-101",
+        "kind": "入力の参照"
+      },
+      {
+        "title": "減衰の入力と比較",
+        "description": "係数・適用SOL・減衰設定の確認",
+        "path": "damping.html",
+        "hash": "",
+        "kind": "入力・実行"
       }
     ]
   }

@@ -36,11 +36,11 @@ with sync_playwright() as p:
  page.get_by_role('button',name='しおりを付ける').click()
  page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="coordinates.html"&&p.hash==="#systems")')
  root('教材')
- for title in ['境界条件・拘束','減衰','並列計算・バッチ実行','INCLUDEとファイル分割']:
+ for title in ['境界条件の理論','減衰の理論','静解析の理論','熱伝導の理論']:
   assert page.get_by_role('button',name=title,exact=True).count()==1
  page.screenshot(path='.qa/five-tabs-materials.png')
- page.get_by_role('button',name='境界条件・拘束',exact=True).click()
- page.frame_locator('iframe').locator('#constraints').wait_for(state='visible');bottom()
+ page.get_by_role('button',name='境界条件の理論',exact=True).click()
+ page.frame_locator('iframe').locator('#theory-detail').wait_for(state='visible');bottom()
  # Each requested analysis opens its distinct content, while retaining the bottom bar.
  root('解析')
  titles=['静解析','固有値解析','熱伝導解析','モーダル周波数応答解析','直接周波数応答解析','過渡応答解析','亀裂先端解析','座屈解析']
@@ -49,7 +49,7 @@ with sync_playwright() as p:
   page.get_by_role('button',name=title,exact=True).click()
   assert page.frame_locator('iframe').locator('h1').inner_text()==title
   bottom();nav('解析')
- page.get_by_role('button',name='熱伝導解析',exact=True).click()
+ page.get_by_role('button',name='固有値解析',exact=True).click()
  frame=page.frame_locator('iframe')
  assert frame.locator('#analysis-example-fields,#analysis-example-control,.nf-card').count()==0
  frame.locator('#analysis-raw-details>summary').click()
@@ -61,7 +61,7 @@ with sync_playwright() as p:
  page.get_by_role('button',name='‹ 戻る',exact=True).click()
  frame=page.frame_locator('iframe')
  assert frame.locator('#analysis-raw-details').evaluate('e=>e.open')
- assert frame.locator('#analysis-example-picker').input_value()=='heat'
+ assert frame.locator('#analysis-example-picker').input_value()=='modes'
  page.wait_for_timeout(300)
  assert abs(frame.locator('body').evaluate('()=>window.scrollY')-before)<3
  frame.locator('#analysis-example-raw a[href="bulk.html#CASE_SPC"]').click()
@@ -72,16 +72,16 @@ with sync_playwright() as p:
  page.wait_for_timeout(300)
  page.screenshot(path='.qa/analysis-linked-deck.png')
  frame.locator('#save-analysis').click()
- page.wait_for_function('window.__shares.some(s=>s.uri.endsWith("/rod_heat_sol153.bdf"))')
- share=page.evaluate('window.__shares.find(s=>s.uri.endsWith("/rod_heat_sol153.bdf"))')
+ page.wait_for_function('window.__shares.some(s=>s.uri.endsWith("/nas102_plate_sol103.dat"))')
+ share=page.evaluate('window.__shares.find(s=>s.uri.endsWith("/nas102_plate_sol103.dat"))')
  deck=base64.b64decode(share['data']).decode('ascii')
- assert 'SOL 153\r\n' in deck and 'ANALYSIS = HEAT' in deck
+ assert 'SOL 103\r\n' in deck and 'METHOD = 1' in deck
  assert all(len(s)==80 for s in deck.split('BEGIN BULK\r\n')[1].split('ENDDATA')[0].splitlines())
  frame.locator('#copy-analysis').click()
- page.wait_for_function('window.__copied.includes("LINEAR ROD CONDUCTION")')
+ page.wait_for_function('window.__copied.includes("PUBLIC TEACHING MODEL SOL 103")')
  assert page.evaluate('window.__copied')==deck
  page.get_by_role('button',name='しおりを付ける').click()
- page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="analysis.html"&&p.hash==="#heat/heat/raw")')
+ page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="analysis.html"&&p.hash==="#modes/modes/raw")')
  # Per-tab reading locations and 3-level input selector survive switching.
  nav('Inputデータ');frame=page.frame_locator('iframe')
  # Compact selector, real native reader wrapper; card heading is visible immediately.
@@ -98,7 +98,7 @@ with sync_playwright() as p:
  nav('教材');nav('Inputデータ');frame=page.frame_locator('iframe')
  assert frame.locator('#card-picker').input_value()=='EXEC_SOL_400'
  frame.locator('#input-family').select_option('bulk');frame.locator('#category').select_option('棒・梁');frame.locator('#card-picker').select_option('CBAR')
- nav('解析');assert page.frame_locator('iframe').locator('h1').inner_text()=='熱伝導解析'
+ nav('解析');assert page.frame_locator('iframe').locator('h1').inner_text()=='固有値解析'
  nav('Inputデータ');frame=page.frame_locator('iframe')
  assert frame.locator('#card-picker').input_value()=='CBAR'
  assert frame.locator('#category').input_value()=='棒・梁'
@@ -111,11 +111,11 @@ with sync_playwright() as p:
  page.screenshot(path='.qa/five-tabs-heat.png')
  page.reload(wait_until='networkidle')
  page.get_by_role('button',name='続きから読む →').click()
- assert page.frame_locator('iframe').locator('h1').inner_text()=='熱伝導解析'
+ assert page.frame_locator('iframe').locator('h1').inner_text()=='固有値解析'
  assert page.frame_locator('iframe').locator('.analysis-head>p').evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
  # Home bookmark list and error search remain reachable without another bottom tab.
  root('ホーム');page.get_by_role('button',name='しおり一覧').click()
- assert page.get_by_text('熱伝導解析',exact=True).count()>=1
+ assert page.get_by_text('固有値解析',exact=True).count()>=1
  page.get_by_role('button',name='エラーメッセージ',exact=True).click()
  frame=page.frame_locator('iframe');frame.locator('#error-query').fill('2025.0');frame.locator('#error-search-form button[type=submit]').click();frame.locator('[data-key="2025.0"]').click()
  assert frame.locator('#error-detail .error-id').inner_text()=='2025.0'
@@ -124,7 +124,7 @@ with sync_playwright() as p:
  page.get_by_role('button',name='目次',exact=True).click()
  page.get_by_role('button',name='並列計算・バッチ実行',exact=True).click()
  page.frame_locator('iframe').locator('#save-batch').wait_for()
- assert page.get_by_role('tab',name='教材',exact=True).get_attribute('aria-selected')=='true'
+ assert page.get_by_role('tab',name='解析',exact=True).get_attribute('aria-selected')=='true'
  # A fresh Input root can go back to Home; it never shows an empty root page.
  page.reload(wait_until='networkidle');nav('Inputデータ')
  page.frame_locator('iframe').locator('#input-family').wait_for()
@@ -133,4 +133,4 @@ with sync_playwright() as p:
  assert page.get_by_role('button',name='エラーメッセージ',exact=True).is_visible()
  assert not errors,errors
  browser.close()
-print('PASS: 5 persistent bottom tabs / 3 widths; all 8 analysis routes; home/materials grouping; per-tab input selection; heat BDF/native transport; bookmarks/restart; persisted font size; error search; menu/back. Native APIs mocked.')
+print('PASS: 5 persistent bottom tabs / 3 widths; all 8 analysis routes; home/materials grouping; per-tab input selection; public DAT/native transport; bookmarks/restart; persisted font size; error search; menu/back. Native APIs mocked.')

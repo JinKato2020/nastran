@@ -72,7 +72,14 @@ function LearningApp(){
     const sub=AppState.addEventListener('change',state=>{if(state!=='active')void persist();});
     return()=>{active=false;sub.remove();if(timer.current)clearTimeout(timer.current);};
   },[]);
+  function ownerTab(p:Position):TabKey{
+    if(p.path==='bulk.html')return 'input';
+    if(p.path==='theory.html')return 'materials';
+    if(p.path==='analysis.html'||NAVIGATION.operations.some(x=>x.path===p.path))return 'analysis';
+    return 'home';
+  }
   function open(p:Position,remember=true){
+    setTab(ownerTab(p));
     if(remember&&current.current)trail.current=[...trail.current.slice(-49),current.current];
     const e=newEntry(p);current.current=p;readerReported.current=false;entryRef.current=e;setEntry(e);setLocationTitle(titleFor(p));setMenu(false);
     updateSaved({...savedRef.current,last:p});
@@ -136,6 +143,7 @@ function LearningApp(){
     {title:'はじめに',tab:'home',items:NAVIGATION.intro},
     {title:'教材',tab:'materials',items:NAVIGATION.materials},
     {title:'解析',tab:'analysis',items:NAVIGATION.analyses},
+    {title:'入力・実行の共通手順',tab:'analysis',items:NAVIGATION.operations},
     {title:'Inputデータ',tab:'input',items:[{title:'入力データ学習',description:'入力区分 → カテゴリー → カード',path:'bulk.html',hash:''}]},
     {title:'エラーメッセージ',tab:'home',items:[{title:'エラー検索と意味',description:'番号・診断文・F06から検索',path:'errors.html',hash:''}]},
   ];
@@ -162,12 +170,12 @@ function LearningApp(){
         <Pressable style={styles.bookmarkHeading} onPress={()=>setShowBookmarks(v=>!v)} accessibilityRole="button" accessibilityLabel="しおり一覧" accessibilityState={{expanded:showBookmarks}}><Text style={styles.sectionTitle}>しおり <Text style={styles.count}>{saved.bookmarks.length}</Text></Text><Text style={styles.linkText}>{showBookmarks?'閉じる':'開く'}</Text></Pressable>
         {showBookmarks&&(saved.bookmarks.length?saved.bookmarks.map((p,i)=><View key={p.path+p.hash} style={styles.bookmarkRow}><Pressable style={styles.bookmarkOpen} onPress={()=>open(p,false)} accessibilityRole="button"><Text style={styles.introTitle}>{titleFor(p)}</Text><Text style={styles.description}>保存した場所を開く →</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="しおりを削除" style={styles.toolButton} onPress={()=>updateSaved({...savedRef.current,bookmarks:savedRef.current.bookmarks.filter((_,n)=>n!==i)})}><Text style={styles.toolText}>削除</Text></Pressable></View>):<Text style={styles.empty}>教材の☆から場所を保存できます。</Text>)}
       </>}
-      {tab==='materials'&&<><Text style={styles.screenLead}>モデルの作成・応答の設定・計算の実行</Text>{NAVIGATION.materials.map(lesson)}</>}
-      {tab==='analysis'&&<><Text style={styles.screenLead}>解析種別から、モデル・入力・結果を確認</Text>{NAVIGATION.analyses.map(lesson)}</>}
+      {tab==='materials'&&<><Text style={styles.screenLead}>物理現象・支配方程式・仮定・解法の原理</Text>{NAVIGATION.materials.map(lesson)}</>}
+      {tab==='analysis'&&<><Text style={styles.screenLead}>公開モデルの条件・Input・実行・出力・検証</Text>{NAVIGATION.analyses.map(lesson)}<Text style={styles.sectionTitle}>入力・実行の共通手順</Text>{NAVIGATION.operations.map(lesson)}</>}
       {tab==='settings'&&<>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>本文の文字サイズ</Text><Text style={styles.description}>説明文のサイズを変更します。入力表は8文字の配置を保ちます。</Text><View style={styles.sizeOptions}>{([{value:1,label:'標準'},{value:1.15,label:'大'},{value:1.3,label:'特大'}]).map(x=><Pressable key={x.value} style={[styles.sizeOption,saved.textScale===x.value&&styles.selectedSize]} onPress={()=>updateSaved({...savedRef.current,textScale:x.value})} accessibilityRole="radio" accessibilityLabel={'文字サイズ '+x.label} accessibilityState={{checked:saved.textScale===x.value}} aria-checked={saved.textScale===x.value}><Text style={[styles.sizeOptionText,saved.textScale===x.value&&styles.selectedSizeText]}>{x.label}</Text></Pressable>)}</View></View>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>保存データ</Text><Text style={styles.body}>学習記録としおりは端末内に保存します。基礎コースの読了は {complete} / 6、しおりは {saved.bookmarks.length} 件です。</Text><Text style={styles.description}>アプリの削除で端末内の記録も削除されます。</Text></View>
-        <View style={styles.settingsCard}><Text style={styles.sectionTitle}>このアプリについて</Text><Text style={styles.body}>MSC Nastranを対象とした非公式の日本語教材です。2020 SP1の解析・入力資料と2025.1エラーメッセージ集を参照しています。教材と入力例はオフラインで利用できます。</Text><Text style={styles.description}>Nastranを実行する機能はありません。例題の計算値は理論値です。原典PDFの参照には通信が必要です。</Text><Text style={styles.version}>FEMノート for nas · 1.0.0</Text></View>
+        <View style={styles.settingsCard}><Text style={styles.sectionTitle}>このアプリについて</Text><Text style={styles.body}>MSC Nastranを対象とした非公式の日本語教材です。2020 SP1の入力資料、公開講習教材、2024.1・2025.1の解析資料を参照しています。教材と入力例はオフラインで利用できます。</Text><Text style={styles.description}>Nastranを実行する機能はありません。原典の掲載結果と独自の検算値を区別しています。入力例はMSC Nastran本体では未実行です。原典PDFの参照には通信が必要です。</Text><Text style={styles.version}>FEMノート for nas · 1.0.0</Text></View>
       </>}
     </ScrollView>}
     <View style={styles.bottomNav} accessibilityRole="tablist" accessibilityLabel="メインナビゲーション">{ROOT_TABS.map(t=><Pressable key={t.id} style={[styles.bottomTab,tab===t.id&&styles.activeBottomTab]} onPress={()=>activateTab(t.id)} accessibilityRole="tab" accessibilityLabel={t.title} accessibilityState={{selected:tab===t.id}} aria-selected={tab===t.id}><Text style={[styles.navIcon,tab===t.id&&styles.activeNavText]} accessibilityElementsHidden importantForAccessibility="no">{t.icon}</Text><Text style={[styles.navLabel,tab===t.id&&styles.activeNavText]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{t.title}</Text></Pressable>)}</View>

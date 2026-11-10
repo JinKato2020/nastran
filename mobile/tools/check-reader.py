@@ -188,15 +188,15 @@ with sync_playwright() as p:
     assert not page.locator('#error-detail').inner_text().strip()
     page.close()
     page=reader('analysis.html')
-    page.select_option('#analysis-picker','heat')
+    page.select_option('#analysis-picker','modes')
     page.locator('#save-analysis').click()
     page.wait_for_function('messages.some(m=>m.type==="share")')
     m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
-    assert m['name']=='rod_heat_sol153.bdf'
-    assert base64.b64decode(m['base64']).decode('ascii')==page.evaluate('NastranAnalysis.models.heat.text')
+    assert m['name']=='nas102_plate_sol103.dat'
+    assert base64.b64decode(m['base64']).decode('ascii')==page.evaluate('NastranAnalysis.models.modes.text')
     page.select_option('#analysis-picker','transient')
-    page.select_option('#analysis-example-picker','112')
-    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#transient/112")')
+    page.select_option('#analysis-example-picker','transient-modal')
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#transient/transient-modal")')
     page.close()
     assert not errors,errors
     browser.close()
