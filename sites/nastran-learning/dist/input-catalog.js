@@ -1,6 +1,6 @@
 (() => {
  'use strict';
- const entries=[...window.INPUT_CONTROLS];
+ const entries=[...window.INPUT_CONTROLS,...window.SOL_REFERENCES,...window.INPUT_REFERENCES];
  const add=e=>entries.push(e);
  const D=window.NastranDynamics,F=window.NastranFracture,M=window.NastranDamping;
  const names={GRID:'節点座標、変位座標系、恒久拘束およびスーパーエレメント属性を定義します。',SPC1:'指定成分に同一のゼロ変位拘束を適用する節点集合を定義します。',CQUAD4:'4節点四角形シェル要素。材料・板厚は参照するプロパティで指定します。',CTRIA3:'3節点三角形シェル要素。材料・板厚は参照するプロパティで指定します。',SPCADD:'複数のSPC/SPC1セットの和集合を定義します。',FORCE:'集中荷重ベクトルをF×(N1,N2,N3)で定義します。CIDは方向ベクトルの参照座標系です。'};

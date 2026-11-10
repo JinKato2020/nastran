@@ -24,7 +24,7 @@ export function titleFor(p:Position):string {
   }
   if(p.path==='bulk.html'&&p.hash){try{
     const [key,field]=decodeURIComponent(p.hash.slice(1)).split('/');
-    const name=key.startsWith('EXEC_')?key.slice(5)+' (Executive)':key.startsWith('CASE_')?key.slice(5).replaceAll('_',' ')+' (Case)':key.startsWith('PARAM_')?'PARAM '+key.slice(6):key;
+    const name=key.startsWith('EXEC_')?key.slice(5).replaceAll('_',' ')+' (Executive)':key.startsWith('CASE_')?key.slice(5).replaceAll('_',' ')+' (Case)':key.startsWith('PARAM_')?'PARAM '+key.slice(6):key;
     return title+' · '+name+(field?' / '+field:'');
   }catch{return title;}}
   return p.hash==='#lab'?'棒の引張り実験室':title;

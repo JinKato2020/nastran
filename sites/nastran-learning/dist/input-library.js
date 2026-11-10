@@ -7,7 +7,7 @@
  let selected='EXEC_SOL',field='',timer;
  const label=f=>families.find(x=>x[0]===f)?.[1]||'';
  function options(select,items){select.innerHTML=items.map(([v,t])=>`<option value="${esc(v)}">${esc(t)}</option>`).join('');}
- options($('input-family'),families);
+ options($('input-family'),families.map(([value,name])=>[value,({executive:'Executive',case:'Case Control',parameter:'パラメータ',bulk:'Bulk Data'})[value]||name]));
  function categories(family){return [...new Set(entries.filter(e=>e.family===family).map(e=>e.category))];}
  function choose(key,detail='',scroll=false){
   const entry=byKey.get(key);if(!entry)return;
@@ -29,6 +29,14 @@
   $('save-card').addEventListener('click',()=>{const a=document.createElement('a'),url=URL.createObjectURL(new Blob([raw],{type:'text/plain;charset=utf-8'}));a.href=url;a.download=e.key.toLowerCase()+(e.kind==='fixed'?'_small_field.bdf':'.txt');document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);});
  }
  function tools(){return '<div class="library-controls"><button class="button secondary" id="copy-card">コピー</button><button class="button primary" id="save-card">入力例を保存</button></div>';}
+ function depth(e){
+  let html='';
+  if(e.solIndex)html+='<section class="reference-section"><h3>SOL一覧 · 25種類</h3><p>2020 SP1 QRG Table 2の全掲載番号。番号を選ぶと個別の解法・関連入力・結果・注意点を表示します。</p><div class="sol-index">'+e.solIndex.map(s=>'<button type="button" data-jump="'+esc(s.key)+'"><b>'+esc(s.id)+'</b><span>'+esc(s.title)+'</span></button>').join('')+'</div></section>';
+  if(e.connections?.length)html+='<section class="reference-section"><h3>関連入力・参照関係</h3><dl class="reference-connections">'+e.connections.map(([term,meaning,key])=>'<div><dt>'+(key&&byKey.has(key)?'<button type="button" data-jump="'+esc(key)+'">'+esc(term)+' ↗</button>':esc(term))+'</dt><dd>'+esc(meaning)+'</dd></div>').join('')+'</dl></section>';
+  if(e.outputs?.length)html+='<section class="reference-section"><h3>出力と結果の読み方</h3>'+e.outputs.map(p=>'<p>'+esc(p)+'</p>').join('')+'</section>';
+  for(const section of e.sections||[])html+='<section class="reference-section"><h3>'+esc(section.title)+'</h3>'+section.paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'</section>';
+  return html;
+ }
  function fixedTable(e){return '<div class="field-scroll"><div class="field-board"><div class="field-ruler">'+Array.from({length:10},(_,i)=>'<span>'+ (i*8+1)+'–'+(i*8+8)+'列</span>').join('')+'</div>'+e.rows.map((r,line)=>'<div class="field-row">'+Array.from({length:10},(_,i)=>{const f=e.lines[line]?.[i]||{label:'未使用',help:'この例では空欄。'},v=NastranBulk.packed(r).slice(i*8,i*8+8);return '<button type="button" class="field-cell" data-entry-field="'+line+':'+i+'" aria-pressed="false"><span class="field-label">'+esc(f.label)+'</span><span class="'+(v.trim()?'field-value':'field-blank')+'">'+(v.trim()?esc(v):'空欄')+'</span></button>';}).join('')+'</div>').join('')+'</div></div>';}
  function inspect(e,position){
   const [line,index]=position.split(':').map(Number),f=e.lines[line]?.[index];if(!f)return;
@@ -37,7 +45,7 @@
  }
  function render(e){
   const familyLabel=label(e.family);
-  $('library-location').innerHTML='<b>'+esc(familyLabel)+'</b> / '+esc(e.category)+(e.family==='parameter'?' — この一覧のPARAM・MDLPRMはBulk Data区画に記述。独立した区画ではありません。':'');
+  $('library-location').hidden=true;
   if(e.kind==='static')NastranBulk.render(e.key,field);
   else{
    const raw=rawFor(e);
@@ -47,12 +55,13 @@
     content+='<details class="code-box"><summary>固定長テキスト・コピー・保存</summary>'+tools()+'<pre><code id="card-raw">'+esc(raw)+'</code></pre></details>';
     content+='<div class="library-extra-fields"><h3>フィールド定義</h3>'+e.lines.map((r,line)=>r.map((f,i)=>'<details id="entry-field-'+line+'-'+i+'"><summary><code>'+esc(f.label)+'</code><small>'+(line+1)+'行・第'+(i+1)+'欄</small></summary><p>'+esc(f.help)+'</p></details>').join('')).join('')+'</div>';
    }else{
-    content+='<p class="library-location">記述位置：'+esc(e.location)+'</p><h3>書式</h3><div class="library-syntax"><pre>'+esc(e.syntax)+'</pre></div><h3>入力例</h3><div class="library-syntax"><pre><code id="card-raw">'+esc(raw)+'</code></pre></div>'+tools();
+    content+='<p class="entry-position">'+esc(e.location)+'</p><h3>書式</h3><div class="library-syntax"><pre>'+esc(e.syntax)+'</pre></div><h3>'+(e.exampleNote?'制御部の例':'入力例')+'</h3>'+(e.exampleNote?'<p class="example-note">'+esc(e.exampleNote)+'</p>':'')+'<div class="library-syntax"><pre><code id="card-raw">'+esc(raw)+'</code></pre></div>'+tools();
     content+='<table class="library-terms"><tbody>'+e.terms.map(([term,definition])=>'<tr><th scope="row">'+esc(term)+'</th><td>'+esc(definition)+'</td></tr>').join('')+'</tbody></table>';
    }
+   content+=depth(e);
    if(e.notes?.length)content+='<div class="pitfalls"><h3>指定上の注意</h3><ul>'+e.notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul></div>';
    if(e.reference)content+='<p><a class="library-reference-link" href="'+esc(e.reference)+'">関連する入力例・解析条件 →</a></p>';
-   content+='<a class="source-note" href="'+qrg(e.page)+'" target="_blank" rel="noopener">QRG PDF '+e.page+'ページ ↗</a>';
+   content+='<div class="reference-sources"><span>原典：MSC Nastran 2020 SP1 QRG（PDF通しページ）</span><div>'+(e.sourcePages||[e.page]).map(p=>'<a href="'+qrg(p)+'" target="_blank" rel="noopener">p.'+p+' ↗</a>').join(' ')+'</div></div>';
    $('card-detail').innerHTML=content;controls(e,raw);
    if(e.kind==='fixed'){
     const position=field&&/^\d+:\d+$/.test(field)?field.split(':').map(Number):[];
@@ -61,6 +70,7 @@
     $('card-detail').querySelectorAll('[data-entry-field]').forEach(b=>b.addEventListener('click',()=>{field=b.dataset.entryField;inspect(e,field);setHash();}));
    }
   }
+  if(e.family==='parameter')$('card-detail').querySelector('.card-heading').insertAdjacentHTML('afterend','<p class="entry-position">Bulk Data区画に記述するパラメータです。</p>');
   setHash();document.title=e.id+' — 入力データ学習';
  }
  function setHash(){history.replaceState(null,'','#'+selected+(field?'/'+encodeURIComponent(field):''));}

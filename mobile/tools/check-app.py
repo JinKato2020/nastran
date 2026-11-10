@@ -64,6 +64,19 @@ with sync_playwright() as p:
  page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="analysis.html"&&p.hash==="#heat")')
  # Per-tab reading locations and 3-level input selector survive switching.
  nav('Inputデータ');frame=page.frame_locator('iframe')
+ # Compact selector, real native reader wrapper; card heading is visible immediately.
+ for width in [320,390]:
+  page.set_viewport_size({'width':width,'height':844})
+  assert frame.locator('.library-selectors select').count()==3
+  assert frame.locator('.library-selectors').evaluate('e=>e.getBoundingClientRect().height')<=150
+  assert frame.locator('.card-title h2').evaluate('e=>e.getBoundingClientRect().y')<230
+  assert not frame.locator('.library-search').evaluate('e=>e.open')
+ page.set_viewport_size({'width':390,'height':844})
+ frame.locator('#input-family').select_option('executive');frame.locator('#category').select_option('SOL · 非線形');frame.locator('#card-picker').select_option('EXEC_SOL_400')
+ assert frame.locator('.reference-section').filter(has_text='関連入力・参照関係').count()==1
+ page.screenshot(path='.qa/qrg-app-sol400.png')
+ nav('教材');nav('Inputデータ');frame=page.frame_locator('iframe')
+ assert frame.locator('#card-picker').input_value()=='EXEC_SOL_400'
  frame.locator('#input-family').select_option('bulk');frame.locator('#category').select_option('棒・梁');frame.locator('#card-picker').select_option('CBAR')
  nav('解析');assert page.frame_locator('iframe').locator('h1').inner_text()=='熱伝導解析'
  nav('Inputデータ');frame=page.frame_locator('iframe')

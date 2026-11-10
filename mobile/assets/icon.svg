@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#3259d8"/><path d="M245 760V260h100l215 332V260h106v500H566L351 429v331Z" fill="#fff"/><circle cx="755" cy="710" r="48" fill="#bcd1ff"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="MSC Nastran">
+  <rect width="1024" height="1024" fill="#3259d8"/>
+  <g fill="#fff" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle">
+    <text x="512" y="461" font-size="244">MSC</text>
+    <text x="512" y="673" font-size="166">Nastran</text>
+  </g>
+</svg>

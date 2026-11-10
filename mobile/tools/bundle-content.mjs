@@ -33,7 +33,7 @@ for(const item of catalog){
  if(/<(script|link)\b[^>]*(src=|rel="stylesheet")/.test(html))throw Error('Unbundled resource '+item.id);
  const csp="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'";
  html=html.replace(/<head>/i,`<head><meta http-equiv="Content-Security-Policy" content="${csp}"><!--NATIVE_BOOTSTRAP-->`);
- html=html.replace('</head>',`<style>.print-button,body>.topbar,.workspace>.topbar{display:none!important}html{-webkit-text-size-adjust:100%}body{padding-bottom:16px}a,button{touch-action:manipulation}input,select,textarea{font-size:16px!important}</style></head>`);
+ html=html.replace('</head>',`<style>.print-button,body>.topbar,.workspace>.topbar,.library-heading{display:none!important}html{-webkit-text-size-adjust:100%}body{padding-bottom:16px}a,button{touch-action:manipulation}input,select,textarea{font-size:16px!important}</style></head>`);
  pages[item.id]=html;
 }
 const downloads={};for(const name of fs.readdirSync(path.join(source,'downloads'))){

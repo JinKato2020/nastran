@@ -78,6 +78,10 @@ python -m http.server 8766 --bind 127.0.0.1 --directory .qa/app
 
 仕様確認：[Expo Sharing](https://docs.expo.dev/versions/latest/sdk/sharing/)、[Clipboard](https://docs.expo.dev/versions/latest/sdk/clipboard/)、[FileSystem legacy](https://docs.expo.dev/versions/latest/sdk/filesystem-legacy/)、[React Native WebView](https://github.com/react-native-webview/react-native-webview/blob/master/docs/Guide.md)。
 
-入力データ学習は入力区分（Executive / Case / パラメータ / Bulk）→カテゴリー→カードの3段階。77項目を掲載し、自由形式の制御文と8文字固定長のBulkを区別します。旧カード・フィールドしおりを維持し、旧入力規則のしおりは`input.html#rules`へ移行します。
+入力データ学習は入力区分（Executive / Case / パラメータ / Bulk）→カテゴリー→カードの3段階。120項目を掲載し、自由形式の制御文と8文字固定長のBulkを区別します。スマホでは上段に入力区分・カテゴリー、下段にカードを配置し、検索は折りたたみます。ネイティブのタイトルとの重複見出しを省き、通常文字サイズでカード見出しを教材領域の上端から230px以内に表示します。旧カード・フィールドしおりを維持し、旧入力規則のしおりは`input.html#rules`へ移行します。
+
+2020 SP1 QRG Table 2（PDF187–188）の25 SOL番号を個別収録。用途・解法・参照カード・出力・注意点・他SOLとの違い・原典ページを統一して掲載。CMETHOD/EIGC、STATSUB、ANALYSIS、NLPARM、NLSTEP、TSTEPNL、温度入力・出力等の18項目を追加しています。SOLの制御例は未定義のモデルやBulkを要する抜粋であり、完成BDFとは明確に区別しています。新規の例はソルバー未実行です。
+
+アプリアイコンは`assets/icon.svg`の「MSC / Nastran」2段文字を`assets/icon.png`（1024px、不透明）に描画。`tools/render-icon.py`はローカルでの再生成用で、iOSビルドでは同梱PNGを使用します。
 
 `analysis.html`は8解析の概要・入力・出力・適用範囲をそろえたページです。定常熱伝導（SOL 153、3節点棒）、直接周波数応答（108）、直接過渡応答（109）の独自完成BDFと、座屈（105）の制御文・EIGRL断片を追加しています。定常温度・熱流の手計算と、直接法の粘性減衰係数を検算済み。ソルバー実行は未実施。SOL 159は設定の解説で、完成BDF例題は収録していません。
