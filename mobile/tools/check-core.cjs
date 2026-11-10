@@ -44,4 +44,5 @@ for(const l of content.LESSONS){
 }
 assert(!content.readerHTML({path:'index.html',hash:'#</script><script>alert(1)</script>',y:0},'[]','test').includes('"hash":"#</script>'));
 for(const [rel,f]of Object.entries(content.DOWNLOADS))assert.deepEqual(Buffer.from(f.base64,'base64'),fs.readFileSync(path.join(root,'../sites/nastran-learning/dist',rel)));
+require('./check-input-catalog.cjs');
 console.log('PASS: routes, progress restore, outbound URLs, filename/base64 checks, all offline documents, script-safe bootstrap, exact ZIP/BAT bytes.');

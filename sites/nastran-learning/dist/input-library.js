@@ -18,7 +18,7 @@
  function filtered(){const q=$('card-search').value.trim().toLowerCase();return entries.filter(e=>e.family===$('input-family').value&&e.category===$('category').value&&[e.id,e.title,e.summary].join(' ').toLowerCase().includes(q));}
  function renderList(){
   const matches=filtered();options($('card-picker'),matches.map(e=>[e.key,e.id+' — '+e.title]));
-  $('result-count').textContent=matches.length+'件';$('card-picker').disabled=!matches.length;$('empty-state').hidden=!!matches.length;$('card-detail').hidden=!matches.length;$('library-location').hidden=!matches.length;
+  $('result-count').textContent=matches.length+'件 / 全'+entries.length+'件';$('card-picker').disabled=!matches.length;$('empty-state').hidden=!!matches.length;$('card-detail').hidden=!matches.length;$('library-location').hidden=!matches.length;
   if(!matches.length)return;
   if(!matches.some(e=>e.key===selected)){selected=matches[0].key;field='';}
   $('card-picker').value=selected;render(byKey.get(selected));
@@ -52,7 +52,7 @@
    let content='<div class="card-heading"><div class="card-title"><h2>'+esc(e.id)+'</h2><p>'+esc(e.title)+'</p></div><span class="category-badge">'+esc(familyLabel)+'</span></div><p class="card-summary">'+esc(e.summary)+'</p>';
    if(e.kind==='fixed'){
     content+='<div class="subheading"><h3>入力例</h3><span>8文字×10欄</span></div>'+fixedTable(e)+'<div class="field-inspector" id="field-inspector" aria-live="polite"></div>';
-    content+='<details class="code-box"><summary>固定長テキスト・コピー・保存</summary>'+tools()+'<pre><code id="card-raw">'+esc(raw)+'</code></pre></details>';
+    content+='<details class="code-box"><summary>固定長テキスト・コピー・保存</summary>'+tools()+'<pre><code id="card-raw">'+esc(raw)+'</code></pre><p class="code-note">カード単体の入力例です。関連する節点・材料・プロパティ・選択命令などをそろえて使用します。完成BDFではなく、MSC Nastran本体での実行検証は未実施です。</p></details>';
     content+='<div class="library-extra-fields"><h3>フィールド定義</h3>'+e.lines.map((r,line)=>r.map((f,i)=>'<details id="entry-field-'+line+'-'+i+'"><summary><code>'+esc(f.label)+'</code><small>'+(line+1)+'行・第'+(i+1)+'欄</small></summary><p>'+esc(f.help)+'</p></details>').join('')).join('')+'</div>';
    }else{
     content+='<p class="entry-position">'+esc(e.location)+'</p><h3>書式</h3><div class="library-syntax"><pre>'+esc(e.syntax)+'</pre></div><h3>'+(e.exampleNote?'制御部の例':'入力例')+'</h3>'+(e.exampleNote?'<p class="example-note">'+esc(e.exampleNote)+'</p>':'')+'<div class="library-syntax"><pre><code id="card-raw">'+esc(raw)+'</code></pre></div>'+tools();
