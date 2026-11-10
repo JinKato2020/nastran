@@ -1,7 +1,7 @@
 export type Position = { path: string; hash: string; y: number };
-export type SavedState = { version: 1; progress: string; courseProgress: string; last: Position | null; bookmarks: Position[] };
-export const PAGE_IDS = ['index.html','basics.html','input.html','bulk.html','coordinates.html','workflow.html','batch.html','include.html','dynamics.html','relations.html','fracture.html','damping.html','modeling.html','errors.html'] as const;
-export const EMPTY_STATE: SavedState = { version: 1, progress: '[]', courseProgress:'[]', last: null, bookmarks: [] };
+export type SavedState = { version: 1; progress: string; courseProgress: string; last: Position | null; bookmarks: Position[]; textScale: number };
+export const PAGE_IDS = ['index.html','basics.html','input.html','bulk.html','coordinates.html','workflow.html','batch.html','include.html','dynamics.html','relations.html','fracture.html','damping.html','modeling.html','errors.html','analysis.html'] as const;
+export const EMPTY_STATE: SavedState = { version: 1, progress: '[]', courseProgress:'[]', last: null, bookmarks: [], textScale: 1 };
 export function courseProgress(value: unknown): string {
   try {const rows=JSON.parse(String(value));const valid=['purpose','model','input','example','results','practice'];return JSON.stringify(Array.isArray(rows)?[...new Set(rows.filter(k=>valid.includes(k)))]:[]);}catch{return '[]';}
 }
@@ -18,7 +18,7 @@ export function progress(value: unknown): string {
   try { const rows = JSON.parse(String(value)); return JSON.stringify(Array.isArray(rows) ? [...new Set(rows.filter(n => Number.isInteger(n) && n >= 1 && n <= 11))].sort((a,b)=>a-b) : []); } catch { return '[]'; }
 }
 export function restore(raw: string | null): SavedState {
-  try { const v = JSON.parse(raw || '{}'); return { version:1, progress:progress(v.progress), courseProgress:courseProgress(v.courseProgress), last:position(v.last), bookmarks:Array.isArray(v.bookmarks) ? v.bookmarks.map(position).filter((p:Position|null):p is Position=>!!p).slice(0,100) : [] }; } catch { return {...EMPTY_STATE}; }
+  try { const v = JSON.parse(raw || '{}'); return { version:1, textScale:[1,1.15,1.3].includes(v.textScale)?v.textScale:1, progress:progress(v.progress), courseProgress:courseProgress(v.courseProgress), last:position(v.last), bookmarks:Array.isArray(v.bookmarks) ? v.bookmarks.map(position).filter((p:Position|null):p is Position=>!!p).slice(0,100) : [] }; } catch { return {...EMPTY_STATE}; }
 }
 export function filePayload(name: unknown, base64: unknown): { name:string; base64:string; zip:boolean } {
   if (typeof name !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_. -]{0,100}\.(bdf|dat|inc|bat|zip|txt)$/i.test(name) || name.includes('..')) throw new Error('保存するファイル名を確認できません。');

@@ -1,174 +1,103 @@
-"""Real App.tsx rendered with react-native-web; native services are mocked."""
-import base64
-import json
-import re
+"""Actual App.tsx on React Native Web. Native OS services are mocked."""
+import base64,json
 from playwright.sync_api import sync_playwright
 errors=[]
 with sync_playwright() as p:
-    browser=p.chromium.launch(headless=True,executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')
-    page=browser.new_page(viewport={'width':390,'height':844})
-    page.on('pageerror',lambda e:errors.append(str(e)))
-    page.goto('http://127.0.0.1:8766',wait_until='networkidle')
-    page.get_by_role('button',name='教材を読み始める →').wait_for()
-    for width in [320,390,768]:
-        page.set_viewport_size({'width':width,'height':844})
-        assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),width
-    page.set_viewport_size({'width':390,'height':844})
-    assert page.get_by_text('解析の目的と単位',exact=True).count()==1
-    page.get_by_role('tab',name='次の学習',exact=True).click()
-    assert page.get_by_text('片持ち梁の3モデル',exact=True).count()==1
-    page.get_by_role('tab',name='調べる',exact=True).click()
-    assert page.get_by_text('エラー検索と意味',exact=True).count()==1
-    page.get_by_role('tab',name='入門',exact=True).click()
-    page.screenshot(path='.qa/app-home.png')
-    page.get_by_role('button',name='教材を読み始める →').click()
-    frame=page.frame_locator('iframe')
-    frame.locator('#chapter-1').wait_for(state='visible')
-    frame.locator('#chapter-1 .learning-legacy summary').click()
-    frame.locator('[data-complete="1"]').check()
-    page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")||"{}").progress==="[1]"')
-    page.get_by_role('button',name='しおりを付ける').click()
-    page.get_by_role('button',name='しおりを外す').wait_for()
-    frame.locator('#chapter-1 .learning-next').click()
-    frame.locator('#chapter-2 .learning-next').click()
-    frame.locator('#chapter-3 #course-complete').check()
-    page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")||"{}").courseProgress===\'["purpose"]\'')
-    frame.locator('#chapter-3 .learning-next').click()
-    page.frame_locator('iframe').locator('#node').wait_for(state='visible')
-    page.get_by_role('button',name='目次',exact=True).click()
-    page.get_by_text('INCLUDEファイルの作成',exact=True).click()
-    frame=page.frame_locator('iframe')
-    frame.locator('#include-load').select_option('2000')
-    frame.locator('#save-include').click()
-    page.wait_for_function('window.__shares.length===1')
-    share=page.evaluate('window.__shares[0]')
-    assert share['uri'].endswith('/main.bdf')
-    assert b"INCLUDE 'load_2000.inc'\r\n" in base64.b64decode(share['data'])
-    frame.locator('#copy-include').click()
-    page.wait_for_function('typeof window.__copied==="string"')
-    assert page.evaluate('window.__copied').encode('ascii')==base64.b64decode(share['data'])
-    frame.locator('[data-open-file="mesh.inc"]').click()
-    frame.locator('#include-fields a[href="bulk.html#GRID"]').first.click()
-    page.get_by_text('入力データ学習 · GRID',exact=True).wait_for()
-    page.screenshot(path='.qa/app-reader.png')
-    page.get_by_role('button',name='‹ 戻る').click()
-    page.get_by_text('INCLUDEファイルの作成',exact=True).first.wait_for()
-    page.get_by_role('button',name='目次',exact=True).click()
-    page.get_by_text('ホームへ戻る',exact=True).click()
-    page.get_by_role('tab',name='しおり',exact=True).click()
-    page.get_by_text('1. 学ぶ順序',exact=True).first.wait_for()
-    page.reload(wait_until='networkidle')
-    page.get_by_role('tab',name='しおり',exact=True).wait_for()
-    assert json.loads(page.evaluate('localStorage.getItem("nastran-learning-state-v1")'))['progress']=='[1]'
-    assert json.loads(page.evaluate('localStorage.getItem("nastran-learning-state-v1")'))['courseProgress']=='["purpose"]'
-    page.get_by_role('button',name='続きから読む →').click()
-    page.get_by_role('button',name='目次',exact=True).click()
-    page.get_by_text('動解析をはじめる',exact=True).click()
-    frame=page.frame_locator('iframe')
-    frame.locator('[data-sol="111"]').click()
-    frame.locator('#save-dynamics').click()
-    page.wait_for_function('window.__shares.some(s=>s.uri.endsWith("/sdof_sol111.bdf"))')
-    share=page.evaluate('window.__shares.find(s=>s.uri.endsWith("/sdof_sol111.bdf"))')
-    assert b'SOL 111\r\n' in base64.b64decode(share['data'])
-    frame.locator('[data-field="RLOAD1-0-5"]').click()
-    frame.locator('#field-RLOAD1-0-5').wait_for()
-    page.get_by_role('button',name='しおりを付ける').click()
-    page.get_by_role('button',name='しおりを外す').wait_for()
-    page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="dynamics.html"&&p.hash==="#field-RLOAD1-0-5")')
-    page.screenshot(path='.qa/app-dynamics.png')
-    page.get_by_role('button',name='目次',exact=True).click()
-    page.get_by_text('解析カードの相関図',exact=True).click()
-    frame=page.frame_locator('iframe')
-    frame.locator('.rel-tabs a[href="#sol-112"]').click()
-    frame.locator('[data-rel-node="0:load"]').click()
-    frame.locator('#relation-dialog').wait_for(state='visible')
-    assert frame.locator('#relation-dialog-title').inner_text()=='TLOAD1'
-    frame.locator('#relation-close').click()
-    frame.locator('a[download]').click()
-    page.wait_for_function('window.__shares.some(s=>s.uri.endsWith("/nastran_card_relations.zip"))')
-    share=page.evaluate('window.__shares.find(s=>s.uri.endsWith("/nastran_card_relations.zip"))')
-    from pathlib import Path
-    assert base64.b64decode(share['data'])==Path('../sites/nastran-learning/dist/downloads/nastran_card_relations.zip').read_bytes()
-    page.get_by_role('button',name='しおりを付ける').click()
-    page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="relations.html"&&p.hash==="#sol-112")')
-    page.screenshot(path='.qa/app-relations.png')
-    page.get_by_role('button',name='目次',exact=True).click()
-    page.get_by_text('亀裂先端のモデル化',exact=True).click()
-    frame=page.frame_locator('iframe')
-    frame.locator('#crack-node-picker').select_option('10')
-    assert 'GRID 110' in frame.locator('#crack-node-detail').inner_text()
-    frame.locator('#save-crack').click()
-    page.wait_for_function('window.__shares.some(s=>s.uri.endsWith("/crac2d_kfield_patch.bdf"))')
-    share=page.evaluate('window.__shares.find(s=>s.uri.endsWith("/crac2d_kfield_patch.bdf"))')
-    deck=base64.b64decode(share['data'])
-    assert b'SOL 101\r\n' in deck and b'CRAC2D  100     ' in deck
-    frame.locator('#crack-card-picker').select_option('PRAC2D')
-    frame.locator('#crack-card-PRAC2D').wait_for()
-    page.get_by_role('button',name='しおりを付ける').click()
-    page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="fracture.html"&&p.hash==="#crack-card-PRAC2D")')
-    page.screenshot(path='.qa/app-fracture.png')
-    page.get_by_role('button',name='目次',exact=True).click()
-    page.get_by_text('減衰の種類と使い分け',exact=True).click()
-    frame=page.frame_locator('iframe')
-    frame.locator('#damp-example').select_option('rayleigh')
-    frame.locator('#save-damping').click()
-    page.wait_for_function('window.__shares.some(s=>s.uri.endsWith("/damping_rayleigh_sol112.bdf"))')
-    share=page.evaluate('window.__shares.find(s=>s.uri.endsWith("/damping_rayleigh_sol112.bdf"))')
-    assert b'ALPHA1  1.6     0.      ' in base64.b64decode(share['data'])
-    frame.locator('#damp-field-picker').select_option('ALPHA1')
-    frame.locator('#damp-card-ALPHA1').wait_for()
-    page.get_by_role('button',name='しおりを付ける').click()
-    page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="damping.html"&&p.hash==="#damp-card-ALPHA1")')
-    page.screenshot(path='.qa/app-damping.png')
-    page.get_by_role('button',name='目次',exact=True).click()
-    page.get_by_text('片持ち梁の3モデル',exact=True).click()
-    frame=page.frame_locator('iframe')
-    frame.locator('[data-model="detailed"]').click()
-    assert frame.locator('#model-count').inner_text()=='621節点 / 80要素'
-    frame.locator('#save-model').click()
-    page.wait_for_function('window.__shares.some(s=>s.uri.endsWith("/cantilever_detailed.bdf"))')
-    share=page.evaluate('window.__shares.find(s=>s.uri.endsWith("/cantilever_detailed.bdf"))')
-    assert b'CHEXA   1001    200     ' in base64.b64decode(share['data'])
-    page.get_by_role('button',name='しおりを付ける').click()
-    page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="modeling.html"&&p.hash==="#model-detailed")')
-    page.screenshot(path='.qa/app-modeling.png')
-    page.get_by_role('button',name='目次',exact=True).click()
-    page.get_by_text('エラー検索と意味',exact=True).click()
-    frame=page.frame_locator('iframe')
-    frame.locator('#error-query').fill('2025.0')
-    frame.locator('#error-search-form button[type=submit]').click()
-    frame.locator('[data-key="2025.0"]').click()
-    frame.locator('#error-copy').click()
-    page.wait_for_function('window.__copied.includes("原典項目 2025.0")')
-    page.get_by_role('button',name='しおりを付ける').click()
-    page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="errors.html"&&p.hash==="#error-2025.0")')
-    page.reload(wait_until='networkidle')
-    page.get_by_role('button',name='続きから読む →').click()
-    frame=page.frame_locator('iframe')
-    frame.locator('#error-detail .error-id').wait_for()
-    assert frame.locator('#error-detail .error-id').inner_text()=='2025.0'
-    page.screenshot(path='.qa/app-errors.png')
-    frame.locator('#error-clear').click()
-    frame.locator('#error-query').fill('9050')
-    frame.locator('#error-search-form button[type=submit]').click()
-    assert frame.locator('.error-result').count()==8
-    page.get_by_role('button',name='目次',exact=True).click()
-    page.get_by_text('入力データ学習',exact=True).click()
-    frame=page.frame_locator('iframe')
-    frame.locator('#input-family').select_option('parameter')
-    frame.locator('#category').select_option('質量・単位')
-    frame.locator('#card-picker').select_option('PARAM_WTMASS')
-    frame.locator('[data-entry-field="0:2"]').click()
-    page.get_by_role('button',name='しおりを付ける').click()
-    page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="bulk.html"&&decodeURIComponent(p.hash)==="#PARAM_WTMASS/0:2")')
-    page.reload(wait_until='networkidle')
-    page.get_by_role('button',name='続きから読む →').click()
-    frame=page.frame_locator('iframe')
-    assert frame.locator('#input-family').input_value()=='parameter'
-    assert frame.locator('#category').input_value()=='質量・単位'
-    assert frame.locator('#card-picker').input_value()=='PARAM_WTMASS'
-    assert frame.locator('[data-entry-field="0:2"]').get_attribute('aria-pressed')=='true'
-    page.screenshot(path='.qa/app-input-library.png')
-    assert not errors,errors
-    browser.close()
-print('PASS: real App.tsx home/layout, reader, chapter progress, bookmarks, table-of-contents, native-handler transport, cross-page back, persisted restart. Native APIs mocked; iOS device testing remains.')
+ browser=p.chromium.launch(headless=True,executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')
+ page=browser.new_page(viewport={'width':390,'height':844})
+ page.on('pageerror',lambda e:errors.append(str(e)))
+ page.goto('http://127.0.0.1:8766',wait_until='networkidle')
+ labels=['ホーム','教材','解析','Inputデータ','設定']
+ page.get_by_role('tab',name='ホーム',exact=True).wait_for()
+ assert page.get_by_role('tab').count()==5
+ def nav(label):page.get_by_role('tab',name=label,exact=True).click()
+ def root(label):
+  nav(label)
+  if page.locator('iframe').count():nav(label)
+ def bottom():
+  assert page.get_by_role('tab').count()==5
+  for label in labels:
+   box=page.get_by_role('tab',name=label,exact=True).bounding_box()
+   assert box and 0<=box['x'] and box['x']+box['width']<=page.viewport_size['width']+1
+   assert box['y']+box['height']<=844 and box['height']>=44
+ for width in [320,390,768]:
+  page.set_viewport_size({'width':width,'height':844})
+  for label in labels:
+   root(label) if label!='Inputデータ' else nav(label)
+   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(width,label)
+   bottom()
+ page.set_viewport_size({'width':390,'height':844})
+ root('ホーム')
+ for title in ['座標系','入力規則・BDF作成','応力の方向・符号','関連ファイル・結果の読み方','エラーメッセージ']:
+  assert page.get_by_role('button',name=title,exact=True).count()==1,title
+ page.screenshot(path='.qa/five-tabs-home.png')
+ page.get_by_role('button',name='座標系',exact=True).click()
+ frame=page.frame_locator('iframe');frame.locator('#systems').wait_for(state='visible');bottom()
+ page.get_by_role('button',name='しおりを付ける').click()
+ page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="coordinates.html"&&p.hash==="#systems")')
+ root('教材')
+ for title in ['境界条件・拘束','減衰','並列計算・バッチ実行','INCLUDEとファイル分割']:
+  assert page.get_by_role('button',name=title,exact=True).count()==1
+ page.screenshot(path='.qa/five-tabs-materials.png')
+ page.get_by_role('button',name='境界条件・拘束',exact=True).click()
+ page.frame_locator('iframe').locator('#constraints').wait_for(state='visible');bottom()
+ # Each requested analysis opens its distinct content, while retaining the bottom bar.
+ root('解析')
+ titles=['静解析','固有値解析','熱伝導解析','モーダル周波数応答解析','直接周波数応答解析','過渡応答解析','亀裂先端解析','座屈解析']
+ page.screenshot(path='.qa/five-tabs-analysis.png')
+ for title in titles:
+  page.get_by_role('button',name=title,exact=True).click()
+  assert page.frame_locator('iframe').locator('h1').inner_text()==title
+  bottom();nav('解析')
+ page.get_by_role('button',name='熱伝導解析',exact=True).click()
+ frame=page.frame_locator('iframe')
+ frame.locator('#save-analysis').click()
+ page.wait_for_function('window.__shares.some(s=>s.uri.endsWith("/rod_heat_sol153.bdf"))')
+ share=page.evaluate('window.__shares.find(s=>s.uri.endsWith("/rod_heat_sol153.bdf"))')
+ deck=base64.b64decode(share['data']).decode('ascii')
+ assert 'SOL 153\r\n' in deck and 'ANALYSIS = HEAT' in deck
+ assert all(len(s)==80 for s in deck.split('BEGIN BULK\r\n')[1].split('ENDDATA')[0].splitlines())
+ frame.locator('#copy-analysis').click()
+ page.wait_for_function('window.__copied.includes("LINEAR ROD CONDUCTION")')
+ assert page.evaluate('window.__copied')==deck
+ page.get_by_role('button',name='しおりを付ける').click()
+ page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="analysis.html"&&p.hash==="#heat")')
+ # Per-tab reading locations and 3-level input selector survive switching.
+ nav('Inputデータ');frame=page.frame_locator('iframe')
+ frame.locator('#input-family').select_option('bulk');frame.locator('#category').select_option('棒・梁');frame.locator('#card-picker').select_option('CBAR')
+ nav('解析');assert page.frame_locator('iframe').locator('h1').inner_text()=='熱伝導解析'
+ nav('Inputデータ');frame=page.frame_locator('iframe')
+ assert frame.locator('#card-picker').input_value()=='CBAR'
+ assert frame.locator('#category').input_value()=='棒・梁'
+ # Settings are real persisted preferences; reader reload applies the new size.
+ nav('設定');page.get_by_role('radio',name='文字サイズ 特大',exact=True).click()
+ page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).textScale===1.3')
+ page.screenshot(path='.qa/five-tabs-settings.png')
+ nav('解析');frame=page.frame_locator('iframe')
+ assert frame.locator('.analysis-head>p').evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
+ page.screenshot(path='.qa/five-tabs-heat.png')
+ page.reload(wait_until='networkidle')
+ page.get_by_role('button',name='続きから読む →').click()
+ assert page.frame_locator('iframe').locator('h1').inner_text()=='熱伝導解析'
+ assert page.frame_locator('iframe').locator('.analysis-head>p').evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
+ # Home bookmark list and error search remain reachable without another bottom tab.
+ root('ホーム');page.get_by_role('button',name='しおり一覧').click()
+ assert page.get_by_text('熱伝導解析',exact=True).count()>=1
+ page.get_by_role('button',name='エラーメッセージ',exact=True).click()
+ frame=page.frame_locator('iframe');frame.locator('#error-query').fill('2025.0');frame.locator('#error-search-form button[type=submit]').click();frame.locator('[data-key="2025.0"]').click()
+ assert frame.locator('#error-detail .error-id').inner_text()=='2025.0'
+ bottom()
+ # Native menu routes into the appropriate root tab.
+ page.get_by_role('button',name='目次',exact=True).click()
+ page.get_by_role('button',name='並列計算・バッチ実行',exact=True).click()
+ page.frame_locator('iframe').locator('#save-batch').wait_for()
+ assert page.get_by_role('tab',name='教材',exact=True).get_attribute('aria-selected')=='true'
+ # A fresh Input root can go back to Home; it never shows an empty root page.
+ page.reload(wait_until='networkidle');nav('Inputデータ')
+ page.frame_locator('iframe').locator('#input-family').wait_for()
+ page.get_by_role('button',name='‹ 戻る',exact=True).click()
+ assert page.get_by_role('tab',name='ホーム',exact=True).get_attribute('aria-selected')=='true'
+ assert page.get_by_role('button',name='エラーメッセージ',exact=True).is_visible()
+ assert not errors,errors
+ browser.close()
+print('PASS: 5 persistent bottom tabs / 3 widths; all 8 analysis routes; home/materials grouping; per-tab input selection; heat BDF/native transport; bookmarks/restart; persisted font size; error search; menu/back. Native APIs mocked.')

@@ -187,6 +187,17 @@ with sync_playwright() as p:
     assert page.locator('.error-result').count()==30
     assert not page.locator('#error-detail').inner_text().strip()
     page.close()
+    page=reader('analysis.html')
+    page.select_option('#analysis-picker','heat')
+    page.locator('#save-analysis').click()
+    page.wait_for_function('messages.some(m=>m.type==="share")')
+    m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
+    assert m['name']=='rod_heat_sol153.bdf'
+    assert base64.b64decode(m['base64']).decode('ascii')==page.evaluate('NastranAnalysis.models.heat.text')
+    page.select_option('#analysis-picker','transient')
+    page.select_option('#analysis-example-picker','112')
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#transient/112")')
+    page.close()
     assert not errors,errors
     browser.close()
 print('PASS: all offline mobile pages; chapter/progress bridge; routes and card diagrams; clipboard acknowledgement; Blob/BDF/INCLUDE/BAT bytes; image ZIP transport. Native iOS share sheet not tested.')

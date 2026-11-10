@@ -5,7 +5,7 @@
 ## 実装した内容
 
 - 入門6ステップ：目的と単位 → 点・要素・支え・力 → 入力ファイル → 棒の手計算 → 実行と結果 → 条件を変える演習。
-- ホームと目次を「入門」「次の学習」「調べる」に整理。全14ページの内容を保ち、入力規則とBDF作成を統合しています。発展は片持ち梁・座標・動解析・減衰・亀裂、辞書と実務は入力データ学習・相関図・エラー検索・INCLUDE・バッチです。
+- 常時表示の5タブ：ホーム／教材／解析／Inputデータ／設定。ホームの「はじめに」に座標・入力規則・応力方向・関連ファイルを収録し、エラー検索としおりも配置。教材には境界条件・減衰・並列計算などを整理。解析には指定8種類の入口を配置。Inputデータは3段階選択を直接開きます。設定の本文文字サイズは端末内に保存します。
 - エラー検索は2025.1 Error Messages Guideの7,932掲載項目（枝番・書式6件・重複1件を含む）を索引化。番号・英語・日本語・F06貼り付け、49項目の個別日本語解説、種類別の共通確認手順、原典ページ、しおりとコピーに対応。全件の日本語訳や自動原因診断ではありません。検索はオフライン、原典リンクはオンラインです。
 - 動解析はSOL 103・111・112の図解、周波数／時間応答の理論グラフ、14カードのフィールド解説、3つのBDFとZIPを同梱。動解析の場所もしおりに保存できます。
 - 4解析（101・103・111・112）のカード相関図。参照元・参照先の説明、カード解説へのリンク、PNG/SVG画像ZIPの共有に対応。
@@ -42,7 +42,7 @@ npm run test:core
 npm run test:reader
 ```
 
-`src/generated/lessons.json` は14画面のHTML/CSS/JavaScriptと配布ファイルをまとめた生成物です。直接編集しません。`provenance.json` には元ファイルのSHA-256を記録します。公式マニュアルのPDFや全文テキストはアプリへ同梱していません。
+`src/generated/lessons.json` は15画面のHTML/CSS/JavaScriptと配布ファイルをまとめた生成物です。直接編集しません。`provenance.json` には元ファイルのSHA-256を記録します。公式マニュアルのPDFや全文テキストはアプリへ同梱していません。
 
 Web版で使うコピー・Blobダウンロード・内部リンク・学習記録を、`tools/reader-bridge.js` からネイティブ側へ渡しています。外部文書にこのブリッジは提供しません。
 
@@ -57,7 +57,7 @@ iOSの識別子は `com.safa.nastran`、App Store ConnectのアプリIDは `6816
 ## 確認済みの範囲
 
 - TypeScript検査。
-- 同梱した14教材のオフライン表示、6ステップと旧11章の記録の橋渡し、旧しおりの移行、画面リンク、コピー、BDF/INC/BAT/ZIPのバイト列。
+- 同梱した15教材のオフライン表示、6ステップと旧11章の記録の橋渡し、旧しおりの移行、画面リンク、コピー、BDF/INC/BAT/ZIPのバイト列。
 - 実際のApp.tsxをReact Native Webで描画する代替環境で、320・390・768pxのホーム、目次、戻る、しおり、再起動時の記録復元。ネイティブAPIは模擬サービスです。
 - iOS向けJavaScriptバンドルの生成（`npm run export:ios:js`）。
 
@@ -79,3 +79,5 @@ python -m http.server 8766 --bind 127.0.0.1 --directory .qa/app
 仕様確認：[Expo Sharing](https://docs.expo.dev/versions/latest/sdk/sharing/)、[Clipboard](https://docs.expo.dev/versions/latest/sdk/clipboard/)、[FileSystem legacy](https://docs.expo.dev/versions/latest/sdk/filesystem-legacy/)、[React Native WebView](https://github.com/react-native-webview/react-native-webview/blob/master/docs/Guide.md)。
 
 入力データ学習は入力区分（Executive / Case / パラメータ / Bulk）→カテゴリー→カードの3段階。77項目を掲載し、自由形式の制御文と8文字固定長のBulkを区別します。旧カード・フィールドしおりを維持し、旧入力規則のしおりは`input.html#rules`へ移行します。
+
+`analysis.html`は8解析の概要・入力・出力・適用範囲をそろえたページです。定常熱伝導（SOL 153、3節点棒）、直接周波数応答（108）、直接過渡応答（109）の独自完成BDFと、座屈（105）の制御文・EIGRL断片を追加しています。定常温度・熱流の手計算と、直接法の粘性減衰係数を検算済み。ソルバー実行は未実施。SOL 159は設定の解説で、完成BDF例題は収録していません。

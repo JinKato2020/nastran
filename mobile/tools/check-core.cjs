@@ -18,7 +18,13 @@ for(const [oldPath,oldHash,path,hash] of [
  assert.deepEqual(saved.last,expected);assert.deepEqual(saved.bookmarks,[expected]);
  assert.equal(saved.progress,'[1]');assert.equal(saved.courseProgress,'["purpose"]');
 }
-assert.equal(content.COURSE.steps.length,6);assert.equal(content.COURSE.next.length,5);assert.equal(content.COURSE.reference.length,5);
+assert.equal(p.restore('{}').textScale,1);
+assert.equal(p.restore('{"textScale":99}').textScale,1);
+assert.equal(p.restore('{"textScale":1.3}').textScale,1.3);
+assert.equal(content.NAVIGATION.analyses.length,8);
+assert.equal(content.titleFor({path:'analysis.html',hash:'#transient/112',y:0}),'過渡応答解析');
+for(const group of Object.values(content.NAVIGATION))for(const entry of group)assert(p.position({...entry,y:0}),entry.title);
+assert.equal(content.COURSE.steps.length,6);assert.equal(content.COURSE.next.length,6);assert.equal(content.COURSE.reference.length,5);
 assert.deepEqual(p.restore('invalid'),p.EMPTY_STATE);
 assert.deepEqual(p.restore('null'),p.EMPTY_STATE);
 assert.throws(()=>p.filePayload('../bad.bdf','YQ=='));

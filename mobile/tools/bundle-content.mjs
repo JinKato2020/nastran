@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=path.resolve(root,'../sites/nastran-learning/dist');
 const catalog=[
+ ['analysis.html','解析別の学習','8種類の解析のモデル・入力・結果','解析','#static'],
  ['index.html','線形静解析の基礎','11章と棒の引張り実験室','基礎','#chapter-1'],
  ['modeling.html','モデル化の考え方','片持ち梁をばね・梁・立体の3モデルで比較','基礎',''],
  ['dynamics.html','動解析をはじめる','実固有値・周波数応答・過渡応答と14カード','動解析',''],
