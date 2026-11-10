@@ -52,7 +52,7 @@ with sync_playwright() as p:
  page.get_by_role('button',name='固有値解析',exact=True).click()
  frame=page.frame_locator('iframe')
  assert frame.locator('#analysis-example-fields,#analysis-example-control,.nf-card').count()==0
- frame.locator('#analysis-raw-details>summary').click()
+ frame.locator('#analysis-toggle-raw').click()
  frame.locator('#analysis-example-raw a[href="bulk.html#GRID"]').first.scroll_into_view_if_needed()
  before=frame.locator('body').evaluate('()=>window.scrollY')
  # Click immediately after scroll to verify synchronous position reporting.
@@ -60,7 +60,7 @@ with sync_playwright() as p:
  assert page.frame_locator('iframe').locator('#card-picker').input_value()=='GRID'
  page.get_by_role('button',name='‹ 戻る',exact=True).click()
  frame=page.frame_locator('iframe')
- assert frame.locator('#analysis-raw-details').evaluate('e=>e.open')
+ assert frame.locator('#analysis-raw-details').evaluate('e=>e.dataset.expanded==="true"')
  assert frame.locator('#analysis-example-picker').input_value()=='modes'
  page.wait_for_timeout(300)
  assert abs(frame.locator('body').evaluate('()=>window.scrollY')-before)<3
@@ -68,7 +68,7 @@ with sync_playwright() as p:
  assert page.frame_locator('iframe').locator('#card-picker').input_value()=='CASE_SPC'
  page.get_by_role('button',name='‹ 戻る',exact=True).click()
  frame=page.frame_locator('iframe')
- assert frame.locator('#analysis-raw-details').evaluate('e=>e.open')
+ assert frame.locator('#analysis-raw-details').evaluate('e=>e.dataset.expanded==="true"')
  page.wait_for_timeout(300)
  page.screenshot(path='.qa/analysis-linked-deck.png')
  frame.locator('#save-analysis').click()
@@ -90,7 +90,7 @@ with sync_playwright() as p:
   assert frame.locator('.library-selectors select').count()==3
   assert frame.locator('.library-selectors').evaluate('e=>e.getBoundingClientRect().height')<=150
   assert frame.locator('.card-title h2').evaluate('e=>e.getBoundingClientRect().y')<230
-  assert not frame.locator('.library-search').evaluate('e=>e.open')
+  assert not frame.locator('.library-search').evaluate('e=>e.dataset.expanded==="true"')
  page.set_viewport_size({'width':390,'height':844})
  frame.locator('#input-family').select_option('executive');frame.locator('#category').select_option('SOL · 非線形');frame.locator('#card-picker').select_option('EXEC_SOL_400')
  assert frame.locator('.reference-section').filter(has_text='関連入力・参照関係').count()==1

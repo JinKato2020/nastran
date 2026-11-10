@@ -4,3 +4,5 @@
 .analysis-example .deck-card-link{color:#235bb2;font-weight:700;text-decoration:underline;text-underline-offset:3px;border-radius:2px}.analysis-example .deck-card-link:focus-visible{outline:2px solid #3259d8;outline-offset:2px}.analysis-example pre{line-height:2.6}.analysis-example .analysis-link-hint{font-size:12px;margin:0 0 10px;color:#637b9d}
 
 .run-command{white-space:pre;overflow:auto;padding:14px;background:#eaf0f8;font:13px/1.8 Consolas,monospace}
+.analysis-code-preview{margin-top:18px;scroll-margin-top:80px}.analysis-code-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.analysis-code-header h3{font-size:15px;margin:0;color:#315888}.analysis-code-preview button{min-height:44px;white-space:nowrap}.analysis-code-preview button:focus-visible{outline:2px solid #3259d8;outline-offset:3px}.analysis-code-preview .analysis-code-status{font-size:12px;margin:5px 0;color:#637b9d}.analysis-code-preview pre{margin:8px 0 10px;line-height:2}.analysis-code-preview .analysis-link-hint{margin-top:10px}
+.analysis-code-preview button[hidden]{display:none}

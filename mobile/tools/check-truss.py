@@ -29,7 +29,7 @@ with sync_playwright() as p:
   assert frame.locator('body').evaluate('()=>document.documentElement.scrollWidth<=innerWidth')
   assert page.get_by_role('tab').count()==5
  page.set_viewport_size({'width':390,'height':844})
- frame.locator('#analysis-raw-details>summary').click()
+ frame.locator('#analysis-toggle-raw').click()
  assert frame.locator('#analysis-example-raw').text_content()==dat.decode('ascii')
  for key in ['GRID','CROD','PROD','MAT1','CASE_FORCE','FORCE','LOAD','SPCADD']:
   frame.locator('#analysis-example-raw a[href="bulk.html#'+key+'"]').first.scroll_into_view_if_needed()
@@ -38,7 +38,7 @@ with sync_playwright() as p:
   assert page.frame_locator('iframe').locator('#card-picker').input_value()==key
   page.get_by_role('button',name='‹ 戻る',exact=True).click()
   frame=page.frame_locator('iframe');page.wait_for_timeout(250)
-  assert frame.locator('#analysis-raw-details').evaluate('e=>e.open')
+  assert frame.locator('#analysis-raw-details').evaluate('e=>e.dataset.expanded==="true"')
   assert abs(frame.locator('body').evaluate('()=>scrollY')-y)<3
  frame.locator('#save-analysis').click()
  page.wait_for_function('window.__shares.some(s=>s.uri.endsWith("/truss_sol101.dat"))')
