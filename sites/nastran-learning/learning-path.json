@@ -340,10 +340,10 @@
       },
       {
         "title": "熱伝導解析",
-        "description": "定常・非定常の温度分布と熱流",
+        "description": "定常温度・入熱・対流・断熱・熱収支",
         "path": "analysis.html",
         "hash": "#heat",
-        "kind": "SOL 153 / 159"
+        "kind": "SOL 153"
       },
       {
         "title": "モーダル周波数応答解析",
@@ -368,7 +368,7 @@
       },
       {
         "title": "亀裂先端解析",
-        "description": "公開検証例・四分点要素・VCCT",
+        "description": "中央亀裂板・四分点要素・KとG",
         "path": "analysis.html",
         "hash": "#fracture",
         "kind": "SOL 400"

@@ -192,7 +192,7 @@ with sync_playwright() as p:
     page.locator('#save-analysis').click()
     page.wait_for_function('messages.some(m=>m.type==="share")')
     m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
-    assert m['name']=='nas102_plate_sol103.dat'
+    assert m['name']=='plate_sol103.dat'
     assert base64.b64decode(m['base64']).decode('ascii')==page.evaluate('NastranAnalysis.models.modes.text')
     page.select_option('#analysis-picker','transient')
     page.select_option('#analysis-example-picker','transient-modal')
