@@ -18,14 +18,14 @@
    ${text(20,105,'左辺：対流')}${text(20,126,'h = 10 W/(m²K)')}${text(20,147,'周囲 20°C')}
    ${text(165,194,'T は未知')}${text(159,301,'75 要素')}${text(159,324,'厚さ 0.1 m')}
    ${text(155,380,'下辺：50°C を維持')}${text(20,48,'上辺・表裏：熱交換を与えない（断熱の仮定）','font-size="12"')}${legend}`);}
- function truss(){const p=[[35,265],[122,221],[151,265],[210,178],[269,265],[298,221],[385,265]],edges=[[0,1],[1,3],[3,5],[5,6],[1,2],[2,3],[3,4],[4,5],[0,2],[2,4],[4,6]];
- return wrap('7節点11部材の平面トラス。左ピン、右ローラー。上部3節点へ下向き1500lbfと左向き1300lbf。',`${text(20,24,'NAS101：単純支持トラス')}${text(20,51,'上部3節点（2・4・6）それぞれに')}${text(20,75,'↓ 1500 lbf ＋ ← 1300 lbf')}
+ function truss(){const p=[[35,265],[122.5,212.5],[151.67,265],[210,160],[268.33,265],[297.5,212.5],[385,265]],edges=[[0,1],[1,3],[3,5],[5,6],[1,2],[2,3],[3,4],[4,5],[0,2],[2,4],[4,6]];
+ return wrap('7節点11部材の平面トラス。全長6000mm、高さ1800mm。左ピン、右ローラー。節点2・4・6へ各2000N下向き、1000N右向き。',`${text(20,24,'単純支持トラスの静解析')}${text(20,51,'上部3節点（2・4・6）それぞれに')}${text(20,75,'↓ 2000 N ＋ → 1000 N')}
  ${edges.map(([a,b])=>`<path d="M${p[a]}L${p[b]}" stroke="#6786b0" stroke-width="4"/>`).join('')}
- ${[1,3,5].map(i=>arrow(p[i][0],p[i][1]-55,p[i][0],p[i][1]-6)+arrow(p[i][0]+45,p[i][1]-22,p[i][0]+5,p[i][1]-22)).join('')}
- ${p.map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="5" fill="white" stroke="#426bb1"/>${text(x-4,y+23,String(i+1))}`).join('')}
- <path d="M35 265L22 308H48Z M385 265L372 308H398Z" fill="#e4ecf8" stroke="#426bb1"/>
- <circle cx="378" cy="314" r="5" fill="white" stroke="#426bb1"/><circle cx="392" cy="314" r="5" fill="white" stroke="#426bb1"/>
- ${text(20,342,'左：uₓ = uᵧ = 0')}${text(262,342,'右：uᵧ = 0')}${text(20,368,'全長 576 in　面外自由度 3456 を拘束')}${legend}`);}
+ ${[1,3,5].map(i=>arrow(p[i][0],p[i][1]-50,p[i][0],p[i][1]-6)+arrow(p[i][0]+6,p[i][1]-18,p[i][0]+50,p[i][1]-18)).join('')}
+ ${p.map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="5" fill="white" stroke="#426bb1"/>${text(x-4,y+(i===0||i===6?-10:23),String(i+1))}`).join('')}
+ <path d="M35 271L22 304H48Z M385 271L372 304H398Z" fill="#e4ecf8" stroke="#426bb1"/>
+ <circle cx="378" cy="310" r="5" fill="white" stroke="#426bb1"/><circle cx="392" cy="310" r="5" fill="white" stroke="#426bb1"/>
+ ${text(20,337,'左：uₓ = uᵧ = 0')}${text(262,337,'右：uᵧ = 0')}${text(20,362,'全長 6000 mm / 高さ 1800 mm')}${text(20,383,'＋X：右　＋Y：上　面外自由度3456を拘束','font-size="13"')}${legend}`);}
  function plate(key){const labels={modes:['無加振：自由振動の固有値を抽出','結果：周波数とモード形（実振幅ではない）'], 'direct-frequency':['GRID11：1 lbf の調和集中力','20〜1000 Hz　構造減衰 G = 0.06'],'modal-frequency':['全要素：0.1 psi　GRID11：1 lbf','集中力は圧力より45°遅れ　減衰比 0.03'],transient:['SOL109 / 112：圧力＋集中力の有限パルス','波形・倍率・遅延は下の入力対応で比較']};let [l1,l2]=labels[key];
  return wrap('NAS102の片持ち板。5in×2in、厚さ0.1in、55節点40要素。左辺の自由度12345拘束。',`${text(20,24,'NAS102：片持ち板（XY平面）')}${text(20,52,l1)}${text(20,76,l2,'font-size="13"')}
  <rect x="50" y="155" width="20" height="128" fill="url(#hatch)"/><rect x="70" y="155" width="320" height="128" fill="#edf3fa" stroke="#7591b8"/>
