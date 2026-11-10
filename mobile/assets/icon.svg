@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="MSC Nastran">
-  <rect width="1024" height="1024" fill="#3259d8"/>
-  <g fill="#fff" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle">
-    <text x="512" y="461" font-size="244">MSC</text>
-    <text x="512" y="673" font-size="166">Nastran</text>
+  <rect width="1024" height="1024" fill="#fff"/>
+  <g fill="#000" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle">
+    <text x="512" y="495" font-size="244">MSC</text>
+    <text x="512" y="707" font-size="166">Nastran</text>
   </g>
 </svg>

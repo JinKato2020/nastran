@@ -8,6 +8,6 @@ with sync_playwright() as p:
  page.goto((ROOT/'assets/icon.svg').as_uri())
  page.evaluate('document.fonts.ready')
  assert page.locator('text').all_text_contents()==['MSC','Nastran']
- page.locator('svg').screenshot(path=str(ROOT/'assets/icon.png'),omit_background=False)
+ page.locator('svg').screenshot(path=str(ROOT/'assets/icon-msc-nastran-white.png'),omit_background=False)
  browser.close()
 print('Rendered 1024 x 1024 MSC / Nastran app icon.')

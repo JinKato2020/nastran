@@ -12,21 +12,36 @@
   let path='';for(let i=0;i<=100;i++){const x=70+i*5,y=80-40*Math.sin(i/100*Math.PI*6)*(key==='transient'?Math.exp(-i/75):1);path+=(i?'L':'M')+x.toFixed(2)+' '+y.toFixed(2);}
   return start+'<path d="M60 15V135H590M60 80H590" stroke="#c7d4e7" fill="none"/><path d="'+path+'" stroke="#446bd1" stroke-width="3" fill="none"/><text x="320" y="155" text-anchor="middle" font-size="23" fill="#33557e">'+(key==='modes'?'固有振動数・モード形':key==='transient'?'時間に対する応答の変化':'調和応答の振幅と位相')+'</text>'+end;
  }
+ function linkedDeck(text){
+  const pre=$('analysis-example-raw');pre.replaceChildren();let zone='executive';
+  for(const [index,line] of text.split(/(\r\n|\n)/).entries()){
+   if(index%2){pre.append(document.createTextNode(line));continue;}
+   let match=/^(\s*)([A-Z][A-Z0-9]*)(?=[\s(=,]|$)/.exec(line),key='';
+   if(match){
+    const code=match[2];
+    if(/^\s*BEGIN\s+BULK\b/.test(line)){match=/^(\s*)(BEGIN\s+BULK)/.exec(line);key='CASE_BEGIN_BULK';zone='bulk';}
+    else if(zone==='executive'){key=code==='SOL'?'EXEC_SOL_'+(/SOL\s+(\d+)/.exec(line)?.[1]||''): 'EXEC_'+code;if(code==='CEND')zone='case';}
+    else if(zone==='case')key='CASE_'+code;
+    else key=code==='PARAM'?'PARAM_'+line.slice(8,16).trim():code;
+   }
+   if(!key){pre.append(document.createTextNode(line));continue;}
+   pre.append(document.createTextNode(match[1]));const link=document.createElement('a');link.href='bulk.html#'+key;link.textContent=match[2];link.className='deck-card-link';link.setAttribute('aria-label',match[2]+'のInputデータ解説');pre.append(link,document.createTextNode(line.slice(match[1].length+match[2].length)));
+  }
+ }
+ function exampleHash(){return '#'+entry.key+'/'+selectedExample+($('analysis-raw-details')?.open?'/raw':'');}
+ function rememberExample(){history.replaceState(null,'',exampleHash());}
  function showExample(){
   const m=A.models[selectedExample];if(!m)return;
-  $('analysis-example-fields').innerHTML=m.rows.map((r,n)=>'<div class="nf-card"><div class="nf-caption"><strong>'+r.name+'</strong></div><div class="nf-scroll" tabindex="0"><table class="nf-table"><thead><tr>'+A.fields(r,selectedExample).map((f,i)=>'<th scope="col"><small>第'+(i+1)+'欄 / '+(i*8+1)+'–'+(i*8+8)+'列</small><button data-analysis-field="'+n+':'+i+'">'+esc(f.label)+'</button></th>').join('')+'</tr></thead><tbody><tr>'+Array.from({length:10},(_,i)=>{const v=r.text.slice(i*8,i*8+8);return '<td'+(v.trim()?'':' class="nf-empty"')+'>'+ (v.trim()?'<code>'+esc(v)+'</code>':'空欄')+'</td>';}).join('')+'</tr></tbody></table></div></div>').join('');
-  $('analysis-example-control').textContent=[...m.exec,...m.control,'BEGIN BULK'].join('\n');$('analysis-example-raw').textContent=m.text;$('analysis-filename').textContent=m.name;
-  $('analysis-fragment').hidden=m.complete;$('analysis-field-note').textContent='フィールド名を選択すると定義を表示します。';
-  $('analysis-example-fields').querySelectorAll('[data-analysis-field]').forEach(b=>b.addEventListener('click',()=>{const [r,i]=b.dataset.analysisField.split(':').map(Number),f=A.fields(m.rows[r],selectedExample)[i];$('analysis-field-note').textContent=m.rows[r].name+' / '+f.label+'：'+f.help;}));
+  linkedDeck(m.text);$('analysis-filename').textContent=m.name;$('analysis-fragment').hidden=m.complete;
  }
  function render(key){
   entry=A.entries.find(e=>e.key===key)||A.entries[0];$('analysis-picker').value=entry.key;document.title=entry.title+' — Nastran';
   $('analysis-detail').innerHTML='<div class="analysis-head"><span class="analysis-sol">'+esc(entry.sol)+'</span><h1>'+entry.title+'</h1><p>'+entry.summary+'</p></div><div class="analysis-visual">'+visual(entry.key)+'<p class="analysis-equation">'+entry.equation+'</p><p class="analysis-symbols">'+entry.symbols+'</p></div><div class="analysis-flow">'+entry.flow.map((x,i)=>'<div><small>0'+(i+1)+'</small>'+esc(x)+'</div>').join('')+'</div><section class="analysis-section"><h2>モデルと入力</h2><dl class="analysis-inputs">'+entry.inputs.map(([k,v])=>'<div><dt>'+k+'</dt><dd>'+v+'</dd></div>').join('')+'</dl></section><section class="analysis-section"><h2>結果の読み方</h2><ul>'+entry.outputs.map(t=>'<li>'+t+'</li>').join('')+'</ul></section><section class="analysis-section"><h2>確認事項</h2><ul>'+entry.checks.map(t=>'<li>'+t+'</li>').join('')+'</ul></section>'+
-   (entry.examples?'<section class="analysis-section"><h2>入力例</h2><p>'+entry.exampleNote+'</p><div class="analysis-example"><label>例題<select id="analysis-example-picker">'+entry.examples.map(k=>'<option value="'+k+'">'+(k==='heat'?'SOL 153 · 棒の定常熱伝導':k==='buckling'?'SOL 105 · 制御文の断片':'SOL '+k+' · 1自由度モデル')+'</option>').join('')+'</select></label><p id="analysis-fragment" class="analysis-fragment">入力断片：このファイル単体では解析できません。</p><details><summary>制御文と8文字フィールド表</summary><pre id="analysis-example-control"></pre><div id="analysis-example-fields"></div><p id="analysis-field-note" class="analysis-field-note" aria-live="polite"></p></details><details><summary>固定長テキスト全文</summary><pre id="analysis-example-raw"></pre></details><p id="analysis-filename"></p><div class="analysis-tools"><button id="copy-analysis" class="button secondary">コピー</button><button id="save-analysis" class="button primary">BDFを保存</button></div></div></section>':'')+
+   (entry.examples?'<section class="analysis-section"><h2>入力例</h2><p>'+entry.exampleNote+'</p><div class="analysis-example"><label>例題<select id="analysis-example-picker">'+entry.examples.map(k=>'<option value="'+k+'">'+(k==='heat'?'SOL 153 · 棒の定常熱伝導':k==='buckling'?'SOL 105 · 制御文の断片':'SOL '+k+' · 1自由度モデル')+'</option>').join('')+'</select></label><p id="analysis-fragment" class="analysis-fragment">入力断片：このファイル単体では解析できません。</p><details id="analysis-raw-details"><summary>固定長テキスト全文</summary><p class="analysis-link-hint">先頭のコードを選ぶとInputデータの解説へ移動します。戻る操作でこの全文に戻れます。</p><pre id="analysis-example-raw" tabindex="0" aria-label="入力ファイル全文。先頭コードからカード解説へ移動"></pre></details><p id="analysis-filename"></p><div class="analysis-tools"><button id="copy-analysis" class="button secondary">コピー</button><button id="save-analysis" class="button primary">BDFを保存</button></div></div></section>':'')+
    '<section class="analysis-section"><h2>詳しい教材</h2><div class="analysis-links">'+entry.links.map(([url,title])=>'<a href="'+url+'">'+title+' →</a>').join('')+'</div></section><div class="analysis-sources">'+entry.sources.map(r=>'<a href="'+r.url+'" target="_blank" rel="noopener">'+r.label+' ↗</a>').join('')+'</div>';
-  if(entry.examples){selectedExample=entry.examples[0];showExample();$('analysis-example-picker').addEventListener('change',()=>{selectedExample=$('analysis-example-picker').value;showExample();history.replaceState(null,'','#'+entry.key+'/'+selectedExample);});$('copy-analysis').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(A.models[selectedExample].text);toast('入力例をコピーしました');}catch{toast('コピーできませんでした。保存を使用してください。');}});$('save-analysis').addEventListener('click',()=>{const m=A.models[selectedExample],a=document.createElement('a'),u=URL.createObjectURL(new Blob([m.text],{type:'text/plain;charset=us-ascii'}));a.href=u;a.download=m.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);});}
+  if(entry.examples){selectedExample=entry.examples[0];showExample();$('analysis-raw-details').addEventListener('toggle',rememberExample);$('analysis-example-picker').addEventListener('change',()=>{selectedExample=$('analysis-example-picker').value;showExample();rememberExample();});$('copy-analysis').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(A.models[selectedExample].text);toast('入力例をコピーしました');}catch{toast('コピーできませんでした。保存を使用してください。');}});$('save-analysis').addEventListener('click',()=>{const m=A.models[selectedExample],a=document.createElement('a'),u=URL.createObjectURL(new Blob([m.text],{type:'text/plain;charset=us-ascii'}));a.href=u;a.download=m.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);});}
  }
- function route(){const [key,example]=location.hash.slice(1).split('/');render(key);if(entry.examples?.includes(example)){$('analysis-example-picker').value=example;selectedExample=example;showExample();}}
+ function route(){const [key,example,view]=location.hash.slice(1).split('/');render(key);if(entry.examples?.includes(example)){$('analysis-example-picker').value=example;selectedExample=example;showExample();}if($('analysis-raw-details'))$('analysis-raw-details').open=view==='raw';}
  function toast(t){clearTimeout(timer);$('analysis-toast').textContent=t;$('analysis-toast').hidden=false;timer=setTimeout(()=>$('analysis-toast').hidden=true,2200);}
  $('analysis-picker').addEventListener('change',()=>{location.hash=$('analysis-picker').value;window.scrollTo(0,0);});addEventListener('hashchange',route);route();
 })();

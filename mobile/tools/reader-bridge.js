@@ -23,7 +23,7 @@
    const target=url.pathname.slice(1);
    if(boot.downloads.includes(target)){request({type:'asset',path:target}).catch(report);return true;}
    if(target===boot.path){if(url.hash!==location.hash)location.hash=url.hash;else if(url.hash)document.getElementById(decodeURIComponent(url.hash.slice(1)))?.scrollIntoView();return true;}
-   post({type:'navigate',path:target,hash:url.hash});return true;
+   position();post({type:'navigate',path:target,hash:url.hash});return true;
   }
   if(url.protocol==='https:')post({type:'external',url:url.href});
   return true;

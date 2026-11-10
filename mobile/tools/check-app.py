@@ -51,6 +51,26 @@ with sync_playwright() as p:
   bottom();nav('解析')
  page.get_by_role('button',name='熱伝導解析',exact=True).click()
  frame=page.frame_locator('iframe')
+ assert frame.locator('#analysis-example-fields,#analysis-example-control,.nf-card').count()==0
+ frame.locator('#analysis-raw-details>summary').click()
+ frame.locator('#analysis-example-raw a[href="bulk.html#GRID"]').first.scroll_into_view_if_needed()
+ before=frame.locator('body').evaluate('()=>window.scrollY')
+ # Click immediately after scroll to verify synchronous position reporting.
+ frame.locator('#analysis-example-raw a[href="bulk.html#GRID"]').first.click()
+ assert page.frame_locator('iframe').locator('#card-picker').input_value()=='GRID'
+ page.get_by_role('button',name='‹ 戻る',exact=True).click()
+ frame=page.frame_locator('iframe')
+ assert frame.locator('#analysis-raw-details').evaluate('e=>e.open')
+ assert frame.locator('#analysis-example-picker').input_value()=='heat'
+ page.wait_for_timeout(300)
+ assert abs(frame.locator('body').evaluate('()=>window.scrollY')-before)<3
+ frame.locator('#analysis-example-raw a[href="bulk.html#CASE_SPC"]').click()
+ assert page.frame_locator('iframe').locator('#card-picker').input_value()=='CASE_SPC'
+ page.get_by_role('button',name='‹ 戻る',exact=True).click()
+ frame=page.frame_locator('iframe')
+ assert frame.locator('#analysis-raw-details').evaluate('e=>e.open')
+ page.wait_for_timeout(300)
+ page.screenshot(path='.qa/analysis-linked-deck.png')
  frame.locator('#save-analysis').click()
  page.wait_for_function('window.__shares.some(s=>s.uri.endsWith("/rod_heat_sol153.bdf"))')
  share=page.evaluate('window.__shares.find(s=>s.uri.endsWith("/rod_heat_sol153.bdf"))')
@@ -61,7 +81,7 @@ with sync_playwright() as p:
  page.wait_for_function('window.__copied.includes("LINEAR ROD CONDUCTION")')
  assert page.evaluate('window.__copied')==deck
  page.get_by_role('button',name='しおりを付ける').click()
- page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="analysis.html"&&p.hash==="#heat")')
+ page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="analysis.html"&&p.hash==="#heat/heat/raw")')
  # Per-tab reading locations and 3-level input selector survive switching.
  nav('Inputデータ');frame=page.frame_locator('iframe')
  # Compact selector, real native reader wrapper; card heading is visible immediately.

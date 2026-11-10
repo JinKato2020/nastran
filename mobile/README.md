@@ -82,6 +82,8 @@ python -m http.server 8766 --bind 127.0.0.1 --directory .qa/app
 
 2020 SP1 QRG Table 2（PDF187–188）の25 SOL番号を個別収録。用途・解法・参照カード・出力・注意点・他SOLとの違い・原典ページを統一して掲載。CMETHOD/EIGC、STATSUB、ANALYSIS、NLPARM、NLSTEP、TSTEPNL、温度入力・出力等の18項目を追加しています。SOLの制御例は未定義のモデルやBulkを要する抜粋であり、完成BDFとは明確に区別しています。新規の例はソルバー未実行です。
 
-アプリアイコンは`assets/icon.svg`の「MSC / Nastran」2段文字を`assets/icon.png`（1024px、不透明）に描画。`tools/render-icon.py`はローカルでの再生成用で、iOSビルドでは同梱PNGを使用します。
+アプリアイコンは白地・黒文字の「MSC / Nastran」2段を上下左右中央に配置。`assets/icon.svg`から`assets/icon-msc-nastran-white.png`（1024px、不透明）に描画します。`tools/render-icon.py`はローカルでの再生成用で、iOSビルドでは同梱PNGを使用します。
+
+解析タブの入力例は、リンク付きの固定長テキスト全文に集約しています。重複していた制御文・カード別のフィールド表・独自フィールド定義は削除。先頭コードからInputデータへ移動し、戻る操作で例題・全文の開閉状態・スクロール位置を復元します。CaseとBulkの同名カードやPARAMの設定名も区別してリンクし、コピー・BDF保存は元のCRLF/80列データを保持します。
 
 `analysis.html`は8解析の概要・入力・出力・適用範囲をそろえたページです。定常熱伝導（SOL 153、3節点棒）、直接周波数応答（108）、直接過渡応答（109）の独自完成BDFと、座屈（105）の制御文・EIGRL断片を追加しています。定常温度・熱流の手計算と、直接法の粘性減衰係数を検算済み。ソルバー実行は未実施。SOL 159は設定の解説で、完成BDF例題は収録していません。

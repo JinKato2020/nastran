@@ -19,6 +19,6 @@
     "plugins": [
       "expo-sharing"
     ],
-    "icon": "./assets/icon.png"
+    "icon": "./assets/icon-msc-nastran-white.png"
   }
 }
