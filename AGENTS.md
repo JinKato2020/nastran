@@ -6,3 +6,10 @@
 - App Storeの審査申請・公開は行わない。TestFlightへの提出とストア申請を区別する。
 - 対象：GitHub `JinKato2020/nastran`、iOSバンドルID `com.safa.nastran`、App Store ConnectアプリID `6816586481`。
 - CAEとは独立したアプリ。CAEのファイル・設定は変更しない。
+
+# 教材の構成・説明方針
+
+- ユーザー指定（2026-11-10）：子ども向けの比喩や細かい誘導を控え、技術的な用途・書式・適用条件・注意点を端的に説明する。以前の「中学生向け」よりこの最新指定を優先する。
+- `bulk.html`は「入力データ学習」。入力区分（Executive Control / Case Control / パラメータ / Bulk Data）→カテゴリー→カード・設定名の3段階のプルダウンで絞り込む。
+- 「ゆっくり学ぶ」を設けない。入力規則は別工程の「入力規則・BDF作成」（`input.html#rules`）へ集約する。
+- Bulk Dataの入力例は8文字固定長のヘッダー付き表を維持する。Executive / Case Control / INCLUDE等の自由形式に8文字規則を適用しない。

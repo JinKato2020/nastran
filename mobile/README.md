@@ -5,7 +5,7 @@
 ## 実装した内容
 
 - 入門6ステップ：目的と単位 → 点・要素・支え・力 → 入力ファイル → 棒の手計算 → 実行と結果 → 条件を変える演習。
-- ホームと目次を「入門」「次の学習」「調べる」に整理。全14ページの内容を保ち、入力規則とBDF作成を統合しています。発展は片持ち梁・座標・動解析・減衰・亀裂、辞書と実務はBulk図鑑・相関図・エラー検索・INCLUDE・バッチです。
+- ホームと目次を「入門」「次の学習」「調べる」に整理。全14ページの内容を保ち、入力規則とBDF作成を統合しています。発展は片持ち梁・座標・動解析・減衰・亀裂、辞書と実務は入力データ学習・相関図・エラー検索・INCLUDE・バッチです。
 - エラー検索は2025.1 Error Messages Guideの7,932掲載項目（枝番・書式6件・重複1件を含む）を索引化。番号・英語・日本語・F06貼り付け、49項目の個別日本語解説、種類別の共通確認手順、原典ページ、しおりとコピーに対応。全件の日本語訳や自動原因診断ではありません。検索はオフライン、原典リンクはオンラインです。
 - 動解析はSOL 103・111・112の図解、周波数／時間応答の理論グラフ、14カードのフィールド解説、3つのBDFとZIPを同梱。動解析の場所もしおりに保存できます。
 - 4解析（101・103・111・112）のカード相関図。参照元・参照先の説明、カード解説へのリンク、PNG/SVG画像ZIPの共有に対応。
@@ -63,7 +63,7 @@ iOSの識別子は `com.safa.nastran`、App Store ConnectのアプリIDは `6816
 
 Windowsのアプリケーション制御が付属のhermesc.exeをブロックしたため、通常のHermesバイトコード生成はこのPCでは完了していません。`export:ios:js` はExpoの `--no-bytecode` による検証用出力で、配布用IPAではありません。クラウド／Macでの本番ビルドは通常のHermes設定を使います。
 
-iOS実機では、オフライン起動、共有メニューからのファイル保存、保存したBDFの8文字幅、バックグラウンド復帰、しおりの復元を確認してください。端末の共有シートとWebKitの実機動作は未確認です。
+iOS実機では、オフライン起動、共有メニューからのファイル保存、保存したBDFの8文字幅、バックグラウンド復帰、しおりの復元を確認してください。前版1.0.0 (1002)はユーザーが実機確認済みです。今回の入力データ学習の変更はブラウザー代替環境で検証し、実機での再確認は別途必要です。
 
 ## 表示検証の再実行
 
@@ -77,3 +77,5 @@ python -m http.server 8766 --bind 127.0.0.1 --directory .qa/app
 `node_modules`、`.qa`、`.build`、`.expo` は生成物です。`.gitignore` で管理対象から外しています。Expo SDK 58の依存関係はlockfileで固定しています。npm auditでは開発ツールのglob/minimatch経由のmoderate 5件が報告されています。Expoの互換性を崩す強制ダウングレードは行っていません。
 
 仕様確認：[Expo Sharing](https://docs.expo.dev/versions/latest/sdk/sharing/)、[Clipboard](https://docs.expo.dev/versions/latest/sdk/clipboard/)、[FileSystem legacy](https://docs.expo.dev/versions/latest/sdk/filesystem-legacy/)、[React Native WebView](https://github.com/react-native-webview/react-native-webview/blob/master/docs/Guide.md)。
+
+入力データ学習は入力区分（Executive / Case / パラメータ / Bulk）→カテゴリー→カードの3段階。77項目を掲載し、自由形式の制御文と8文字固定長のBulkを区別します。旧カード・フィールドしおりを維持し、旧入力規則のしおりは`input.html#rules`へ移行します。

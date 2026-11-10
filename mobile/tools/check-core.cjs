@@ -9,7 +9,7 @@ assert.equal(p.courseProgress('["input","input","model","invalid",3]'),'["input"
 assert.equal(p.courseProgress('invalid'),'[]');
 assert.equal(p.restore('{"progress":"[1,3]"}').courseProgress,'[]');
 for(const [oldPath,oldHash,path,hash] of [
- ['workflow.html','#rules','input.html','#rules'],['workflow.html','#build','input.html','#complete'],
+ ['bulk.html','#format-guide','input.html','#rules'],['workflow.html','#rules','input.html','#rules'],['workflow.html','#build','input.html','#complete'],
  ['index.html','#chapter-4','basics.html','#node'],['index.html','#chapter-5','basics.html','#constraints'],
  ['index.html','#chapter-6','input.html','#executive'],['index.html','#chapter-8','workflow.html','#results']
 ]){
@@ -27,6 +27,8 @@ assert.throws(()=>p.filePayload('test.bdf','not base64'));
 assert.equal(p.filePayload('model.bdf','YQ==').name,'model.bdf');
 assert(p.position({path:'errors.html',hash:'#error-2025.0',y:0}));
 assert.equal(content.titleFor({path:'errors.html',hash:'#error-2025.0',y:0}),'エラー検索と意味 · 2025.0');
+assert.equal(content.titleFor({path:'bulk.html',hash:'#CASE_LOAD',y:0}),'入力データ学習 · LOAD (Case)');
+assert.equal(content.titleFor({path:'bulk.html',hash:'#PARAM_WTMASS/0%3A2',y:0}),'入力データ学習 · PARAM WTMASS / 0:2');
 const dest=path.join(root,'.qa/reader');fs.mkdirSync(dest,{recursive:true});
 for(const l of content.LESSONS){
  const html=content.readerHTML({path:l.id,hash:l.hash,y:0},'[1,3]','test');

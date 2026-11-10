@@ -49,7 +49,7 @@ with sync_playwright() as p:
     assert page.evaluate('window.__copied').encode('ascii')==base64.b64decode(share['data'])
     frame.locator('[data-open-file="mesh.inc"]').click()
     frame.locator('#include-fields a[href="bulk.html#GRID"]').first.click()
-    page.get_by_text('Bulkカード図鑑 · GRID',exact=True).wait_for()
+    page.get_by_text('入力データ学習 · GRID',exact=True).wait_for()
     page.screenshot(path='.qa/app-reader.png')
     page.get_by_role('button',name='‹ 戻る').click()
     page.get_by_text('INCLUDEファイルの作成',exact=True).first.wait_for()
@@ -152,6 +152,23 @@ with sync_playwright() as p:
     frame.locator('#error-query').fill('9050')
     frame.locator('#error-search-form button[type=submit]').click()
     assert frame.locator('.error-result').count()==8
+    page.get_by_role('button',name='目次',exact=True).click()
+    page.get_by_text('入力データ学習',exact=True).click()
+    frame=page.frame_locator('iframe')
+    frame.locator('#input-family').select_option('parameter')
+    frame.locator('#category').select_option('質量・単位')
+    frame.locator('#card-picker').select_option('PARAM_WTMASS')
+    frame.locator('[data-entry-field="0:2"]').click()
+    page.get_by_role('button',name='しおりを付ける').click()
+    page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="bulk.html"&&decodeURIComponent(p.hash)==="#PARAM_WTMASS/0:2")')
+    page.reload(wait_until='networkidle')
+    page.get_by_role('button',name='続きから読む →').click()
+    frame=page.frame_locator('iframe')
+    assert frame.locator('#input-family').input_value()=='parameter'
+    assert frame.locator('#category').input_value()=='質量・単位'
+    assert frame.locator('#card-picker').input_value()=='PARAM_WTMASS'
+    assert frame.locator('[data-entry-field="0:2"]').get_attribute('aria-pressed')=='true'
+    page.screenshot(path='.qa/app-input-library.png')
     assert not errors,errors
     browser.close()
 print('PASS: real App.tsx home/layout, reader, chapter progress, bookmarks, table-of-contents, native-handler transport, cross-page back, persisted restart. Native APIs mocked; iOS device testing remains.')

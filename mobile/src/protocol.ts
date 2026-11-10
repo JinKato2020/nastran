@@ -10,7 +10,7 @@ export function position(value: unknown): Position | null {
   const v = value as Record<string, unknown>;
   if (!PAGE_IDS.some(p => p === v.path)) return null;
   if (typeof v.hash !== 'string' || (v.hash !== '' && !v.hash.startsWith('#')) || v.hash.length > 500 || /[\x00-\x1f]/.test(v.hash)) return null;
-  const moved:Record<string,[string,string]>={'workflow.html#rules':['input.html','#rules'],'workflow.html#build':['input.html','#complete'],'index.html#chapter-4':['basics.html','#node'],'index.html#chapter-5':['basics.html','#constraints'],'index.html#chapter-6':['input.html','#executive'],'index.html#chapter-8':['workflow.html','#results']};
+  const moved:Record<string,[string,string]>={'bulk.html#format-guide':['input.html','#rules'],'workflow.html#rules':['input.html','#rules'],'workflow.html#build':['input.html','#complete'],'index.html#chapter-4':['basics.html','#node'],'index.html#chapter-5':['basics.html','#constraints'],'index.html#chapter-6':['input.html','#executive'],'index.html#chapter-8':['workflow.html','#results']};
   const target=moved[String(v.path)+v.hash];
   return { path: target?.[0]||v.path as string, hash:target?.[1]||v.hash, y:target?0:typeof v.y === 'number' && Number.isFinite(v.y) ? Math.min(1e7, Math.max(0, v.y)) : 0 };
 }
