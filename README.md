@@ -12,11 +12,11 @@ MSC Nastranの日本語学習アプリです。初学者向けの6ステップ�
 
 1. [Actions → Nastran iOS Build](https://github.com/JinKato2020/nastran/actions/workflows/build-ios.yml)を開きます。
 2. **Run workflow**で`main`を選び、実行します。
-3. 成功後、実行画面の**Artifacts**にある`nastran-ios-ipa-<番号>`から署名付きIPAを保存します。
+3. 成功後はTestFlightで確認できます。実行画面の**Artifacts**にある`nastran-ios-ipa-<番号>`から署名付きIPAを保存します。
 
 GitHubのmacOSランナーでExpo Prebuild → CocoaPods → Xcode archive → IPA exportを実行します。EASやEXPO_TOKENは使用しません。Apple側のアプリIDとバンドルIDを実行前に照合し、既存の整数Build番号より大きな番号を選びます。
 
-このワークフローの成果物はApp Store / TestFlight向けIPAです。iPhoneへ直接入れるAd Hoc版ではありません。TestFlightへのアップロードは、このワークフローには含めていません。
+既定では署名付きIPAをTestFlightへアップロードし、Appleの処理がVALIDになるまで確認します。**App Storeの審査申請・公開は行いません。** IPAだけ必要な場合は実行時の`testflight`チェックを外します。iPhoneでの確認にはTestFlightを使います。
 
 ## Repository secrets
 

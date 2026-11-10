@@ -3,6 +3,11 @@ run-name: Nastran iOS · run ${{ github.run_number }}
 
 on:
   workflow_dispatch:
+    inputs:
+      testflight:
+        description: TestFlightへアップロードする（App Store審査申請はしない）
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -105,7 +110,7 @@ jobs:
             -exportPath "$RUNNER_TEMP/nastran-ipa" -exportOptionsPlist "$SIGNING_DIR/ExportOptions.plist"
           test -n "$(find "$RUNNER_TEMP/nastran-ipa" -name '*.ipa' -print -quit)"
           echo "### Nastran 署名付きIPA（Build $BUILD_NUMBER）" >> "$GITHUB_STEP_SUMMARY"
-          echo 'Artifactsからダウンロードできます。TestFlightへのアップロードは行っていません。' >> "$GITHUB_STEP_SUMMARY"
+          echo 'ArtifactsからIPAをダウンロードできます。' >> "$GITHUB_STEP_SUMMARY"
       - name: Save IPA artifact
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
@@ -113,6 +118,31 @@ jobs:
           path: ${{ runner.temp }}/nastran-ipa/*.ipa
           if-no-files-found: error
           retention-days: 14
+      - name: Upload to TestFlight
+        if: inputs.testflight
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          umask 077
+          python3 - <<'PY'
+          import base64,os
+          from pathlib import Path
+          folder=Path.home()/'.appstoreconnect/private_keys';folder.mkdir(parents=True,exist_ok=True)
+          key_id=os.environ['APP_STORE_CONNECT_KEY_ID'].strip()
+          (folder/('AuthKey_'+key_id+'.p8')).write_bytes(base64.b64decode(os.environ['APP_STORE_CONNECT_API_KEY_BASE64']))
+          PY
+          IPA_PATH=$(find "$RUNNER_TEMP/nastran-ipa" -name '*.ipa' -print -quit)
+          xcrun altool --upload-app --file "$IPA_PATH" --type ios \
+            --apiKey "$APP_STORE_CONNECT_KEY_ID" --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+      - name: Confirm Apple processing
+        if: inputs.testflight
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: node tools/wait-testflight.cjs
       - name: Save Xcode log on failure
         if: failure()
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
@@ -130,3 +160,4 @@ jobs:
             rm -f "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
           fi
           rm -rf "$RUNNER_TEMP/nastran-signing"
+          rm -rf "$HOME/.appstoreconnect/private_keys"
