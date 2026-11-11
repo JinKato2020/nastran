@@ -29,6 +29,12 @@
   $('save-card').addEventListener('click',()=>{const a=document.createElement('a'),url=URL.createObjectURL(new Blob([raw],{type:'text/plain;charset=utf-8'}));a.href=url;a.download=e.key.toLowerCase()+(e.kind==='fixed'?'_small_field.bdf':'.txt');document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);});
  }
  function tools(){return '<div class="library-controls"><button class="button secondary" id="copy-card">コピー</button><button class="button primary" id="save-card">入力例を保存</button></div>';}
+ function termTable(terms){return '<table class="library-terms"><tbody>'+terms.map(([term,definition])=>'<tr><th scope="row">'+esc(term)+'</th><td>'+esc(definition)+'</td></tr>').join('')+'</tbody></table>';}
+ function optionReference(e){
+  if(!e.optionGroups?.length)return termTable(e.terms);
+  const meanings=new Map(e.terms);
+  return '<div class="output-options"><h3>オプションの選択と意味</h3>'+e.optionGroups.map(g=>'<section class="option-group"><h4>'+esc(g.title)+'</h4>'+termTable(g.options.map(name=>[name,meanings.get(name)]))+'</section>').join('')+'</div>';
+ }
  function depth(e){
   let html='';
   if(e.solIndex)html+='<section class="reference-section"><h3>SOL一覧 · 25種類</h3><p>2020 SP1 QRG Table 2の全掲載番号。番号を選ぶと個別の解法・関連入力・結果・注意点を表示します。</p><div class="sol-index">'+e.solIndex.map(s=>'<button type="button" data-jump="'+esc(s.key)+'"><b>'+esc(s.id)+'</b><span>'+esc(s.title)+'</span></button>').join('')+'</div></section>';
@@ -55,8 +61,10 @@
     content+='<details class="code-box"><summary>固定長テキスト・コピー・保存</summary>'+tools()+'<pre><code id="card-raw">'+esc(raw)+'</code></pre><p class="code-note">カード単体の入力例です。関連する節点・材料・プロパティ・選択命令などをそろえて使用します。完成BDFではなく、MSC Nastran本体での実行検証は未実施です。</p></details>';
     content+='<div class="library-extra-fields"><h3>フィールド定義</h3>'+e.lines.map((r,line)=>r.map((f,i)=>'<details id="entry-field-'+line+'-'+i+'"><summary><code>'+esc(f.label)+'</code><small>'+(line+1)+'行・第'+(i+1)+'欄</small></summary><p>'+esc(f.help)+'</p></details>').join('')).join('')+'</div>';
    }else{
-    content+='<p class="entry-position">'+esc(e.location)+'</p><h3>書式</h3><div class="library-syntax"><pre>'+esc(e.syntax)+'</pre></div><h3>'+(e.exampleNote?'制御部の例':'入力例')+'</h3>'+(e.exampleNote?'<p class="example-note">'+esc(e.exampleNote)+'</p>':'')+'<div class="library-syntax"><pre><code id="card-raw">'+esc(raw)+'</code></pre></div>'+tools();
-    content+='<table class="library-terms"><tbody>'+e.terms.map(([term,definition])=>'<tr><th scope="row">'+esc(term)+'</th><td>'+esc(definition)+'</td></tr>').join('')+'</tbody></table>';
+    content+='<p class="entry-position">'+esc(e.location)+'</p><h3>書式</h3><div class="library-syntax"><pre>'+esc(e.syntaxPreview||e.syntax)+'</pre></div>';
+    if(e.syntaxPreview&&e.syntaxPreview!==e.syntax)content+='<details class="output-syntax"><summary>書式の全選択肢</summary><div class="library-syntax"><pre>'+esc(e.syntax)+'</pre></div></details>';
+    content+='<h3>'+(e.exampleNote?'制御部の例':'入力例')+'</h3>'+(e.exampleNote?'<p class="example-note">'+esc(e.exampleNote)+'</p>':'')+'<div class="library-syntax"><pre><code id="card-raw">'+esc(raw)+'</code></pre></div>'+tools();
+    content+=optionReference(e);
    }
    content+=depth(e);
    if(e.notes?.length)content+='<div class="pitfalls"><h3>指定上の注意</h3><ul>'+e.notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul></div>';
