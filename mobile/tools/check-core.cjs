@@ -1,6 +1,13 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),ts=require('typescript');
 require.extensions['.ts']=(mod,file)=>mod._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,file);
 const root=path.resolve(__dirname,'..'),p=require('../src/protocol.ts'),content=require('../src/content.ts');
+const release=require('./release-version.cjs');
+assert.deepEqual(release.nextRelease('1.2.1','1001','next'),{version:'1.2.2',build:'1001'});
+assert.deepEqual(release.nextRelease('1.2.1','1001','rebuild'),{version:'1.2.1',build:'1002'});
+assert.deepEqual(release.nextRelease('1.2.9','1021','next'),{version:'1.2.10',build:'1001'});
+assert.throws(()=>release.nextRelease('invalid','1001'));
+const app=require('../app.json').expo;
+assert(release.validVersion(app.version));assert(/^\d+$/.test(app.ios.buildNumber));
 assert.equal(p.position({path:'../../secret',hash:'',y:0}),null);
 assert.equal(p.externalURL('javascript:alert(1)'),null);
 assert.equal(p.externalURL('https://name:secret@example.com'),null);
@@ -53,4 +60,5 @@ for(const l of content.LESSONS){
 assert(!content.readerHTML({path:'index.html',hash:'#</script><script>alert(1)</script>',y:0},'[]','test').includes('"hash":"#</script>'));
 for(const [rel,f]of Object.entries(content.DOWNLOADS))assert.deepEqual(Buffer.from(f.base64,'base64'),fs.readFileSync(path.join(root,'../sites/nastran-learning/dist',rel)));
 require('./check-input-catalog.cjs');
+require('./check-release-preflight.cjs');
 console.log('PASS: routes, progress restore, outbound URLs, filename/base64 checks, all offline documents, script-safe bootstrap, exact ZIP/BAT bytes.');

@@ -3,6 +3,14 @@ const dir=path.resolve(__dirname,'../../sites/nastran-learning/dist');
 const context={window:{}};vm.createContext(context);
 for(const name of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
 const entries=context.window.InputCatalog.entries,keys=new Map(entries.map(e=>[e.key,e]));
+vm.runInContext(fs.readFileSync(path.join(dir,'analysis-relations-data.js'),'utf8'),context);
+const maps=context.window.AnalysisRelationMaps;
+assert.equal(Object.keys(maps).length,19);
+for(const [model,map]of Object.entries(maps))for(const panel of map.panels){
+ const ids=new Set(panel.nodes.map(n=>n.id));
+ for(const node of panel.nodes)if(node.card)assert(keys.has(node.card),model+' relation -> '+node.card);
+ for(const edge of panel.edges)assert(ids.has(edge.from)&&ids.has(edge.to),model+' broken relation');
+}
 assert.ok(entries.length>=256,'Expanded catalog missing');assert.equal(keys.size,entries.length,'Duplicate entry keys');
 for(const e of entries){
  assert.ok(e.summary&&e.title&&e.category,e.key);

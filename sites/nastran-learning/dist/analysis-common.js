@@ -1,8 +1,8 @@
 // Shared technical guidance for every analysis. Card definitions live in Input data.
 window.AnalysisCommon = `
 <div class="analysis-head"><span class="analysis-sol">解析手順</span><h1>共通</h1><p>入力の準備から実行、出力の照合まで、各解析に共通する手順です。個別の解析では、モデル固有の条件・出力・検算を確認します。</p></div>
-<nav class="analysis-common-index" aria-label="共通の目次"><a href="analysis.html#common/input">入力ファイル</a><a href="analysis.html#common/run">実行・終了確認</a><a href="analysis.html#common/results">結果の照合</a><a href="analysis.html#common/verification">教材の検証範囲</a></nav>
-<section class="analysis-section" id="analysis-common-input"><h2>1 · 入力ファイルとカード解説</h2>
+<nav class="analysis-common-index" aria-label="共通の目次"><a href="analysis.html#common/relations">相関図の読み方</a><a href="analysis.html#common/input">入力ファイル</a><a href="analysis.html#common/run">実行・終了確認</a><a href="analysis.html#common/results">結果の照合</a><a href="analysis.html#common/verification">教材の検証範囲</a></nav>
+<section class="analysis-section" id="analysis-common-relations"><h2>相関図の読み方</h2><p>各解析の「条件と入力の対応」に、そのモデルのカード相関図を掲載しています。モデルを切り替えると相関図も切り替わります。実線は矢印の先の番号を参照する関係、破線は設定・作用の関係です。実行順や力の伝わる向きを表しません。</p><p>青はCase Control、白はBulk Data、紫はPARAMです。カード名を押すとInputデータの解説へ移動します。同じカードを複数パネルに描いた場合も、同じデータの参照です。全節点・全カードを列挙せず、モデルを組み立てる主要な経路を示します。</p></section><section class="analysis-section" id="analysis-common-input"><h2>1 · 入力ファイルとカード解説</h2>
 <p>「固定長テキスト全文」は先頭6行を表示し、「全て表示」で展開します。「コピー」「DATを保存」は表示範囲によらず全文が対象です。先頭のコードを押すとInputデータの該当カードへ移動し、戻る操作で例題・展開状態・読んでいた位置を復元します。</p>
 <p>配布DATのBulk Dataは8文字固定長です。空欄・継続行を含む列位置を保って保存します。Executive Control・Case Controlにはこの8文字規則を適用しません。DATが未提供の解析は、取得状況を個別ページに表示します。</p>
 <div class="analysis-links"><a href="input.html#rules">入力規則・固定長・継続行 →</a><a href="bulk.html">カードの用途・全フィールド →</a><a href="include.html">INCLUDEによるファイル分割 →</a></div></section>

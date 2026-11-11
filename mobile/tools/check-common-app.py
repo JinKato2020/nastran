@@ -8,6 +8,8 @@ from playwright.sync_api import sync_playwright
 
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'.qa';OUT.mkdir(exist_ok=True)
+APP=json.loads((ROOT/'app.json').read_text(encoding='utf-8'))['expo']
+VERSION=f"バージョン {APP['version']}（{APP['ios']['buildNumber']}）"
 errors=[]
 with sync_playwright() as p:
     browser=p.chromium.launch(headless=True,executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')
@@ -31,7 +33,7 @@ with sync_playwright() as p:
     page.screenshot(path=str(OUT/'common-analysis-list.png'))
     page.get_by_role('button',name='共通',exact=True).click()
     frame=page.frame_locator('iframe');assert frame.locator('h1').inner_text()=='共通'
-    assert frame.locator('.analysis-section h2').all_text_contents()==['1 · 入力ファイルとカード解説','2 · 実行・終了確認','3 · 結果の照合','4 · 教材の検証範囲と参照資料']
+    assert frame.locator('.analysis-section h2').all_text_contents()==['相関図の読み方','1 · 入力ファイルとカード解説','2 · 実行・終了確認','3 · 結果の照合','4 · 教材の検証範囲と参照資料']
     assert frame.locator('#analysis-common-verification').inner_text().count('MSC Nastran本体では未実行')==1
     for width in [320,390]:
         page.set_viewport_size({'width':width,'height':844})
@@ -48,6 +50,11 @@ with sync_playwright() as p:
     page.get_by_role('button',name='静解析',exact=True).click()
     frame=page.frame_locator('iframe')
     assert frame.locator('h1').inner_text()=='静解析'
+    assert frame.locator('#analysis-relations svg').count()==3
+    frame.locator('#analysis-relations a[data-relation-card="PROD"]').click()
+    assert page.frame_locator('iframe').locator('#card-picker').input_value()=='PROD'
+    page.get_by_role('button',name='‹ 戻る',exact=True).click()
+    frame=page.frame_locator('iframe')
     assert frame.locator('#analysis-code-status').inner_text().startswith('先頭6行')
     frame.locator('#analysis-toggle-raw').click()
     original=frame.locator('#analysis-example-raw').text_content()
@@ -62,6 +69,10 @@ with sync_playwright() as p:
     assert page.frame_locator('iframe').locator('#card-picker').input_value()=='CASE_STRESS'
     page.get_by_role('button',name='‹ 戻る',exact=True).click()
     assert page.frame_locator('iframe').locator('#analysis-toggle-raw').get_attribute('aria-expanded')=='true'
+    page.get_by_role('tab',name='設定',exact=True).click()
+    assert page.get_by_text(VERSION,exact=True).count()==1
+    page.get_by_text(VERSION,exact=True).scroll_into_view_if_needed()
+    page.screenshot(path=str(OUT/'settings-version.png'))
     assert not errors,errors
     browser.close()
 (OUT/'common-verification.json').write_text(json.dumps({'common_first':True,'desktop_mobile_widths':[320,390,768,1280],'actual_app_icon_image':True,'shared_links_and_back':True,'full_dat_restored':True,'runtime_errors':errors,'native_os_apis':'mocked'},indent=2)+'\n',encoding='utf-8')

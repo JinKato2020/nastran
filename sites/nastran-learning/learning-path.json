@@ -178,10 +178,10 @@
       "kind": "辞書"
     },
     {
-      "title": "解析カードの相関図",
-      "description": "カード間の参照番号をたどる",
-      "path": "relations.html",
-      "hash": "#sol-101",
+      "title": "各解析のカード相関図",
+      "description": "解析ごとのモデル・荷重・拘束の参照関係",
+      "path": "analysis.html",
+      "hash": "#static/static/map",
       "kind": "辞書"
     },
     {
@@ -486,13 +486,6 @@
         "description": "F06・OP2・反力・変位・応力を検証する",
         "path": "workflow.html",
         "hash": "#files",
-        "kind": ""
-      },
-      {
-        "title": "解析カードの相関図",
-        "description": "モデル・条件・結果要求の参照関係",
-        "path": "relations.html",
-        "hash": "#sol-101",
         "kind": ""
       }
     ]
