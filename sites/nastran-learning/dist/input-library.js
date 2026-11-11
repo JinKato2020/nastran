@@ -60,6 +60,7 @@
     content+='<div class="subheading"><h3>入力例</h3><span>8文字×10欄</span></div>'+fixedTable(e)+'<div class="field-inspector" id="field-inspector" aria-live="polite"></div>';
     content+='<details class="code-box"><summary>固定長テキスト・コピー・保存</summary>'+tools()+'<pre><code id="card-raw">'+esc(raw)+'</code></pre><p class="code-note">カード単体の入力例です。関連する節点・材料・プロパティ・選択命令などをそろえて使用します。完成BDFではなく、MSC Nastran本体での実行検証は未実施です。</p></details>';
     content+='<div class="library-extra-fields"><h3>フィールド定義</h3>'+e.lines.map((r,line)=>r.map((f,i)=>'<details id="entry-field-'+line+'-'+i+'"><summary><code>'+esc(f.label)+'</code><small>'+(line+1)+'行・第'+(i+1)+'欄</small></summary><p>'+esc(f.help)+'</p></details>').join('')).join('')+'</div>';
+    if(e.terms?.length)content+=optionReference(e);
    }else{
     content+='<p class="entry-position">'+esc(e.location)+'</p><h3>書式</h3><div class="library-syntax"><pre>'+esc(e.syntaxPreview||e.syntax)+'</pre></div>';
     if(e.syntaxPreview&&e.syntaxPreview!==e.syntax)content+='<details class="output-syntax"><summary>書式の全選択肢</summary><div class="library-syntax"><pre>'+esc(e.syntax)+'</pre></div></details>';

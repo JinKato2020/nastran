@@ -20,8 +20,8 @@
     },
     {
       "key": "model",
-      "title": "点・要素・支え・力",
-      "description": "模型の部品をつなぎ、動きを止め、力を加える",
+      "title": "節点・要素・拘束・荷重",
+      "description": "モデルの構成と、自由度・荷重の指定を確認する",
       "path": "basics.html",
       "hash": "#node",
       "goal": "節点、要素、物性、材料の役割と、拘束・荷重の違いが分かる。",
@@ -109,7 +109,7 @@
     {
       "key": "practice",
       "title": "条件を変えて確かめる",
-      "description": "荷重・長さ・太さ・硬さを一つずつ変えて予想する",
+      "description": "荷重・長さ・断面積・ヤング率を一つずつ変えて検算する",
       "path": "index.html",
       "hash": "#chapter-9",
       "goal": "条件を変えたとき、変位と応力がどう変わるかを説明できる。",
@@ -142,7 +142,7 @@
     },
     {
       "title": "座標と応力の符号",
-      "description": "CP/CD・要素の軸・シェルの表裏",
+      "description": "CP/CD・要素軸・シェルの表裏",
       "path": "coordinates.html",
       "hash": "",
       "goal": "同じ軸・位置の結果を比べる"
@@ -209,45 +209,31 @@
   "navigation": {
     "intro": [
       {
-        "title": "はじめの一歩",
-        "description": "目的・モデル・入力・実行・結果の6ステップ",
+        "title": "初めての解析",
+        "description": "初学者向けの6ステップ。解析経験者は読み飛ばせます。",
         "path": "index.html",
-        "hash": "#home",
-        "kind": "基礎コース"
+        "hash": "#first-analysis",
+        "kind": "初学者向け"
       },
       {
-        "title": "解析の目的・単位系",
-        "description": "荷重・変位・応力と整合した単位系",
-        "path": "index.html",
-        "hash": "#chapter-2",
-        "kind": ""
-      },
-      {
-        "title": "座標系",
-        "description": "基本・局所・要素座標とCP / CD / CID",
-        "path": "coordinates.html",
-        "hash": "#systems",
-        "kind": ""
-      },
-      {
-        "title": "入力規則・BDF作成",
-        "description": "入力区画、8文字フィールド、継続行",
+        "title": "入力規則",
+        "description": "入力区画・8文字フィールド・継続行・BDF作成",
         "path": "input.html",
         "hash": "#rules",
         "kind": ""
       },
       {
-        "title": "応力の方向・符号",
-        "description": "要素軸、引張り・圧縮、シェルの表裏",
+        "title": "応力方向",
+        "description": "要素座標、引張り・圧縮、シェルの表裏",
         "path": "coordinates.html",
         "hash": "#elements",
         "kind": ""
       },
       {
-        "title": "関連ファイル・結果の読み方",
-        "description": "F06・OP2・反力・変位・応力",
-        "path": "workflow.html",
-        "hash": "#files",
+        "title": "座標",
+        "description": "基本・局所・要素座標とCP / CD / CID",
+        "path": "coordinates.html",
+        "hash": "#systems",
         "kind": ""
       }
     ],
@@ -307,20 +293,6 @@
         "path": "theory.html",
         "hash": "#buckling",
         "kind": "解析の理論"
-      },
-      {
-        "title": "境界条件の理論",
-        "description": "自由度・剛体運動・支持の理想化",
-        "path": "theory.html",
-        "hash": "#boundary",
-        "kind": "共通理論"
-      },
-      {
-        "title": "減衰の理論",
-        "description": "エネルギー散逸・減衰比・減衰モデル",
-        "path": "theory.html",
-        "hash": "#damping",
-        "kind": "共通理論"
       }
     ],
     "analyses": [
@@ -381,41 +353,56 @@
         "kind": "SOL 105"
       }
     ],
-    "operations": [
+    "operations": [],
+    "common": [
       {
-        "title": "境界条件と荷重の入力",
-        "description": "拘束自由度・荷重方向・参照セットの指定",
-        "path": "basics.html",
-        "hash": "#constraints",
-        "kind": "入力・実行"
+        "title": "境界条件の理論",
+        "description": "自由度・剛体運動・支持の理想化",
+        "path": "theory.html",
+        "hash": "#boundary",
+        "kind": "共通理論"
+      },
+      {
+        "title": "減衰の理論",
+        "description": "エネルギー散逸・減衰比・減衰モデル",
+        "path": "theory.html",
+        "hash": "#damping",
+        "kind": "共通理論"
+      },
+      {
+        "title": "モデル化の考え方",
+        "description": "ばね・梁・立体の選択と、評価目的に応じたモデルの精度",
+        "path": "modeling.html",
+        "hash": "",
+        "kind": ""
       },
       {
         "title": "並列計算・バッチ実行",
-        "description": "SMP・DMP・複数ジョブの実行",
+        "description": "SMP・DMP・複数ジョブの違いと計算資源の配分",
         "path": "batch.html",
-        "hash": "",
-        "kind": "実行・管理"
+        "hash": "#parallel",
+        "kind": ""
       },
       {
         "title": "INCLUDEとファイル分割",
-        "description": "モデルと条件の分割・差し替え",
+        "description": "モデルと条件の分割、参照パス、差し替え",
         "path": "include.html",
         "hash": "",
-        "kind": "実行・管理"
+        "kind": ""
+      },
+      {
+        "title": "関連ファイル・結果の読み方",
+        "description": "F06・OP2・反力・変位・応力を検証する",
+        "path": "workflow.html",
+        "hash": "#files",
+        "kind": ""
       },
       {
         "title": "解析カードの相関図",
-        "description": "カードと参照番号のつながり",
+        "description": "モデル・条件・結果要求の参照関係",
         "path": "relations.html",
         "hash": "#sol-101",
-        "kind": "入力の参照"
-      },
-      {
-        "title": "減衰の入力と比較",
-        "description": "係数・適用SOL・減衰設定の確認",
-        "path": "damping.html",
-        "hash": "",
-        "kind": "入力・実行"
+        "kind": ""
       }
     ]
   }

@@ -28,15 +28,25 @@ with sync_playwright() as p:
    bottom()
  page.set_viewport_size({'width':390,'height':844})
  root('ホーム')
- for title in ['座標系','入力規則・BDF作成','応力の方向・符号','関連ファイル・結果の読み方','エラーメッセージ']:
-  assert page.get_by_role('button',name=title,exact=True).count()==1,title
+ assert page.get_by_role('button',name='エラーメッセージ',exact=True).count()==1
+ for title in ['初めての解析','入力規則','応力方向','座標']:
+  assert page.get_by_role('button',name=title,exact=True).count()==0,title
  page.screenshot(path='.qa/five-tabs-home.png')
- page.get_by_role('button',name='座標系',exact=True).click()
+ root('教材')
+ for title in ['イントロダクション','共通の解析技術論','各解析技術理論']:
+  assert page.get_by_role('button',name=title,exact=True).count()==1
+ for title in ['初めての解析','入力規則','応力方向','座標']:
+  assert page.get_by_role('button',name=title,exact=True).count()==1,title
+ page.get_by_role('button',name='初めての解析',exact=True).click()
+ assert '解析経験者は読み飛ばして構いません' in page.frame_locator('iframe').locator('#first-analysis').inner_text()
+ bottom();root('教材')
+ page.get_by_role('button',name='座標',exact=True).click()
  frame=page.frame_locator('iframe');frame.locator('#systems').wait_for(state='visible');bottom()
  page.get_by_role('button',name='しおりを付ける').click()
  page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="coordinates.html"&&p.hash==="#systems")')
  root('教材')
- for title in ['境界条件の理論','減衰の理論','静解析の理論','熱伝導の理論']:
+ page.get_by_role('button',name='共通の解析技術論',exact=True).click()
+ for title in ['境界条件の理論','減衰の理論','並列計算・バッチ実行']:
   assert page.get_by_role('button',name=title,exact=True).count()==1
  page.screenshot(path='.qa/five-tabs-materials.png')
  page.get_by_role('button',name='境界条件の理論',exact=True).click()
@@ -124,7 +134,7 @@ with sync_playwright() as p:
  page.get_by_role('button',name='目次',exact=True).click()
  page.get_by_role('button',name='並列計算・バッチ実行',exact=True).click()
  page.frame_locator('iframe').locator('#save-batch').wait_for()
- assert page.get_by_role('tab',name='解析',exact=True).get_attribute('aria-selected')=='true'
+ assert page.get_by_role('tab',name='教材',exact=True).get_attribute('aria-selected')=='true'
  # A fresh Input root can go back to Home; it never shows an empty root page.
  page.reload(wait_until='networkidle');nav('Inputデータ')
  page.frame_locator('iframe').locator('#input-family').wait_for()

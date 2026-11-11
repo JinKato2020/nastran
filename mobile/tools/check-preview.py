@@ -50,7 +50,9 @@ with sync_playwright() as p:
  frame.locator('#analysis-raw-details').scroll_into_view_if_needed()
  page.screenshot(path=str(ROOT/'.qa/input-preview.png'))
  # The results checklist opens the specific dictionary card and Back keeps position.
- page.get_by_role('tab',name='ホーム',exact=True).click()
+ page.get_by_role('tab',name='教材',exact=True).click()
+ if page.locator('iframe').count():page.get_by_role('tab',name='教材',exact=True).click()
+ page.get_by_role('button',name='共通の解析技術論',exact=True).click()
  page.get_by_role('button',name='関連ファイル・結果の読み方',exact=True).click()
  frame=page.frame_locator('iframe')
  frame.locator('a[href="#results"]').first.click()
@@ -67,7 +69,7 @@ with sync_playwright() as p:
   assert abs(frame.locator('body').evaluate('()=>scrollY')-before)<3,(key,before,frame.locator('body').evaluate('()=>scrollY'))
  page.get_by_role('tab',name='設定',exact=True).click()
  page.get_by_role('radio',name='文字サイズ 特大',exact=True).click()
- page.get_by_role('tab',name='ホーム',exact=True).click()
+ page.get_by_role('tab',name='教材',exact=True).click()
  frame=page.frame_locator('iframe')
  for width in [320,390,430]:
   page.set_viewport_size({'width':width,'height':844})

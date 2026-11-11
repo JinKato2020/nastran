@@ -6,14 +6,14 @@
  const moved={'workflow.html#rules':'input.html#rules','workflow.html#build':'input.html#complete','index.html#chapter-4':'basics.html#node','index.html#chapter-5':'basics.html#constraints','index.html#chapter-6':'input.html#executive','index.html#chapter-8':'workflow.html#results'};
  function relocate(){const url=moved[document.body.dataset.learningPage+location.hash];if(!url)return false;const a=document.createElement('a');a.href=url;document.body.append(a);a.click();a.remove();return true;}
  let done=[];try{const v=JSON.parse(localStorage.getItem(storageKey)||'[]');if(Array.isArray(v))done=[...new Set(v.filter(k=>course.steps.some(s=>s.key===k)))];}catch{}
- let activeGroup='steps';
+ const navGroups=[['intro','イントロダクション'],['common','共通の解析技術論'],['materials','各解析技術理論']];
+ const catalog=document.getElementById('learning-catalog');
+ if(catalog)catalog.innerHTML=navGroups.map(([key,title],i)=>'<details class="curriculum-group" '+(i===0?'open':'')+'><summary>'+esc(title)+'<small>'+course.navigation[key].length+'項目</small></summary><div class="learning-list">'+course.navigation[key].map(x=>'<a class="learning-card" href="'+href(x)+'"><div><strong>'+esc(x.title)+'</strong><p>'+esc(x.description)+'</p></div></a>').join('')+'</div></details>').join('');
  function cards(group){return course[group].map((x,i)=>'<a class="learning-card" href="'+href(x)+'"><span'+(done.includes(x.key)?' class="learning-complete-mark"':'')+'>'+(done.includes(x.key)?'✓':group==='steps'?String(i+1).padStart(2,'0'):group==='next'?'→':'?')+'</span><div><strong>'+esc(x.title)+'</strong><p>'+esc(x.description)+'</p>'+(group==='next'?'<small>'+esc(x.goal)+'</small>':x.kind?'<small>'+esc(x.kind)+'</small>':'')+'</div></a>').join('');}
  function home(){const el=document.getElementById('learning-home');if(!el)return;
-  const desc={steps:'最初はこの6ステップだけ。棒1本の静解析で、予想 → 入力 → 実行 → 確認を一周します。',next:'入門を終えたら、知りたい現象を選びます。減衰は動解析の後、亀裂は応力の読み方を理解してから進みます。',reference:'学習中に必要な項目を引く場所です。入力の分割や並列計算は、基本の1件実行を理解してから使います。'};
-  el.innerHTML='<div class="learning-tabs" role="tablist" aria-label="教材の使い方">'+[['steps','はじめて学ぶ'],['next','次に学ぶ'],['reference','調べる・実務']].map(([g,t])=>'<button type="button" role="tab" aria-selected="'+(g===activeGroup)+'" data-learning-group="'+g+'">'+t+'</button>').join('')+'</div><p class="learning-intro">'+desc[activeGroup]+'</p>'+(activeGroup==='steps'?'<div class="learning-progress"><b>入門の学習記録</b><span>'+done.length+' / 6ステップ</span></div>':'')+'<div class="learning-list">'+cards(activeGroup)+'</div>';
-  el.querySelectorAll('[data-learning-group]').forEach(b=>b.addEventListener('click',()=>{activeGroup=b.dataset.learningGroup;home();document.querySelector('[data-learning-group="'+activeGroup+'"]').focus();}));
+  el.innerHTML='<div class="learning-progress"><b>初めての解析の学習記録</b><span>'+done.length+' / 6ステップ</span></div><div class="learning-list">'+cards('steps')+'</div>';
  }
- const side=document.getElementById('learning-sidebar');if(side)side.innerHTML=[['steps','まずは6ステップ'],['next','入門の次に'],['reference','調べる・実務']].map(([g,t])=>'<div class="learning-group-label">'+t+'</div>'+course[g].map((x,i)=>'<a class="learning-side-link" href="'+href(x)+'">'+(g==='steps'?String(i+1).padStart(2,'0')+'　':'')+esc(x.title)+'</a>').join('')).join('');
+ const side=document.getElementById('learning-sidebar');if(side)side.innerHTML=navGroups.map(([g,t])=>'<div class="learning-group-label">'+t+'</div>'+course.navigation[g].map(x=>'<a class="learning-side-link" href="'+href(x)+'">'+esc(x.title)+'</a>').join('')).join('');
  function current(){const path=document.body.dataset.learningPage,hash=location.hash;
   if(path==='index.html'){
    if(/^#chapter-[123]$/.test(hash))return 0;

@@ -74,9 +74,9 @@ function LearningApp(){
   },[]);
   function ownerTab(p:Position):TabKey{
     if(p.path==='bulk.html')return 'input';
-    if(p.path==='theory.html')return 'materials';
-    if(p.path==='analysis.html'||NAVIGATION.operations.some(x=>x.path===p.path))return 'analysis';
-    return 'home';
+    if(p.path==='analysis.html')return 'analysis';
+    if(p.path==='errors.html')return 'home';
+    return 'materials';
   }
   function open(p:Position,remember=true){
     setTab(ownerTab(p));
@@ -139,11 +139,15 @@ function LearningApp(){
   }
   function bookmark(){const p=current.current;if(!p)return;const old=savedRef.current.bookmarks;const exists=old.some(b=>samePlace(b,p));updateSaved({...savedRef.current,bookmarks:exists?old.filter(b=>!samePlace(b,p)):[p,...old].slice(0,100)});}
   type CourseItem={key?:string;title:string;description:string;path:string;hash:string;kind?:string};
+  const [materialGroup,setMaterialGroup]=useState('intro');
+  const materialGroups=[
+    {key:'intro',title:'イントロダクション',description:'初めての解析・入力規則・応力方向・座標',items:NAVIGATION.intro},
+    {key:'common',title:'共通の解析技術論',description:'境界条件・減衰・モデル化・並列計算・結果の確認',items:NAVIGATION.common},
+    {key:'theory',title:'各解析技術理論',description:'静解析・固有値・熱伝導・動的応答・亀裂・座屈',items:NAVIGATION.materials},
+  ];
   const menuGroups:{title:string;tab:TabKey;items:CourseItem[]}[]=[
-    {title:'はじめに',tab:'home',items:NAVIGATION.intro},
-    {title:'教材',tab:'materials',items:NAVIGATION.materials},
+    ...materialGroups.map(g=>({title:g.title,tab:'materials' as TabKey,items:g.items})),
     {title:'解析',tab:'analysis',items:NAVIGATION.analyses},
-    {title:'入力・実行の共通手順',tab:'analysis',items:NAVIGATION.operations},
     {title:'Inputデータ',tab:'input',items:[{title:'入力データ学習',description:'入力区分 → カテゴリー → カード',path:'bulk.html',hash:''}]},
     {title:'エラーメッセージ',tab:'home',items:[{title:'エラー検索と意味',description:'番号・診断文・F06から検索',path:'errors.html',hash:''}]},
   ];
@@ -163,15 +167,14 @@ function LearningApp(){
       <View style={styles.brandRow}><View style={styles.logo} accessibilityLabel="FEMノート for nas"><Text style={styles.logoText}>FEMノート</Text><Text style={styles.logoSubText}>for nas</Text></View><View><Text style={styles.brand}>FEMノート</Text><Text style={styles.brandSub}>for nas · 非公式学習教材</Text></View><View style={styles.offline}><Text style={styles.offlineText}>オフライン</Text></View></View>
       <Text style={styles.screenTitle}>{ROOT_TABS.find(t=>t.id===tab)?.title}</Text>
       {tab==='home'&&<>
-        <Text style={styles.screenLead}>基礎事項の確認とエラーメッセージ検索</Text>
-        <View style={styles.introCard}><Text style={styles.cardEyebrow}>GETTING STARTED</Text><Text style={styles.sectionTitle}>はじめに</Text><Text style={styles.description}>座標・入力書式・結果の解釈</Text>{NAVIGATION.intro.map(l=><Pressable key={l.title} style={styles.introRow} onPress={()=>open({path:l.path,hash:l.hash,y:0},false)} accessibilityRole="button" accessibilityLabel={l.title}><View style={styles.lessonCopy}><Text style={styles.introTitle}>{l.title}</Text><Text style={styles.description}>{l.description}</Text></View><Text style={styles.arrow}>›</Text></Pressable>)}</View>
+        <Text style={styles.screenLead}>学習の再開・しおり・エラーメッセージ検索</Text>
         <Pressable style={styles.errorCard} onPress={()=>open({path:'errors.html',hash:'',y:0},false)} accessibilityRole="button" accessibilityLabel="エラーメッセージ"><Text style={styles.cardEyebrow}>ERROR MESSAGES</Text><Text style={styles.sectionTitle}>エラーメッセージ</Text><Text style={styles.description}>番号・診断文・F06から検索し、意味と確認箇所を調べる。</Text><Text style={styles.linkText}>エラー検索を開く →</Text></Pressable>
-        <View style={styles.resumeCard}><Text style={styles.smallHeading}>{saved.last?'最近開いた内容':'基礎コース'}</Text>{saved.last&&<Text style={styles.lastTitle}>{titleFor(saved.last)}</Text>}<Pressable style={styles.primary} onPress={()=>open(saved.last||{path:'index.html',hash:'#chapter-1',y:0},false)} accessibilityRole="button"><Text style={styles.primaryText}>{saved.last?'続きから読む →':'教材を読み始める →'}</Text></Pressable><Text style={styles.description}>基礎コースの読了 {complete} / 6</Text></View>
+        <View style={styles.resumeCard}><Text style={styles.smallHeading}>{saved.last?'最近開いた内容':'教材一覧'}</Text>{saved.last&&<Text style={styles.lastTitle}>{titleFor(saved.last)}</Text>}<Pressable style={styles.primary} onPress={()=>saved.last?open(saved.last,false):activateTab('materials')} accessibilityRole="button"><Text style={styles.primaryText}>{saved.last?'続きから読む →':'教材を選ぶ →'}</Text></Pressable><Text style={styles.description}>初めての解析の読了 {complete} / 6</Text></View>
         <Pressable style={styles.bookmarkHeading} onPress={()=>setShowBookmarks(v=>!v)} accessibilityRole="button" accessibilityLabel="しおり一覧" accessibilityState={{expanded:showBookmarks}}><Text style={styles.sectionTitle}>しおり <Text style={styles.count}>{saved.bookmarks.length}</Text></Text><Text style={styles.linkText}>{showBookmarks?'閉じる':'開く'}</Text></Pressable>
         {showBookmarks&&(saved.bookmarks.length?saved.bookmarks.map((p,i)=><View key={p.path+p.hash} style={styles.bookmarkRow}><Pressable style={styles.bookmarkOpen} onPress={()=>open(p,false)} accessibilityRole="button"><Text style={styles.introTitle}>{titleFor(p)}</Text><Text style={styles.description}>保存した場所を開く →</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="しおりを削除" style={styles.toolButton} onPress={()=>updateSaved({...savedRef.current,bookmarks:savedRef.current.bookmarks.filter((_,n)=>n!==i)})}><Text style={styles.toolText}>削除</Text></Pressable></View>):<Text style={styles.empty}>教材の☆から場所を保存できます。</Text>)}
       </>}
-      {tab==='materials'&&<><Text style={styles.screenLead}>物理現象・支配方程式・仮定・解法の原理</Text>{NAVIGATION.materials.map(lesson)}</>}
-      {tab==='analysis'&&<><Text style={styles.screenLead}>公開モデルの条件・Input・実行・出力・検証</Text>{NAVIGATION.analyses.map(lesson)}<Text style={styles.sectionTitle}>入力・実行の共通手順</Text>{NAVIGATION.operations.map(lesson)}</>}
+      {tab==='materials'&&<><Text style={styles.screenLead}>分類を選び、経験と目的に合う内容から学べます。</Text>{materialGroups.map(g=><View key={g.key} style={styles.materialGroup}><Pressable style={styles.materialGroupHeader} accessibilityRole="button" accessibilityLabel={g.title} accessibilityState={{expanded:materialGroup===g.key}} onPress={()=>setMaterialGroup(materialGroup===g.key?'':g.key)}><View style={styles.lessonCopy}><Text style={styles.sectionTitle}>{g.title}</Text><Text style={styles.description}>{g.description}</Text></View><Text style={styles.arrow}>{materialGroup===g.key?'−':'＋'}</Text></Pressable>{materialGroup===g.key&&<View style={styles.materialGroupBody}>{g.items.map(lesson)}</View>}</View>)}</>}
+      {tab==='analysis'&&<><Text style={styles.screenLead}>モデル・解析条件・Input・実行・出力・検証</Text>{NAVIGATION.analyses.map(lesson)}</>}
       {tab==='settings'&&<>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>本文の文字サイズ</Text><Text style={styles.description}>説明文のサイズを変更します。入力表は8文字の配置を保ちます。</Text><View style={styles.sizeOptions}>{([{value:1,label:'標準'},{value:1.15,label:'大'},{value:1.3,label:'特大'}]).map(x=><Pressable key={x.value} style={[styles.sizeOption,saved.textScale===x.value&&styles.selectedSize]} onPress={()=>updateSaved({...savedRef.current,textScale:x.value})} accessibilityRole="radio" accessibilityLabel={'文字サイズ '+x.label} accessibilityState={{checked:saved.textScale===x.value}} aria-checked={saved.textScale===x.value}><Text style={[styles.sizeOptionText,saved.textScale===x.value&&styles.selectedSizeText]}>{x.label}</Text></Pressable>)}</View></View>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>保存データ</Text><Text style={styles.body}>学習記録としおりは端末内に保存します。基礎コースの読了は {complete} / 6、しおりは {saved.bookmarks.length} 件です。</Text><Text style={styles.description}>アプリの削除で端末内の記録も削除されます。</Text></View>
@@ -186,6 +189,7 @@ function LearningApp(){
 export default function App(){return <SafeAreaProvider><LearningApp/></SafeAreaProvider>;}
 
 const styles=StyleSheet.create({
+ materialGroup:{marginBottom:14,borderWidth:1,borderColor:'#d5e0ee',borderRadius:12,backgroundColor:'#fff',overflow:'hidden'},materialGroupHeader:{padding:17,flexDirection:'row',alignItems:'center',gap:10,minHeight:72,backgroundColor:'#edf3fb'},materialGroupBody:{padding:10,paddingBottom:0},
  screen:{flex:1},screenTitle:{fontSize:29,fontWeight:'700',color:'#1d3555',marginTop:26},screenLead:{fontSize:13,lineHeight:23,color:'#637b9a',marginTop:8,marginBottom:22},
  introCard:{padding:19,borderWidth:1,borderColor:'#d3dff2',backgroundColor:'#fff',borderRadius:14,marginBottom:16},cardEyebrow:{fontSize:10,letterSpacing:1.2,fontWeight:'700',color:'#617fae',marginBottom:7},sectionTitle:{fontSize:20,lineHeight:28,fontWeight:'700',color:'#294b77'},introRow:{flexDirection:'row',alignItems:'center',gap:10,paddingVertical:15,borderTopWidth:1,borderColor:'#e8edf5',marginTop:8},introTitle:{fontSize:15,lineHeight:23,fontWeight:'600',color:'#294b77'},errorCard:{padding:20,borderRadius:14,backgroundColor:'#edf2ff',borderWidth:1,borderColor:'#cddbf7',marginBottom:16},linkText:{fontSize:13,fontWeight:'600',color:'#3259d8',marginTop:10},resumeCard:{padding:18,borderRadius:12,backgroundColor:'#fff',borderWidth:1,borderColor:'#dbe4f0',gap:12,marginBottom:18},smallHeading:{fontSize:13,fontWeight:'600',color:'#526d94'},bookmarkHeading:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingVertical:14},count:{fontSize:13,color:'#7890b1'},settingsCard:{padding:20,borderRadius:12,backgroundColor:'#fff',borderWidth:1,borderColor:'#dbe4f0',marginBottom:16,gap:8},sizeOptions:{flexDirection:'row',gap:8,marginTop:12},sizeOption:{flex:1,minHeight:46,borderRadius:8,borderWidth:1,borderColor:'#ccd8ed',justifyContent:'center',alignItems:'center'},selectedSize:{backgroundColor:'#3259d8',borderColor:'#3259d8'},sizeOptionText:{fontSize:14,color:'#45648e',fontWeight:'600'},selectedSizeText:{color:'#fff'},
  bottomNav:{flexDirection:'row',backgroundColor:'#fff',borderTopWidth:1,borderColor:'#d7e1ef',paddingTop:4,paddingBottom:4,paddingHorizontal:4},bottomTab:{flex:1,minHeight:58,justifyContent:'center',alignItems:'center',gap:3,borderRadius:9,minWidth:0},activeBottomTab:{backgroundColor:'#eef3ff'},navIcon:{fontSize:23,lineHeight:28,color:'#7a8ca7',fontWeight:'500'},navLabel:{fontSize:10,lineHeight:16,color:'#7185a2',fontWeight:'600'},activeNavText:{color:'#3259d8'},
