@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=path.resolve(root,'../sites/nastran-learning/dist');
 const catalog=[
- ['theory.html','理論教材','8解析と境界条件・減衰の理論','理論','#static'],
- ['analysis.html','解析別の学習','8種類の解析のモデル・入力・結果','解析','#static'],
+ ['theory.html','理論教材','14解析と境界条件・減衰の理論','理論','#static'],
+ ['analysis.html','解析別の学習','14種類の解析のモデル・入力・結果','解析','#static'],
  ['index.html','線形静解析の基礎','11章と棒の引張り実験室','基礎','#chapter-1'],
  ['modeling.html','モデル化の考え方','片持ち梁をばね・梁・立体の3モデルで比較','基礎',''],
  ['dynamics.html','動解析をはじめる','実固有値・周波数応答・過渡応答と14カード','動解析',''],
@@ -15,7 +15,7 @@ const catalog=[
  ['fracture.html','亀裂先端のモデル化','特異性・K・CRAC2Dの18節点局所例題','静解析',''],
  ['basics.html','点・要素・支え・力','節点・物性・材料・拘束・荷重','基礎','#node'],
  ['input.html','入力規則・BDF作成','入力の役割・8文字の規則・完成BDF','入力','#executive'],
- ['bulk.html','入力データ学習','256項目・フィールド定義・関連入力をQRGで確認','入力',''],
+ ['bulk.html','入力データ学習','用途・全フィールド・関連入力をQRGで確認','入力',''],
  ['coordinates.html','座標と応力の符号','軸の向き・要素の表裏を図で理解','理解',''],
  ['workflow.html','実行して結果を確かめる','関連ファイルとF06の読み方','実践','#run'],
  ['errors.html','エラー検索と意味','番号・F06の文から探し、意味と確認手順を読む','実践',''],

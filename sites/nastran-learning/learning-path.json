@@ -293,6 +293,48 @@
         "path": "theory.html",
         "hash": "#buckling",
         "kind": "解析の理論"
+      },
+      {
+        "title": "熱ひずみ・熱応力と重ね合わせ",
+        "description": "温度変化が生む自由ひずみと、連続する構造が実際に許す変形との差が弾性応力になります。線形の剛性が同じなら機械荷重と温度荷重の応答を重ね合わせられます。",
+        "path": "theory.html",
+        "hash": "#thermal-stress",
+        "kind": "解析の理論"
+      },
+      {
+        "title": "厚肉円筒のLamé解・軸対称・収束",
+        "description": "薄肉式を用いず、半径方向で変化する応力を釣合いと変形の適合から求めます。軸方向の条件が変わると、同じ内圧でも軸応力と変位が変わります。",
+        "path": "theory.html",
+        "hash": "#thick-cylinder",
+        "kind": "解析の理論"
+      },
+      {
+        "title": "幾何学非線形と釣合い経路",
+        "description": "材料が弾性のままでも、変形後の形状が力の伝わり方を変えると剛性は一定ではなくなります。限界点を越えた経路を追うには、荷重だけを未知変位の原因とする見方を広げ、荷重係数も解く必要があります。",
+        "path": "theory.html",
+        "hash": "#large-deformation",
+        "kind": "解析の理論"
+      },
+      {
+        "title": "降伏・塑性ヒンジ・弾性回復",
+        "description": "降伏は変形の全てが永久に残る瞬間ではありません。全ひずみを弾性成分と塑性成分に分けると、載荷中の非線形性と除荷後の残留を整理できます。梁では材料の降伏と断面の全塑性化も区別します。",
+        "path": "theory.html",
+        "hash": "#plasticity",
+        "kind": "解析の理論"
+      },
+      {
+        "title": "接触・摩擦・締付けの力学",
+        "description": "接触は、どこを押し合うかが未知となる境界条件。ボルト締結では、その状態が締付け履歴と接合部の変形に依存する。",
+        "path": "theory.html",
+        "hash": "#contact",
+        "kind": "解析の理論"
+      },
+      {
+        "title": "予応力と固有振動数",
+        "description": "固有値は材料剛性と質量だけでなく、振動前に存在する応力状態にも依存する。",
+        "path": "theory.html",
+        "hash": "#prestressed-modes",
+        "kind": "解析の理論"
       }
     ],
     "analyses": [
@@ -351,6 +393,48 @@
         "path": "analysis.html",
         "hash": "#buckling",
         "kind": "SOL 105"
+      },
+      {
+        "title": "熱応力解析 — 加熱部材と機械荷重",
+        "description": "同じトラスで機械荷重のみ・温度荷重のみ・両者の合成を比較し、温度差、自由膨張、拘束による応力を区別します。温度を求める熱伝導解析ではなく、既知の温度を構造へ与える解析です。",
+        "path": "analysis.html",
+        "hash": "#thermal-stress",
+        "kind": "SOL 101"
+      },
+      {
+        "title": "厚肉円筒 — 内圧とメッシュ収束",
+        "description": "軸対称の厚肉円筒をCTRIAX6で解き、半径方向・円周方向・軸方向の応力をLamé解と比較します。形状と圧力を固定して半径方向だけを細かくし、変位と応力それぞれの収束を評価します。",
+        "path": "analysis.html",
+        "hash": "#thick-cylinder",
+        "kind": "SOL 101"
+      },
+      {
+        "title": "大変形・スナップスルー解析",
+        "description": "中央を押した薄い円筒シェルの釣合い経路を、弧長法で追跡します。材料は線形弾性のまま、形状の変化によって剛性が変わる幾何学非線形を扱います。限界点の前後で、荷重・変位・反復の関係を確認します。",
+        "path": "analysis.html",
+        "hash": "#large-deformation",
+        "kind": "SOL 400"
+      },
+      {
+        "title": "弾塑性・除荷解析",
+        "description": "片持ち梁を初降伏の前後まで段階的に載荷し、最後に荷重をゼロへ戻します。弾性回復と残留変位を分けて読み、従来CBEAMの塑性ヒンジ近似の適用範囲も確認します。",
+        "path": "analysis.html",
+        "hash": "#plasticity",
+        "kind": "SOL 106"
+      },
+      {
+        "title": "接触・摩擦・ボルト締結",
+        "description": "片側支持の浮き上がりから、摩擦と締付け履歴を持つ実体ボルト締結へ進む。小モデルと詳細モデルで役割を分け、接触状態・反力・締付け保持を確認する。",
+        "path": "analysis.html",
+        "hash": "#contact",
+        "kind": "SOL 106 / SOL 400"
+      },
+      {
+        "title": "予荷重を考慮した固有値解析",
+        "description": "静的な圧縮による幾何剛性を、積層補強板の固有値に反映する。通常の固有値解析と静的解析を結び、予応力・拘束・質量の役割を分ける。",
+        "path": "analysis.html",
+        "hash": "#prestressed-modes",
+        "kind": "SOL 103 + STATSUB"
       }
     ],
     "operations": [],

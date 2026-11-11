@@ -131,7 +131,7 @@ function LearningApp(){
         current.current=p;setLocationTitle(titleFor(p));updateSaved({...savedRef.current,last:p});
       }else if(m.type==='navigate'){const p=position({...m,y:0});if(p)open(p);}
       else if(m.type==='external'){if(typeof m.url==='string')await external(m.url);}
-      else if(m.type==='copy'){if(typeof m.text!=='string'||m.text.length>1024*1024)throw new Error('コピーする内容を確認できません。');await Clipboard.setStringAsync(m.text);reply(session,m.id,true);}
+      else if(m.type==='copy'){if(typeof m.text!=='string'||m.text.length>3*1024*1024)throw new Error('コピーする内容を確認できません。');await Clipboard.setStringAsync(m.text);reply(session,m.id,true);}
       else if(m.type==='share'){await share(m.name,m.base64);reply(session,m.id,true);}
       else if(m.type==='asset'){const file=typeof m.path==='string'?DOWNLOADS[m.path]:null;if(!file)throw new Error('配布ファイルが見つかりません。');await share(file.name,file.base64);reply(session,m.id,true);}
       else if(m.type==='notice'&&typeof m.message==='string')Alert.alert('操作を確認してください',m.message.slice(0,250));
@@ -143,7 +143,7 @@ function LearningApp(){
   const materialGroups=[
     {key:'intro',title:'イントロダクション',description:'初めての解析・入力規則・応力方向・座標',items:NAVIGATION.intro},
     {key:'common',title:'共通の解析技術論',description:'境界条件・減衰・モデル化・並列計算・結果の確認',items:NAVIGATION.common},
-    {key:'theory',title:'各解析技術理論',description:'静解析・固有値・熱伝導・動的応答・亀裂・座屈',items:NAVIGATION.materials},
+    {key:'theory',title:'各解析技術理論',description:'線形・非線形・熱・振動の支配式、物理的意味と適用範囲',items:NAVIGATION.materials},
   ];
   const menuGroups:{title:string;tab:TabKey;items:CourseItem[]}[]=[
     ...materialGroups.map(g=>({title:g.title,tab:'materials' as TabKey,items:g.items})),
@@ -164,7 +164,7 @@ function LearningApp(){
       <Reader key={entry.key} entry={entry} saved={saved} onMessage={message} onExternal={external} onNavigate={open} onRestart={()=>{if(current.current)open(current.current,false);}} webRef={webRef}/>
       {sharing&&<View style={styles.shareStatus} accessibilityLiveRegion="polite"><Text style={styles.shareText}>共有メニューで「ファイルに保存」を選べます</Text></View>}
     </>:<ScrollView key={tab} style={styles.screen} contentContainerStyle={styles.home}>
-      <View style={styles.brandRow}><View style={styles.logo} accessibilityLabel="FEMノート for nas"><Text style={styles.logoText}>FEMノート</Text><Text style={styles.logoSubText}>for nas</Text></View><View><Text style={styles.brand}>FEMノート</Text><Text style={styles.brandSub}>for nas · 非公式学習教材</Text></View><View style={styles.offline}><Text style={styles.offlineText}>オフライン</Text></View></View>
+      <View style={styles.brandRow}><View style={styles.logo} accessibilityLabel="FEM Guide for nas"><Text style={styles.logoText}>FEM Guide</Text><Text style={styles.logoSubText}>for nas</Text></View><View><Text style={styles.brand}>FEM Guide</Text><Text style={styles.brandSub}>for nas · 非公式学習教材</Text></View><View style={styles.offline}><Text style={styles.offlineText}>オフライン</Text></View></View>
       <Text style={styles.screenTitle}>{ROOT_TABS.find(t=>t.id===tab)?.title}</Text>
       {tab==='home'&&<>
         <Text style={styles.screenLead}>学習の再開・しおり・エラーメッセージ検索</Text>
@@ -178,7 +178,7 @@ function LearningApp(){
       {tab==='settings'&&<>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>本文の文字サイズ</Text><Text style={styles.description}>説明文のサイズを変更します。入力表は8文字の配置を保ちます。</Text><View style={styles.sizeOptions}>{([{value:1,label:'標準'},{value:1.15,label:'大'},{value:1.3,label:'特大'}]).map(x=><Pressable key={x.value} style={[styles.sizeOption,saved.textScale===x.value&&styles.selectedSize]} onPress={()=>updateSaved({...savedRef.current,textScale:x.value})} accessibilityRole="radio" accessibilityLabel={'文字サイズ '+x.label} accessibilityState={{checked:saved.textScale===x.value}} aria-checked={saved.textScale===x.value}><Text style={[styles.sizeOptionText,saved.textScale===x.value&&styles.selectedSizeText]}>{x.label}</Text></Pressable>)}</View></View>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>保存データ</Text><Text style={styles.body}>学習記録としおりは端末内に保存します。基礎コースの読了は {complete} / 6、しおりは {saved.bookmarks.length} 件です。</Text><Text style={styles.description}>アプリの削除で端末内の記録も削除されます。</Text></View>
-        <View style={styles.settingsCard}><Text style={styles.sectionTitle}>このアプリについて</Text><Text style={styles.body}>MSC Nastranを対象とした非公式の日本語教材です。2020 SP1の入力資料、公開講習教材、2024.1・2025.1の解析資料を参照しています。教材と入力例はオフラインで利用できます。</Text><Text style={styles.description}>Nastranを実行する機能はありません。原典の掲載結果と独自の検算値を区別しています。入力例はMSC Nastran本体では未実行です。原典PDFの参照には通信が必要です。</Text><Text style={styles.version}>FEMノート for nas · 1.0.0</Text></View>
+        <View style={styles.settingsCard}><Text style={styles.sectionTitle}>このアプリについて</Text><Text style={styles.body}>MSC Nastranを対象とした非公式の日本語教材です。2020 SP1の入力資料、公開講習教材、2024.1・2025.1の解析資料を参照しています。教材と入力例はオフラインで利用できます。</Text><Text style={styles.description}>Nastranを実行する機能はありません。原典の掲載結果と独自の検算値を区別しています。入力例はMSC Nastran本体では未実行です。原典PDFの参照には通信が必要です。</Text><Text style={styles.version}>FEM Guide for nas · 1.0.0</Text></View>
       </>}
     </ScrollView>}
     <View style={styles.bottomNav} accessibilityRole="tablist" accessibilityLabel="メインナビゲーション">{ROOT_TABS.map(t=><Pressable key={t.id} style={[styles.bottomTab,tab===t.id&&styles.activeBottomTab]} onPress={()=>activateTab(t.id)} accessibilityRole="tab" accessibilityLabel={t.title} accessibilityState={{selected:tab===t.id}} aria-selected={tab===t.id}><Text style={[styles.navIcon,tab===t.id&&styles.activeNavText]} accessibilityElementsHidden importantForAccessibility="no">{t.icon}</Text><Text style={[styles.navLabel,tab===t.id&&styles.activeNavText]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{t.title}</Text></Pressable>)}</View>

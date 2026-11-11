@@ -21,9 +21,9 @@ for(const [oldPath,oldHash,path,hash] of [
 assert.equal(p.restore('{}').textScale,1);
 assert.equal(p.restore('{"textScale":99}').textScale,1);
 assert.equal(p.restore('{"textScale":1.3}').textScale,1.3);
-assert.equal(content.NAVIGATION.analyses.length,8);
+assert.equal(content.NAVIGATION.analyses.length,14);
 assert.deepEqual(content.NAVIGATION.intro.map(e=>e.title),['初めての解析','入力規則','応力方向','座標']);
-assert.equal(content.NAVIGATION.materials.length,8);
+assert.equal(content.NAVIGATION.materials.length,14);
 assert.ok(content.NAVIGATION.common.some(e=>e.path==='batch.html'));
 assert.ok(content.NAVIGATION.common.some(e=>e.hash==='#boundary'));
 assert.ok(content.NAVIGATION.common.some(e=>e.hash==='#damping'));

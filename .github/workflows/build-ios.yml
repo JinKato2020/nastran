@@ -113,6 +113,18 @@ jobs:
           xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Nastran.xcarchive" \
             -exportPath "$RUNNER_TEMP/nastran-ipa" -exportOptionsPlist "$SIGNING_DIR/ExportOptions.plist"
           test -n "$(find "$RUNNER_TEMP/nastran-ipa" -name '*.ipa' -print -quit)"
+          python3 - <<'PY'
+          import json, os, plistlib
+          from pathlib import Path
+          config = json.loads(Path('app.json').read_text())['expo']
+          app = next((Path(os.environ['RUNNER_TEMP'])/'Nastran.xcarchive/Products/Applications').glob('*.app'))
+          info = plistlib.loads((app/'Info.plist').read_bytes())
+          assert info['CFBundleDisplayName'] == config['name'] == 'FEM Guide for nas'
+          assert info['CFBundleIdentifier'] == 'com.safa.nastran'
+          assert config['icon'] == './assets/icon-fem-guide-for-nas.png'
+          assert Path(config['icon']).is_file()
+          print('Verified archived app name, bundle ID and selected FEM Guide icon.')
+          PY
           echo "### Nastran 署名付きIPA（Build $BUILD_NUMBER）" >> "$GITHUB_STEP_SUMMARY"
           echo 'ArtifactsからIPAをダウンロードできます。' >> "$GITHUB_STEP_SUMMARY"
       - name: Save IPA artifact

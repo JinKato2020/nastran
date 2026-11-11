@@ -88,7 +88,7 @@ with sync_playwright() as p:
  assert 'SOL 103\r\n' in deck and 'METHOD = 1' in deck
  assert all(len(s)==80 for s in deck.split('BEGIN BULK\r\n')[1].split('ENDDATA')[0].splitlines())
  frame.locator('#copy-analysis').click()
- page.wait_for_function('window.__copied.includes("FEM NOTE TEACHING MODEL SOL 103")')
+ page.wait_for_function('window.__copied.includes("FEM GUIDE TEACHING MODEL SOL 103")')
  assert page.evaluate('window.__copied')==deck
  page.get_by_role('button',name='しおりを付ける').click()
  page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="analysis.html"&&p.hash==="#modes/modes/raw")')
