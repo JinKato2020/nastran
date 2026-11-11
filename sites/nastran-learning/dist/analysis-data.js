@@ -23,7 +23,7 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
       ]
     ],
     "outputs": [
-      "以下は節点の釣合い式と平面トラス剛性法による独立計算の照合値です。MSC Nastranの実行結果ではありません。F06ではSPCFORCES→DISPLACEMENT→ELEMENT FORCES/STRESSESの順に同じ節点・部材を照合します。",
+      "独立検算：節点の釣合い式と平面トラス剛性法を用いています。F06ではSPCFORCES→DISPLACEMENT→ELEMENT FORCES/STRESSESの順に同じ節点・部材を照合します。",
       "支持反力：節点1のX=−3000 N、Y=＋2400 N、節点7のY=＋3600 N。全体の水平外力＋3000 Nと鉛直外力−6000 Nに釣り合います。符号は基本座標系の＋X右向き、＋Y上向きです。",
       "左支持点まわりのモーメント：6000×Ry7 − 2000×(1500＋3000＋4500) − 1000×(900＋1800＋900)=0。これからRy7=3600 N、Ry1=6000−3600=2400 Nを得ます。水平荷重の作用高さも含めるのが要点です。",
       "荷重の重ね合わせ：鉛直荷重のみでは左右3000 Nずつ。水平荷重のみでは左Y=−600 N、右Y=＋600 Nが生じます。両者の和が上の反力です。LOADの水平セット倍率を0にすると、この比較を確認できます。",
@@ -45,21 +45,25 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
         "label": "入力構成の参考：NAS101 Workshop 1 · PDF3・23"
       }
     ],
-    "links": [
+    "links": [],
+    "resultLinks": [
       [
-        "theory.html#static",
-        "静解析の理論"
+        "bulk.html#CASE_DISPLACEMENT",
+        "変位の出力"
       ],
       [
-        "workflow.html#results",
-        "F06・OP2の読み方"
+        "bulk.html#CASE_STRESS",
+        "応力の出力"
       ],
       [
-        "batch.html",
-        "実行コマンド・並列計算"
+        "bulk.html#CASE_FORCE",
+        "要素力の出力"
+      ],
+      [
+        "bulk.html#CASE_SPCFORCES",
+        "支持反力"
       ]
-    ],
-    "inputNote": "N・mm・MPaにそろえた入力全文です。節点・接続・荷重・拘束と、独立計算の照合値を確認しています。MSC Nastran本体では未実行です。"
+    ]
   },
   {
     "key": "modes",
@@ -86,7 +90,7 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
     ],
     "outputs": [
       "F06の固有値表でCYCLES、抽出数、負やほぼゼロの固有値を確認します。固定辺が動く、板が剛体移動する場合は、支持・接続・単位を先に見直します。",
-      "独立した薄板Rayleigh–Ritz計算では、低次5周波数の目安は約111.0、584.1、692.9、1859、1947 Hzです。これはMSC Nastranの実行値ではなく、CQUAD4とは要素・横せん断・回転慣性の扱いが異なる比較用の概算です。完全一致を合格条件にはしません。",
+      "独立した薄板Rayleigh–Ritz計算では、低次5周波数の目安は約111.0、584.1、692.9、1859、1947 Hzです。CQUAD4とは要素・横せん断・回転慣性の扱いが異なる比較用の概算です。完全一致を合格条件にはしません。",
       "モード形の倍率は任意です。曲げかねじりか、節線の位置、固定辺の変位を確認し、周波数だけでモードを対応させないでください。"
     ],
     "checks": [
@@ -104,21 +108,17 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
         "label": "学習構成・解法の参考：NAS102 Workshop 1: Modal Analysis of a Flat Plate · PDF 3, 4, 18, 19, 20, 23"
       }
     ],
-    "links": [
+    "links": [],
+    "resultLinks": [
       [
-        "theory.html#modes",
-        "固有値解析の理論"
+        "bulk.html#CASE_DISPLACEMENT",
+        "モード形の出力"
       ],
       [
-        "workflow.html#results",
-        "F06・OP2の読み方"
-      ],
-      [
-        "batch.html",
-        "実行コマンド・並列計算"
+        "bulk.html#CASE_METHOD",
+        "固有値の抽出条件"
       ]
-    ],
-    "inputNote": "画面の条件から生成した入力全文です。8文字固定長のBulk Dataを使用します。MSC Nastran本体では未実行です。"
+    ]
   },
   {
     "key": "heat",
@@ -145,7 +145,7 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
     ],
     "outputs": [
       "総入熱は4000×3.6×0.08=1152 W。定常状態では、下辺からの流出と左辺の対流放熱の合計が1152 Wになります。温度分布の見た目だけで合否を判断しません。",
-      "独立した75要素の四角形熱伝導計算では、最高温度約139.96°C、左辺放熱約240.97 W、下辺流出約911.03 Wでした。300要素では最高約139.98°Cです。MSC Nastranの実行結果ではなく、同じ条件を別実装で計算した比較値です。",
+      "独立した75要素の四角形熱伝導計算では、最高温度約139.96°C、左辺放熱約240.97 W、下辺流出約911.03 Wでした。300要素では最高約139.98°Cです。",
       "F06等の温度、境界熱流、対流熱流を確認します。底辺40°Cの維持に必要な熱流も収支へ含め、符号を流入・流出にそろえて集計します。"
     ],
     "checks": [
@@ -161,21 +161,17 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
         "label": "学習構成・解法の参考：Patran 2021 Interface to MSC Nastran Thermal, Chapter 2: Getting Started – A Guided Exercise · PDF 21, 22, 23, 28, 29, 30, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 51"
       }
     ],
-    "links": [
+    "links": [],
+    "resultLinks": [
       [
-        "theory.html#heat",
-        "熱伝導解析の理論"
+        "bulk.html#CASE_THERMAL",
+        "温度の出力"
       ],
       [
-        "workflow.html#results",
-        "F06・OP2の読み方"
-      ],
-      [
-        "batch.html",
-        "実行コマンド・並列計算"
+        "bulk.html#CASE_FLUX",
+        "熱流束の出力"
       ]
-    ],
-    "inputNote": "画面の条件から生成した入力全文です。8文字固定長のBulk Dataを使用します。MSC Nastran本体では未実行です。"
+    ]
   },
   {
     "key": "modal-frequency",
@@ -203,7 +199,7 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
     "outputs": [
       "GRID11・33・55の変位振幅と位相を周波数に対して並べます。偏った集中力は曲げとねじりを励起するため、自由端の3点が常に同じ応答にはなりません。",
       "圧力と集中力の合力の複素表示は約7.098−1.500i Nです。ただし、合力が同じでも空間的な分布が違えばモードへの作用は変わります。この合力だけで荷重分布を置き換えません。",
-      "共振付近のピークは計算点に依存します。FREQ4の点数・範囲、抽出モードの上限を増やして、振幅と位相が安定するか確認します。変更後モデルのMSC Nastran応答値はまだありません。"
+      "共振付近のピークは計算点に依存します。FREQ4の点数・範囲、抽出モードの上限を増やして、振幅と位相が安定するか確認します。"
     ],
     "checks": [
       "直接法の例は集中力だけで、減衰の定義も違う。この2例の振幅差を解法誤差とみなさない。",
@@ -224,21 +220,22 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
       [
         "analysis.html#modes",
         "共通の板モデル・物性・支持"
-      ],
-      [
-        "theory.html#modal-frequency",
-        "モーダル周波数応答解析の理論"
-      ],
-      [
-        "workflow.html#results",
-        "F06・OP2の読み方"
-      ],
-      [
-        "batch.html",
-        "実行コマンド・並列計算"
       ]
     ],
-    "inputNote": "画面の条件から生成した入力全文です。8文字固定長のBulk Dataを使用します。MSC Nastran本体では未実行です。"
+    "resultLinks": [
+      [
+        "bulk.html#CASE_DISPLACEMENT",
+        "変位・位相"
+      ],
+      [
+        "bulk.html#CASE_VELOCITY",
+        "速度"
+      ],
+      [
+        "bulk.html#CASE_ACCELERATION",
+        "加速度"
+      ]
+    ]
   },
   {
     "key": "direct-frequency",
@@ -260,7 +257,7 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
       ]
     ],
     "outputs": [
-      "まず低周波の応答を静的な3 N荷重の変位と比べます。独立した薄板Rayleigh–Ritz計算ではGRID11相当の静変位は約0.12964 mm、10 Hz・G=0.05では振幅約0.13044 mm、位相約−2.88°でした。これはCQUAD4とは異なる定式化の概算で、MSC Nastran実行値ではありません。",
+      "まず低周波の応答を静的な3 N荷重の変位と比べます。独立した薄板Rayleigh–Ritz計算ではGRID11相当の静変位は約0.12964 mm、10 Hz・G=0.05では振幅約0.13044 mm、位相約−2.88°でした。CQUAD4とは異なる定式化の概算です。",
       "一次共振の目安は約111 Hzです。10 Hz刻みで探した後、その付近を細分化し、ピークを取り逃がしていないか確認します。",
       "位相−2.88°と357.12°は同じ角度です。複素数の実部を振幅と取り違えず、PHASEの表記範囲もそろえて比較します。"
     ],
@@ -283,21 +280,22 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
       [
         "analysis.html#modes",
         "共通の板モデル・物性・支持"
-      ],
-      [
-        "theory.html#direct-frequency",
-        "直接周波数応答解析の理論"
-      ],
-      [
-        "workflow.html#results",
-        "F06・OP2の読み方"
-      ],
-      [
-        "batch.html",
-        "実行コマンド・並列計算"
       ]
     ],
-    "inputNote": "画面の条件から生成した入力全文です。8文字固定長のBulk Dataを使用します。MSC Nastran本体では未実行です。"
+    "resultLinks": [
+      [
+        "bulk.html#CASE_DISPLACEMENT",
+        "変位・位相"
+      ],
+      [
+        "bulk.html#CASE_VELOCITY",
+        "速度"
+      ],
+      [
+        "bulk.html#CASE_ACCELERATION",
+        "加速度"
+      ]
+    ]
   },
   {
     "key": "transient",
@@ -351,21 +349,22 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
       [
         "analysis.html#modes",
         "共通の板モデル・物性・支持"
-      ],
-      [
-        "theory.html#transient",
-        "過渡応答解析の理論"
-      ],
-      [
-        "workflow.html#results",
-        "F06・OP2の読み方"
-      ],
-      [
-        "batch.html",
-        "実行コマンド・並列計算"
       ]
     ],
-    "inputNote": "画面の条件から生成した入力全文です。8文字固定長のBulk Dataを使用します。MSC Nastran本体では未実行です。"
+    "resultLinks": [
+      [
+        "bulk.html#CASE_DISPLACEMENT",
+        "変位・位相"
+      ],
+      [
+        "bulk.html#CASE_VELOCITY",
+        "速度"
+      ],
+      [
+        "bulk.html#CASE_ACCELERATION",
+        "加速度"
+      ]
+    ]
   },
   {
     "key": "fracture",
@@ -392,7 +391,7 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
     ],
     "outputs": [
       "K₀=σ√(πa)=約491.197 MPa√mm。形状比が同じ検証問題の無次元参照値KⅠ/K₀=1.325を用いると、比較目標はKⅠ≈650.836 MPa√mmです。この参照値はNAFEMS R0020 Test1.1の検証資料に基づきます。",
-      "平面ひずみではG=KⅠ²(1−ν²)/Eから約1.84745 N/mm。これは基準解の寸法換算であり、変更後モデルをMSC Nastranで計算した結果ではありません。",
+      "平面ひずみではG=KⅠ²(1−ν²)/Eから約1.84745 N/mm。基準解の寸法換算値です。",
       "先端要素寸法や周囲の分割を変え、K・Gが安定するかを確認します。先端節点の最大応力が有限値へ収束することを合格条件にしません。"
     ],
     "checks": [
@@ -408,21 +407,17 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
         "label": "学習構成・解法の参考：Verification Guide 2025.1 §6.45 / NAFEMS R0020 Test1.1: Center Cracked Plate in Tension · PDF 385, 386, 387"
       }
     ],
-    "links": [
+    "links": [],
+    "resultLinks": [
       [
-        "theory.html#fracture",
-        "亀裂先端解析の理論"
+        "bulk.html#CASE_DISPLACEMENT",
+        "亀裂開口変位"
       ],
       [
-        "workflow.html#results",
-        "F06・OP2の読み方"
-      ],
-      [
-        "batch.html",
-        "実行コマンド・並列計算"
+        "bulk.html#CASE_STRESS",
+        "応力の出力"
       ]
-    ],
-    "inputNote": "画面の条件から生成した入力全文です。8文字固定長のBulk Dataを使用します。MSC Nastran本体では未実行です。"
+    ]
   },
   {
     "key": "buckling",
@@ -446,7 +441,7 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
     "outputs": [
       "Euler式Pcr=π²EI/L²から弱軸の最低座屈荷重は約294.772 N、基準荷重500 Nに対する倍率λ≈0.589544です。λ<1は基準荷重500 Nより小さい荷重で線形座屈することを意味します。",
       "強軸の一次座屈は約7369.305 N、倍率約14.73861。弱軸の1～4次が先に現れるため、強軸の一次形は全体では5番目に対応します。モード番号だけで曲げ方向を決めないでください。",
-      "独立した10要素Euler–Bernoulli梁の幾何剛性計算では弱軸約294.776 Nで、Euler式との差は約0.00135%でした。これはMSC Nastranの実行結果ではありません。",
+      "独立した10要素Euler–Bernoulli梁の幾何剛性計算では弱軸約294.776 Nで、Euler式との差は約0.00135%でした。",
       "SOL105の固有値は荷重倍率です。表にCYCLES欄があっても振動数として読みません。座屈形の振幅は任意で、変形後の実変位ではありません。"
     ],
     "checks": [
@@ -464,20 +459,16 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
         "label": "学習構成・解法の参考：Classical Euler Beam Buckling, bukeuler.dat · PDF 510, 511, 512, 512, 513, 514, 515"
       }
     ],
-    "links": [
+    "links": [],
+    "resultLinks": [
       [
-        "theory.html#buckling",
-        "座屈解析の理論"
+        "bulk.html#CASE_DISPLACEMENT",
+        "座屈モードの出力"
       ],
       [
-        "workflow.html#results",
-        "F06・OP2の読み方"
-      ],
-      [
-        "batch.html",
-        "実行コマンド・並列計算"
+        "bulk.html#CASE_METHOD",
+        "固有値の抽出条件"
       ]
-    ],
-    "inputNote": "画面の条件から生成した入力全文です。8文字固定長のBulk Dataを使用します。MSC Nastran本体では未実行です。"
+    ]
   }
 ]};

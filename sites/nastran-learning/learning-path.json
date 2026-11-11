@@ -339,6 +339,13 @@
     ],
     "analyses": [
       {
+        "title": "共通",
+        "description": "入力ファイル・実行・結果の照合・教材の検証範囲",
+        "path": "analysis.html",
+        "hash": "#common",
+        "kind": "解析手順"
+      },
+      {
         "title": "静解析",
         "description": "変位・反力・応力／線形弾性",
         "path": "analysis.html",
