@@ -5,7 +5,12 @@ for(const name of ['bulk-data','field-guide-model','field-guide-properties','fie
 const entries=context.window.InputCatalog.entries,keys=new Map(entries.map(e=>[e.key,e]));
 vm.runInContext(fs.readFileSync(path.join(dir,'analysis-relations-data.js'),'utf8'),context);
 const maps=context.window.AnalysisRelationMaps;
-assert.equal(Object.keys(maps).length,19);
+for(const name of ['analysis-models','extended-analysis-data'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
+const distributedModels={...context.window.PublicAnalysisModels,...context.window.ExtendedAnalysis.models};
+for(const key of Object.keys(distributedModels))assert(maps[key],key+' missing active model map');
+const blocked=require('../content-rights.json').blockedModels;
+for(const key of Object.keys(blocked)){assert(!distributedModels[key],key+' must not be distributed');assert(!maps[key],key+' outdated model map');}
+for(const key of ['heat','fracture','large-deformation'])assert(maps[key],key+' missing schematic');
 for(const [model,map]of Object.entries(maps))for(const panel of map.panels){
  const ids=new Set(panel.nodes.map(n=>n.id));
  for(const node of panel.nodes)if(node.card)assert(keys.has(node.card),model+' relation -> '+node.card);

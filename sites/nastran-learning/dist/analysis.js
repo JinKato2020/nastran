@@ -56,7 +56,7 @@
  function renderCommon(section){
   entry=null;selectedExample='';expanded=false;$('analysis-picker').value='common';document.title='共通 — FEM Guide';
   $('analysis-detail').innerHTML=window.AnalysisCommon;
-  if(['input','run','results','verification','relations'].includes(section))requestAnimationFrame(()=>$('analysis-common-'+section).scrollIntoView({block:'start'}));
+  if(['input','run','results','verification','relations','rights'].includes(section))requestAnimationFrame(()=>$('analysis-common-'+section).scrollIntoView({block:'start'}));
  }
  function render(key){
   entry=A.entries.find(e=>e.key===key)||A.entries[0];selectedExample=entry.examples?.[0]||'';expanded=false;$('analysis-picker').value=entry.key;document.title=entry.title+' — FEM Guide';

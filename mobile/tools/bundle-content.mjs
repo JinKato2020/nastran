@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=path.resolve(root,'../sites/nastran-learning/dist');
 const catalog=[
@@ -44,6 +45,7 @@ const downloads={};for(const name of fs.readdirSync(path.join(source,'downloads'
  downloads['downloads/'+name]={name,base64:bytes.toString('base64')};
 }
 const bridge=fs.readFileSync(path.join(root,'tools/reader-bridge.js'),'utf8');
+createRequire(import.meta.url)('./check-content-rights.cjs').checkRights(pages);
 fs.mkdirSync(path.join(root,'src/generated'),{recursive:true});
 fs.writeFileSync(path.join(root,'src/generated/lessons.json'),JSON.stringify({catalog,course,pages,downloads,bridge}));
 fs.writeFileSync(path.join(root,'src/generated/provenance.json'),JSON.stringify({source:'sites/nastran-learning/dist',sha256:hashes},null,2)+'\n');
