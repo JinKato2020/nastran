@@ -3,6 +3,7 @@
  const {entries,families}=window.InputCatalog,$=id=>document.getElementById(id);
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const byKey=new Map(entries.map(e=>[e.key,e]));
+ const cardOrder=new Intl.Collator('en',{numeric:true,sensitivity:'base'});
  const qrg=p=>'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2020_Quick_Reference_Guide.pdf#page='+p;
  let selected='EXEC_SOL',field='',timer;
  const label=f=>families.find(x=>x[0]===f)?.[1]||'';
@@ -15,7 +16,7 @@
   options($('category'),categories(entry.family).map(c=>[c,c]));$('category').value=entry.category;
   renderList();if(scroll)$('card-detail').scrollIntoView({block:'start'});
  }
- function filtered(){const q=$('card-search').value.trim().toLowerCase();return entries.filter(e=>e.family===$('input-family').value&&e.category===$('category').value&&[e.id,e.title,e.summary].join(' ').toLowerCase().includes(q));}
+ function filtered(){const q=$('card-search').value.trim().toLowerCase();return entries.filter(e=>e.family===$('input-family').value&&e.category===$('category').value&&[e.id,e.title,e.summary].join(' ').toLowerCase().includes(q)).sort((a,b)=>cardOrder.compare(a.id,b.id)||cardOrder.compare(a.key,b.key));}
  function renderList(){
   const matches=filtered();options($('card-picker'),matches.map(e=>[e.key,e.id+' — '+e.title]));
   $('result-count').textContent=matches.length+'件 / 全'+entries.length+'件';$('card-picker').disabled=!matches.length;$('empty-state').hidden=!!matches.length;$('card-detail').hidden=!matches.length;$('library-location').hidden=!matches.length;
