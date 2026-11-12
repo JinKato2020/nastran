@@ -143,7 +143,7 @@ function LearningApp(){
   const [materialGroup,setMaterialGroup]=useState('intro');
   const materialGroups=[
     {key:'intro',title:'イントロダクション',description:'初めての解析・入力規則・応力方向・座標',items:NAVIGATION.intro},
-    {key:'common',title:'共通の解析技術論',description:'境界条件・減衰・モデル化・並列計算・結果の確認',items:NAVIGATION.common},
+    {key:'common',title:'共通の解析技術論',description:'カードの使い分け・境界条件・減衰・モデル化・並列計算',items:NAVIGATION.common},
     {key:'theory',title:'各解析技術理論',description:'線形・非線形・熱・振動の支配式、物理的意味と適用範囲',items:NAVIGATION.materials},
   ];
   const menuGroups:{title:string;tab:TabKey;items:CourseItem[]}[]=[

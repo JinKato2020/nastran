@@ -3,6 +3,8 @@ const dir=path.resolve(__dirname,'../../sites/nastran-learning/dist');
 const context={window:{}};vm.createContext(context);
 for(const name of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
 const entries=context.window.InputCatalog.entries,keys=new Map(entries.map(e=>[e.key,e]));
+const comparisons=JSON.parse(fs.readFileSync(path.join(dir,'../card-comparisons.json'),'utf8')).topics;
+for(const topic of comparisons)for(const key of topic.cards)assert(keys.has(key),topic.key+' comparison -> '+key);
 vm.runInContext(fs.readFileSync(path.join(dir,'analysis-relations-data.js'),'utf8'),context);
 const maps=context.window.AnalysisRelationMaps;
 for(const name of ['analysis-models','extended-analysis-data'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);

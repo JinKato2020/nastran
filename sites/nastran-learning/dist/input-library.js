@@ -81,6 +81,8 @@
    }
   }
   if(e.family==='parameter')$('card-detail').querySelector('.card-heading').insertAdjacentHTML('afterend','<p class="entry-position">Bulk Data区画に記述するパラメータです。</p>');
+  const comparisons=(window.CardComparisonIndex||[]).filter(t=>t.cards.includes(e.key));
+  if(comparisons.length)$('card-detail').insertAdjacentHTML('beforeend','<section class="reference-section comparison-backlinks"><h3>似たカードとの使い分け</h3><div>'+comparisons.map(t=>'<a href="comparisons.html#'+esc(t.key)+'">'+esc(t.title)+' →</a>').join('')+'</div></section>');
   setHash();document.title=e.id+' — 入力データ学習';
  }
  function setHash(){history.replaceState(null,'','#'+selected+(field?'/'+encodeURIComponent(field):''));}

@@ -10,6 +10,7 @@ export function titleFor(p:Position):string {
   const chapter=p.path==='index.html'?/^#chapter-(\d+)$/.exec(p.hash):null;
   if(chapter&&CHAPTERS[Number(chapter[1])-1])return `${chapter[1]}. ${CHAPTERS[Number(chapter[1])-1]}`;
   const title=LESSONS.find(l=>l.id===p.path)?.title||'Nastran学習';
+  if(p.path==='comparisons.html'){const t=bundle.comparisonTopics.find(t=>t.key===p.hash.slice(1).split('/')[0]);if(t)return t.title;}
   if(p.path==='theory.html'){const t=[...NAVIGATION.common,...NAVIGATION.materials].find(t=>t.path===p.path&&t.hash===p.hash);if(t)return t.title;}
   if(p.path==='index.html'&&p.hash==='#first-analysis')return '初めての解析';
   if(p.path==='index.html'&&p.hash==='#home')return '教材一覧';

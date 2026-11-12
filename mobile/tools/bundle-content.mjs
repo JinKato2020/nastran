@@ -6,6 +6,7 @@ import { createRequire } from 'node:module';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=path.resolve(root,'../sites/nastran-learning/dist');
 const catalog=[
+ ['comparisons.html','似たカードの使い分け','CBAR／CBEAMなど13テーマの選択基準・結果への影響','共通理論','#beam'],
  ['theory.html','理論教材','14解析と境界条件・減衰の理論','理論','#static'],
  ['analysis.html','解析別の学習','共通手順と14種類の解析のモデル・入力・結果','解析','#common'],
  ['index.html','線形静解析の基礎','11章と棒の引張り実験室','基礎','#chapter-1'],
@@ -24,6 +25,7 @@ const catalog=[
  ['include.html','INCLUDEファイルの作成','ファイルの分割と荷重の切替え','実践',''],
 ].map(([id,title,description,category,hash])=>({id,title,description,category,hash}));
 const course=JSON.parse(fs.readFileSync(path.join(source,'../learning-path.json'),'utf8'));
+const comparisonTopics=JSON.parse(fs.readFileSync(path.join(source,'../card-comparisons.json'),'utf8')).topics.map(({key,title})=>({key,title}));
 const pages={};const hashes={};
 const read=name=>{const p=path.resolve(source,name);if(!p.startsWith(source+path.sep))throw Error('Invalid asset');const bytes=fs.readFileSync(p);hashes[name]=crypto.createHash('sha256').update(bytes).digest('hex');return bytes.toString('utf8');};
 const pdf='https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide.pdf';
@@ -47,6 +49,6 @@ const downloads={};for(const name of fs.readdirSync(path.join(source,'downloads'
 const bridge=fs.readFileSync(path.join(root,'tools/reader-bridge.js'),'utf8');
 createRequire(import.meta.url)('./check-content-rights.cjs').checkRights(pages);
 fs.mkdirSync(path.join(root,'src/generated'),{recursive:true});
-fs.writeFileSync(path.join(root,'src/generated/lessons.json'),JSON.stringify({catalog,course,pages,downloads,bridge}));
+fs.writeFileSync(path.join(root,'src/generated/lessons.json'),JSON.stringify({catalog,course,comparisonTopics,pages,downloads,bridge}));
 fs.writeFileSync(path.join(root,'src/generated/provenance.json'),JSON.stringify({source:'sites/nastran-learning/dist',sha256:hashes},null,2)+'\n');
 console.log(`Bundled ${catalog.length} offline pages and ${Object.keys(downloads).length} downloads.`);

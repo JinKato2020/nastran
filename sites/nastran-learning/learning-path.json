@@ -447,6 +447,13 @@
     "operations": [],
     "common": [
       {
+        "title": "似たカードの使い分け",
+        "description": "CBAR／CBEAMなど13テーマ。目的・相違点・選択基準・結果への影響",
+        "path": "comparisons.html",
+        "hash": "#beam",
+        "kind": "カード比較"
+      },
+      {
         "title": "境界条件の理論",
         "description": "自由度・剛体運動・支持の理想化",
         "path": "theory.html",
