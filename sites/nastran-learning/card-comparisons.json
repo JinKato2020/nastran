@@ -1451,6 +1451,123 @@
           "過渡応答の理論"
         ]
       ]
+    },
+    {
+      "key": "eigensolvers",
+      "title": "EIGRL・EIGR・EIGC",
+      "category": "動解析",
+      "question": "求めるのは実モードか、減衰・成長を示す複素根か",
+      "summary": "EIGRLとEIGRは実固有値、EIGCは複素固有値の抽出条件です。SOL 110では実モードで縮約してから複素根を求めるので、両方の抽出条件を用意します。",
+      "common": [
+        "いずれも固有値の抽出条件です。モデルの質量・剛性・拘束・減衰の定義は各モデル入力で行います。",
+        "SIDをCase Controlで選択します。SOLと、選択した抽出法で有効な範囲・継続行を照合します。"
+      ],
+      "columns": [
+        "EIGRL",
+        "EIGR",
+        "EIGC"
+      ],
+      "differences": [
+        [
+          "抽出する量",
+          "実固有値。Lanczos法。",
+          "実固有値。METHOD欄で手法を選択。",
+          "複素固有値。METHOD欄で複素根の抽出法を選択。"
+        ],
+        [
+          "Case Control",
+          "METHOD",
+          "METHOD",
+          "CMETHOD"
+        ],
+        [
+          "探索条件",
+          "振動数範囲・抽出数（実固有値による振動解析の場合）。",
+          "手法に応じた振動数範囲・抽出数。",
+          "手法に応じた根数・複素平面上のシフトや探索領域。"
+        ]
+      ],
+      "diagram": {
+        "caption": "Case Controlから対応する抽出条件を選ぶ",
+        "lanes": [
+          [
+            "実モードの抽出",
+            "METHOD",
+            "EIGRL または EIGR"
+          ],
+          [
+            "複素根の抽出",
+            "CMETHOD",
+            "EIGC"
+          ]
+        ]
+      },
+      "choose": [
+        [
+          "SOL 103の構造の通常の実モードを求める",
+          "まずLanczos法のEIGRLを候補にし、必要な周波数範囲／モード数を決める。"
+        ],
+        [
+          "実根で別の手法や規格化の指定が必要",
+          "EIGRで利用できる抽出法・規格化と、対象SOLへの適用条件を確認する。"
+        ],
+        [
+          "SOL 107／110で減衰や成長を評価する",
+          "CMETHODからEIGCを選択。SOL 110ではMETHODから実モード基底も選ぶ。"
+        ]
+      ],
+      "results": [
+        "実モードの抽出数と複素根の抽出数は別々に照合する。SOL 110で基底を増やしたときは、注目する複素根の実部・虚部が収束するかを見る。",
+        "範囲・根数を指定したら、F06で対象モードが実際に抽出されたか確認する。複素根は探索の設定によって拾える範囲が変わる。"
+      ],
+      "pitfalls": [
+        "EIGR/EIGCのMETHODはBulk Data内の手法名の欄。Case ControlのMETHODは実固有値抽出条件を選ぶ指令。",
+        "EIGRLの振動数範囲をEIGCのシフトにそのまま転記すると、探索範囲が変わる。対象欄がcycles/時間かrad/時間かを確認する。"
+      ],
+      "cards": [
+        "EIGRL",
+        "EIGR",
+        "EIGC",
+        "CASE_METHOD",
+        "CASE_CMETHOD"
+      ],
+      "related": [
+        "dynamic-loads",
+        "mass"
+      ],
+      "links": [
+        [
+          "theory.html#complex-modes",
+          "実固有値と複素固有値の違い"
+        ],
+        [
+          "analysis.html#complex-modes",
+          "SOL 107／110のカード相関図"
+        ]
+      ],
+      "sourceVersion": "2025.1",
+      "pages": [
+        [
+          "EIGRL",
+          1814
+        ],
+        [
+          "EIGR",
+          1810
+        ],
+        [
+          "EIGC",
+          1804
+        ],
+        [
+          "METHOD (Case)",
+          504
+        ],
+        [
+          "CMETHOD (Case)",
+          301
+        ]
+      ]
     }
   ]
 }

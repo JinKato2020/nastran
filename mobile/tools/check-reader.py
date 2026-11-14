@@ -189,11 +189,11 @@ with sync_playwright() as p:
     page.close()
     page=reader('analysis.html')
     page.select_option('#analysis-picker','modes')
-    page.locator('#save-analysis').click()
-    page.wait_for_function('messages.some(m=>m.type==="share")')
-    m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
-    assert m['name']=='plate_sol103.dat'
-    assert base64.b64decode(m['base64']).decode('ascii')==page.evaluate('NastranAnalysis.models.modes.text')
+    page.locator('#analysis-example-picker').select_option('tip-mass')
+    page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#modes/tip-mass")')
+    assert page.locator('#save-analysis,#analysis-example-raw').count()==0
+    page.locator('[data-relation-card="CONM2"]').click()
+    assert page.evaluate('messages.filter(m=>m.type==="navigate").at(-1).hash')=='#CONM2'
     page.select_option('#analysis-picker','transient')
     page.select_option('#analysis-example-picker','transient-modal')
     page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#transient/transient-modal")')

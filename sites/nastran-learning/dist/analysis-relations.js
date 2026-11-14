@@ -31,6 +31,6 @@
  window.renderAnalysisRelations=(key,example)=>{
   const mapKey=example||key,map=window.AnalysisRelationMaps[mapKey];
   if(!map)throw Error('Missing analysis relation map: '+mapKey);
-  return `<div class="analysis-relation-heading"><h3>このモデルのカード相関図</h3><a href="analysis.html#common/relations">図の読み方 →</a></div><p class="analysis-relation-scope">${esc(map.scope)}</p><div class="analysis-relation-grid">${map.panels.map((p,i)=>panel(p,mapKey,i)).join('')}</div>`;
+  return `<div class="analysis-relation-heading"><h3>${key==='complex-modes'?'SOL 107／110のカード相関図':'このモデルのカード相関図'}</h3><a href="analysis.html#common/relations">図の読み方 →</a></div><p class="analysis-relation-scope">${esc(map.scope)}</p><div class="analysis-relation-grid">${map.panels.map((p,i)=>panel(p,mapKey,i)).join('')}</div>`;
  };
 })();

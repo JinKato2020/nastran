@@ -1,124 +1,51 @@
-window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
+window.NastranAnalysis = {entries:[
   {
     "key": "static",
     "title": "静解析",
     "sol": "SOL 101",
-    "summary": "単純支持トラスの静解析。7節点・11部材を通じて、節点・要素・断面・材料の参照関係、支持自由度、荷重の組合せを学び、変位・軸力・支持反力を検算します。",
-    "inputs": [
-      [
-        "形状・単位系",
-        "N・mm・MPaを使用します。全長6000 mm、高さ1800 mm。下側の節点1・3・5・7はX=0・2000・4000・6000 mm、Y=0。上側の節点2・4・6はX=1500・3000・4500 mm、Y=900・1800・900 mmです。全節点のZは0です。"
-      ],
-      [
-        "要素・断面・材料",
-        "11本のCRODはGRIDで定義した2点を接続し、PROD 1を介してMAT1 1を参照します。断面積A=800 mm²、ヤング率E=70000 MPa、ポアソン比ν=0.33。部材はピン接合・軸力のみの平面トラスとして扱い、線形弾性・微小変位を仮定します。"
-      ],
-      [
-        "支持条件",
-        "左端GRID1は成分12、右端GRID7は成分2を拘束。全節点のGRID PS=3456で面外並進と回転を止めます。SPCADD 2がSPC1セット1と3を結び、Case ControlのSPC=2で選択します。"
-      ],
-      [
-        "荷重の選択",
-        "GRID2・4・6に、それぞれ鉛直下向き2000 Nと水平右向き1000 Nを与えます。FORCEセット1は−Y、セット3は＋X。LOAD 2で各倍率1.0として合成し、Case ControlのLOAD=2で選択します。集中荷重は全て節点へ作用させます。"
-      ]
-    ],
-    "outputs": [
-      "独立検算：節点の釣合い式と平面トラス剛性法を用いています。F06ではSPCFORCES→DISPLACEMENT→ELEMENT FORCES/STRESSESの順に同じ節点・部材を照合します。",
-      "支持反力：節点1のX=−3000 N、Y=＋2400 N、節点7のY=＋3600 N。全体の水平外力＋3000 Nと鉛直外力−6000 Nに釣り合います。符号は基本座標系の＋X右向き、＋Y上向きです。",
-      "左支持点まわりのモーメント：6000×Ry7 − 2000×(1500＋3000＋4500) − 1000×(900＋1800＋900)=0。これからRy7=3600 N、Ry1=6000−3600=2400 Nを得ます。水平荷重の作用高さも含めるのが要点です。",
-      "荷重の重ね合わせ：鉛直荷重のみでは左右3000 Nずつ。水平荷重のみでは左Y=−600 N、右Y=＋600 Nが生じます。両者の和が上の反力です。LOADの水平セット倍率を0にすると、この比較を確認できます。",
-      "節点変位：中央上部の節点4はUx=＋0.371556 mm、Uy=−1.179794 mm。最大の下向き変位は節点3のUy=−1.206095 mmで、頂点とは限りません。変位図の表示倍率と数値を区別します。",
-      "部材の軸力・軸応力：CROD 9（節点1–3）は＋7000 N、＋8.750000 MPaで引張り。CROD 4（節点6–7）は−6997.142 N、−8.746428 MPaで圧縮。σ=N/Aで照合します。正が引張り、負が圧縮です。"
-    ],
-    "checks": [
-      "節点1のUx・Uyと節点7のUyが0であることを確認する。節点7のUxは拘束しない。",
-      "CRODの軸力は部材軸方向の力であり、全体座標のX成分やY成分そのものではありません。",
-      "この静定トラスでは、支持・形状・荷重を保って全てのEまたはAを2倍にすると変位は半分、軸力と反力は同じです。Aを2倍にした場合は軸応力も半分になります。"
-    ],
-    "examples": [
-      "static"
-    ],
-    "availability": "",
     "sources": [
       {
-        "url": "https://www.scc.kit.edu/scc/sw/msc/Nas101/lesson_01.pdf",
-        "label": "入力構成の参考：NAS101 Workshop 1 · PDF3・23"
+        "url": "https://nexus.hexagon.com/documentationcenter/en-US/bundle/MSC_Nastran_2024.2/page/Nastran_Combined_Book/refman/strucelems/TOC.Material.Properties1.xhtml",
+        "label": "MSC Nastran Reference Guide · 要素と材料特性"
+      },
+      {
+        "url": "https://nexus.hexagon.com/documentationcenter/en-US/bundle/MSC_Nastran_2024.2/page/Nastran_Combined_Book/verification_guide/OriginalVerifman/OriginalVerifman_22.xhtml",
+        "label": "MSC Nastran Verification Guide · 片持ち梁の曲げ"
       }
     ],
-    "links": [],
-    "resultLinks": [
-      [
-        "bulk.html#CASE_DISPLACEMENT",
-        "変位の出力"
-      ],
-      [
-        "bulk.html#CASE_STRESS",
-        "応力の出力"
-      ],
-      [
-        "bulk.html#CASE_FORCE",
-        "要素力の出力"
-      ],
-      [
-        "bulk.html#CASE_SPCFORCES",
-        "支持反力"
-      ]
-    ]
+    "links": []
   },
   {
     "key": "modes",
-    "title": "固有値解析",
+    "title": "実固有値解析",
     "sol": "SOL 103",
-    "summary": "片持ち板の固有振動数と曲げ・ねじりのモード形を調べます。同じ板を後続の周波数応答・過渡応答に使い、質量・剛性・拘束から応答へ学習をつなげます。",
-    "inputs": [
-      [
-        "形状と要素",
-        "150×60×3 mmの板を10×4に分割し、55 GRID・40 CQUAD4で表します。Xが長手、Yが幅、Zが板厚方向です。要素の節点順序を＋Zから見て反時計回りにそろえ、圧力の正方向を＋Zとします。"
-      ],
-      [
-        "物性と単位",
-        "N・mm・s・tonneの整合単位系。E=200000 MPa、ν=0.29、質量密度7.85×10⁻⁹ tonne/mm³。PSHELLの膜・曲げ・横せん断材料に同じMAT1を参照します。板の質量は0.21195 kgです。WTMASS=1なので、質量密度を重力加速度でもう一度割りません。COUPMASS=1で連成質量を使用します。"
-      ],
-      [
-        "支持と自由面",
-        "左辺GRID1・12・23・34・45の成分12345をSPC1で拘束します。板面内の回転成分6はこの支持セットに含めません。右辺・上辺・下辺は自由。シェルのドリリング自由度の処理とAUTOSPCの出力を確認します。"
-      ],
-      [
-        "抽出条件",
-        "METHOD=1→EIGRL 1、ND=5で低次5モードを要求します。外力は与えません。GRID11・33・55は自由端の下隅・中央・上隅で、応答解析でも同じ位置を観察します。"
-      ]
-    ],
-    "outputs": [
-      "F06の固有値表でCYCLES、抽出数、負やほぼゼロの固有値を確認します。固定辺が動く、板が剛体移動する場合は、支持・接続・単位を先に見直します。",
-      "独立した薄板Rayleigh–Ritz計算では、低次5周波数の目安は約111.0、584.1、692.9、1859、1947 Hzです。CQUAD4とは要素・横せん断・回転慣性の扱いが異なる比較用の概算です。完全一致を合格条件にはしません。",
-      "モード形の倍率は任意です。曲げかねじりか、節線の位置、固定辺の変位を確認し、周波数だけでモードを対応させないでください。"
-    ],
-    "checks": [
-      "総質量0.21195 kgを照合し、密度の単位とWTMASSの二重換算を点検する。",
-      "メッシュを20×8などへ細分化し、周波数とモード形の変化を確認する。",
-      "板厚を増やすと曲げ剛性は概ねt³、質量はtに比例するため、薄板の曲げ周波数は概ねtに比例する。"
-    ],
-    "examples": [
-      "modes"
-    ],
-    "availability": "",
     "sources": [
       {
-        "url": "https://www.scc.kit.edu/scc/sw/msc/Nas102/prob01.pdf",
-        "label": "学習構成・解法の参考：NAS102 Workshop 1: Modal Analysis of a Flat Plate · PDF 3, 4, 18, 19, 20, 23"
+        "url": "https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Dynamic_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Dynamic_Analysis_User_Guide.pdf#page=51",
+        "label": "MSC Nastran 2025.1 動解析ガイド · 実固有値解析 · PDF 51から"
       }
     ],
-    "links": [],
-    "resultLinks": [
-      [
-        "bulk.html#CASE_DISPLACEMENT",
-        "モード形の出力"
-      ],
-      [
-        "bulk.html#CASE_METHOD",
-        "固有値の抽出条件"
-      ]
-    ]
+    "links": []
+  },
+  {
+    "key": "complex-modes",
+    "title": "複素固有値解析",
+    "sol": "SOL 107／110",
+    "sources": [
+      {
+        "url": "https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Dynamic_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Dynamic_Analysis_User_Guide.pdf#page=671",
+        "label": "MSC Nastran 2025.1 Dynamic Analysis User’s Guide · 解法・複素根の読み方 · PDF 671–678"
+      },
+      {
+        "url": "https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Dynamic_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Dynamic_Analysis_User_Guide.pdf#page=682",
+        "label": "MSC Nastran 2025.1 Dynamic Analysis User’s Guide · SOL 107／110の選択と出力 · PDF 682"
+      },
+      {
+        "url": "https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=1804",
+        "label": "MSC Nastran 2025.1 Quick Reference Guide · EIGC · PDF 1804"
+      }
+    ],
+    "links": []
   },
   {
     "key": "heat",
@@ -153,8 +80,6 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
       "下辺40°Cと周囲25°Cを入れ替えない。対流境界を既知の板温度にしない。",
       "メッシュを細かくして最高温度と熱収支の両方を確認する。"
     ],
-    "examples": null,
-    "availability": "数値条件・図・独立検算を収録しています。完成したMSC Nastran用DATは未実装です。",
     "sources": [
       {
         "url": "https://nexus.hexagon.com/community/cfs-file/__key/communityserver-discussions-components-files/816/DOC12832-_2D00_-patran_5F00_2021_5F00_nastran_5F00_thermal.pdf",
@@ -206,22 +131,13 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
       "モード法と直接法を比較する場合は、同じ荷重分布・位相・減衰・周波数を用意する。",
       "モード打切りによる不足を、荷重倍率を調整して埋め合わせない。"
     ],
-    "examples": [
-      "modal-frequency"
-    ],
-    "availability": "",
     "sources": [
       {
         "url": "https://www.scc.kit.edu/scc/sw/msc/Nas102/prob06.pdf",
         "label": "学習構成・解法の参考：NAS102 Workshop 6: Modal Frequency Response Analysis · PDF 15, 16, 17, 21"
       }
     ],
-    "links": [
-      [
-        "analysis.html#modes",
-        "共通の板モデル・物性・支持"
-      ]
-    ],
+    "links": [],
     "resultLinks": [
       [
         "bulk.html#CASE_DISPLACEMENT",
@@ -235,6 +151,12 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
         "bulk.html#CASE_ACCELERATION",
         "加速度"
       ]
+    ],
+    "variants": [
+      {
+        "id": "modal-frequency",
+        "title": "片持ち板のモーダル周波数応答"
+      }
     ]
   },
   {
@@ -266,22 +188,13 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
       "Gと粘性減衰比を同じ数値で置き換えない。両者の対応は周波数にも依存する。",
       "周波数分割を細かくしてピーク位置と振幅の収束を確認する。"
     ],
-    "examples": [
-      "direct-frequency"
-    ],
-    "availability": "",
     "sources": [
       {
         "url": "https://www.scc.kit.edu/scc/sw/msc/Nas102/prob05.pdf",
         "label": "学習構成・解法の参考：NAS102 Workshop 5: Direct Frequency Response Analysis · PDF 14, 15, 19"
       }
     ],
-    "links": [
-      [
-        "analysis.html#modes",
-        "共通の板モデル・物性・支持"
-      ]
-    ],
+    "links": [],
     "resultLinks": [
       [
         "bulk.html#CASE_DISPLACEMENT",
@@ -295,6 +208,12 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
         "bulk.html#CASE_ACCELERATION",
         "加速度"
       ]
+    ],
+    "variants": [
+      {
+        "id": "direct-frequency",
+        "title": "片持ち板の直接周波数応答"
+      }
     ]
   },
   {
@@ -330,11 +249,6 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
       "加振周期の分割数だけで時間刻みを決めず、残す高次モードと応答の収束も確認する。",
       "使用版のTLOAD2の時刻定義を確認する。旧版の出力と無条件に時刻を対応させない。"
     ],
-    "examples": [
-      "transient-direct",
-      "transient-modal"
-    ],
-    "availability": "",
     "sources": [
       {
         "url": "https://www.scc.kit.edu/scc/sw/msc/Nas102/prob03.pdf",
@@ -345,12 +259,7 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
         "label": "学習構成・解法の参考：NAS102 Workshop 4: Modal Transient Response Analysis · PDF 16, 17, 21"
       }
     ],
-    "links": [
-      [
-        "analysis.html#modes",
-        "共通の板モデル・物性・支持"
-      ]
-    ],
+    "links": [],
     "resultLinks": [
       [
         "bulk.html#CASE_DISPLACEMENT",
@@ -364,6 +273,16 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
         "bulk.html#CASE_ACCELERATION",
         "加速度"
       ]
+    ],
+    "variants": [
+      {
+        "id": "transient-direct",
+        "title": "片持ち板の直接過渡応答"
+      },
+      {
+        "id": "transient-modal",
+        "title": "片持ち板のモーダル過渡応答"
+      }
     ]
   },
   {
@@ -399,8 +318,6 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
       "四分点要素とVCCTの対応・節点配置・評価方式は使用版の規則を確認する。",
       "Kの長さ単位をそろえる。MPa√mmからMPa√mへは√1000で割る。"
     ],
-    "examples": null,
-    "availability": "変更後のモデル条件・図・基準解の換算値を収録しています。先端メッシュと解析制御を備えた完成DATは未実装です。",
     "sources": [
       {
         "url": "https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Verification_Guide/raw/resource/enus/MSC_Nastran_2025.1_Verification_Guide.pdf",
@@ -449,14 +366,10 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
       "基準荷重を2倍にしたとき倍率は半分になり、倍率×基準荷重が変わらないことを確認する。",
       "初期不整、塑性、大変形を含む実際の耐力とは区別する。"
     ],
-    "examples": [
-      "buckling"
-    ],
-    "availability": "",
     "sources": [
       {
         "url": "https://documentation-be.hexagon.com/bundle/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide.pdf",
-        "label": "学習構成・解法の参考：Classical Euler Beam Buckling, bukeuler.dat · PDF 510, 511, 512, 512, 513, 514, 515"
+        "label": "学習構成・解法の参考：Classical Euler Beam Buckling · PDF 510, 511, 512, 512, 513, 514, 515"
       }
     ],
     "links": [],
@@ -469,6 +382,12 @@ window.NastranAnalysis = {models:window.PublicAnalysisModels,entries:[
         "bulk.html#CASE_METHOD",
         "固有値の抽出条件"
       ]
+    ],
+    "variants": [
+      {
+        "id": "buckling",
+        "title": "両端支持梁のEuler座屈"
+      }
     ]
   }
 ]};

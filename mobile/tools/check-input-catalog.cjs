@@ -7,11 +7,27 @@ const comparisons=JSON.parse(fs.readFileSync(path.join(dir,'../card-comparisons.
 for(const topic of comparisons)for(const key of topic.cards)assert(keys.has(key),topic.key+' comparison -> '+key);
 vm.runInContext(fs.readFileSync(path.join(dir,'analysis-relations-data.js'),'utf8'),context);
 const maps=context.window.AnalysisRelationMaps;
-for(const name of ['analysis-models','extended-analysis-data'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
-const distributedModels={...context.window.PublicAnalysisModels,...context.window.ExtendedAnalysis.models};
-for(const key of Object.keys(distributedModels))assert(maps[key],key+' missing active model map');
+for(const name of ['analysis-data','extended-analysis-data','analysis-scenarios'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
+const {entries:analyses}=context.window.NastranAnalysis;
+const scenarios=context.window.AnalysisScenarios;
+for(const entry of analyses){
+ assert(!entry.examples,entry.key+' executable example must not be bundled');
+ if(!scenarios[entry.key]){
+  if(!entry.variants?.length)assert(maps[entry.key],entry.key+' missing analysis map');
+  for(const model of entry.variants||[])assert(maps[model.id],model.id+' missing variant map');
+ }
+}
+for(const key of ['static','modes','complex-modes']){
+ const models=scenarios[key].models;
+ assert.equal(models.length,3,key+' needs three comparison models');
+ assert.equal(new Set(models.map(model=>model.id)).size,models.length);
+ for(const model of models){
+  const links=model.chains.flatMap(row=>row.split('|')).concat(model.check.map(([id])=>id));
+  for(const id of links)assert(keys.has(id),model.id+' scenario -> '+id);
+ }
+}
 const blocked=require('../content-rights.json').blockedModels;
-for(const key of Object.keys(blocked)){assert(!distributedModels[key],key+' must not be distributed');assert(!maps[key],key+' outdated model map');}
+for(const key of Object.keys(blocked))assert(!maps[key],key+' outdated model map');
 for(const key of ['heat','fracture','large-deformation'])assert(maps[key],key+' missing schematic');
 for(const [model,map]of Object.entries(maps))for(const panel of map.panels){
  const ids=new Set(panel.nodes.map(n=>n.id));

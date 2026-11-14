@@ -14,7 +14,7 @@ export function titleFor(p:Position):string {
   if(p.path==='theory.html'){const t=[...NAVIGATION.common,...NAVIGATION.materials].find(t=>t.path===p.path&&t.hash===p.hash);if(t)return t.title;}
   if(p.path==='index.html'&&p.hash==='#first-analysis')return '初めての解析';
   if(p.path==='index.html'&&p.hash==='#home')return '教材一覧';
-  if(p.path==='analysis.html'){const a=NAVIGATION.analyses.find(a=>a.hash===p.hash.split('/')[0]);if(a)return a.title;}
+  if(p.path==='analysis.html'){const [hash,view]=p.hash.split('/');const a=NAVIGATION.analyses.find(a=>a.hash===hash);if(a)return a.title+(view==='simcenter'?' · Simcenter Nastran':'');}
   if(p.path==='errors.html'){const m=/^#error-([\d.]+)(?:-p\d+)?$/.exec(p.hash);if(m)return title+' · '+m[1];}
   if(p.path==='relations.html'&&/^#sol-(101|103|111|112)$/.test(p.hash))return title+' · SOL '+p.hash.slice(5);
   if(p.path==='modeling.html'){const m=/^#model-(?:input-)?(simple|standard|detailed)$/.exec(p.hash);if(m)return title+' · '+({simple:'簡易',standard:'標準',detailed:'詳細'}[m[1] as 'simple'|'standard'|'detailed']);}

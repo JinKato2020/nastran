@@ -46,5 +46,19 @@
  <path d="M105 120V340 M215 340H325" stroke="#426bb1" stroke-width="5"/>
  <path d="M105 340H215" stroke="#b34b35" stroke-width="5"/><circle cx="215" cy="340" r="18" stroke="#b34b35" fill="none"/>
  ${text(20,180,'uₓ = 0')}${text(238,366,'uᵧ = 0')}${text(84,366,'亀裂面：自由')}${text(160,319,'先端')}${text(332,232,'24 mm','font-size="12"')}${text(160,160,'b = 24 mm')}${text(120,387,'a = 12 mm　先端に四分点要素','font-size="13"')}${legend}`);}
- window.analysisDiagram=key=>key==='static'?truss():key==='heat'?thermal():key==='buckling'?buckling():key==='fracture'?fracture():plate(key);
+ function complexModes(){
+  return `<figure class="analysis-concept"><figcaption>粘性減衰を持つ系の模式図</figcaption>
+  <svg viewBox="0 0 360 183" role="img" aria-label="固定端につながるばねKとダンパCが、同じ方向に動く質量Mを支える。">
+   <g stroke="#516b87" stroke-width="2" fill="none">
+    <path d="M38 44V140 M29 56l9-9 M29 73l9-9 M29 90l9-9 M29 107l9-9 M29 124l9-9 M29 141l9-9"/>
+    <path d="M38 63H79l8-10 10 20 10-20 10 20 10-20 10 20 8-10H219"/>
+    <path d="M38 116H101 M101 103V129H136 M101 103H136 M126 107V125 M126 116H219"/>
+    <rect x="219" y="41" width="55" height="98" rx="5" fill="#e4edf9"/>
+    <path d="M277 92H327l-7-6m7 6l-7 6"/>
+   </g>
+   <g fill="#29466b" font-size="14" text-anchor="middle"><text x="115" y="41">ばね K</text><text x="117" y="151">ダンパ C</text><text x="246" y="96">質量 M</text><text x="305" y="75">変位 u</text><text x="38" y="170">固定端</text></g>
+  </svg>
+  <p>ばねの復元力は変位、ダンパの力は相対速度に対応します。解析では支持と減衰の位置・方向を指定し、動ける自由度を確認します。</p></figure>`;
+ }
+ window.analysisDiagram=key=>key==='complex-modes'?complexModes():key==='static'?truss():key==='heat'?thermal():key==='buckling'?buckling():key==='fracture'?fracture():plate(key);
 })();

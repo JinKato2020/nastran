@@ -1,71 +1,105 @@
 (() => {
  'use strict';
- const A=window.NastranAnalysis,$=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- let entry=A.entries[0],selectedExample='',expanded=false,timer;
- $('analysis-picker').innerHTML='<option value="common">共通</option>'+A.entries.map(e=>`<option value="${e.key}">${e.title}</option>`).join('');
- function linkedDeck(text){
-  let zone='executive';
-  const html=text.split(/(\r\n|\n)/).map((line,index)=>{
-   // Character references preserve CRLF through HTML parsing as well as export.
-   if(index%2)return line.replace(/\r/g,'&#13;');
-   let match=/^(\s*)([A-Z][A-Z0-9]*)(?=[\s(=,]|$)/i.exec(line),key='';
-   if(zone==='bulk'&&(!line.slice(0,8).trim()||/^[+*]/.test(line)))match=null;
-   if(match){
-    const code=match[2].toUpperCase();
-    if(/^\s*BEGIN\s+BULK\b/.test(line)){match=/^(\s*)(BEGIN\s+BULK)/.exec(line);key='CASE_BEGIN_BULK';zone='bulk';}
-    else if(zone==='executive'){key=code==='SOL'?'EXEC_SOL_'+(/SOL\s+(\d+)/.exec(line)?.[1]||''): 'EXEC_'+code;if(code==='CEND')zone='case';}
-    else if(zone==='case')key='CASE_'+(code==='VECTOR'?'DISPLACEMENT':code);
-    else key=code==='PARAM'?'PARAM_'+line.slice(8,16).trim().toUpperCase():code;
-   }
-   if(!key)return esc(line);
-   return esc(match[1])+'<a class="deck-card-link" href="bulk.html#'+esc(key)+'" aria-label="'+esc(match[2])+'のInputデータ解説">'+esc(match[2])+'</a>'+esc(line.slice(match[1].length+match[2].length));
-  }).join('');
-  $('analysis-example-raw').innerHTML=html;
+ const catalog=window.NastranAnalysis;
+ const scope=window.SolverScope;
+ const scenarios=window.AnalysisScenarios;
+ const byId=id=>document.getElementById(id);
+ const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const picker=byId('analysis-picker');
+ const detail=byId('analysis-detail');
+ const list=items=>`<ul>${items.map(item=>`<li>${esc(item)}</li>`).join('')}</ul>`;
+ const conditions=rows=>`<dl class="analysis-inputs">${rows.map(([label,body])=>`<div><dt>${esc(label)}</dt><dd>${esc(body)}</dd></div>`).join('')}</dl>`;
+ const links=items=>`<div class="analysis-links">${items.map(([url,label])=>`<a href="${esc(url)}">${esc(label)} →</a>`).join('')}</div>`;
+ const cardLinks=items=>links(items.map(([id,label])=>['bulk.html#'+id,label]));
+ const sources=items=>`<div class="analysis-sources">${items.map(({url,label})=>`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(label)} ↗</a>`).join('')}</div>`;
+ const section=(title,body,id='')=>`<section class="analysis-section"${id?' id="'+id+'"':''}><h2>${title}</h2>${body}</section>`;
+ const displayCard=id=>id.startsWith('CASE_')?id.slice(5):id.startsWith('EXEC_SOL_')?id.replace('EXEC_SOL_','SOL '):id;
+ function chains(rows){
+  return `<div class="analysis-scenario-chains">${rows.map(row=>{
+   const cards=row.split('|').map(id=>`<a href="bulk.html#${id}" data-relation-card="${id}">${displayCard(id)}</a>`);
+   return `<div class="analysis-scenario-chain">${cards.join('<span aria-hidden="true">→</span>')}</div>`;
+  }).join('')}</div>`;
  }
- const list=rows=>rows.map(t=>'<li>'+esc(t)+'</li>').join('');
- const conditions=rows=>rows.map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd></div>').join('');
- function showModelConditions(m={}){
-  document.querySelector('.analysis-visual').innerHTML=window.analysisDiagram(entry.key,selectedExample);
-  $('analysis-relations').innerHTML=window.renderAnalysisRelations(entry.key,selectedExample);
-  $('analysis-conditions').innerHTML=conditions(m.inputs||entry.inputs);
-  $('analysis-results').innerHTML=list(m.outputs||entry.outputs);
-  $('analysis-checks').innerHTML=list(m.checks||entry.checks);
-  $('analysis-run-notes').innerHTML=list(m.runNotes||entry.runNotes||[]);
+ function heading(entry,summary,extra=''){
+  return `<div class="analysis-head"><span class="analysis-sol">MSC Nastran · ${esc(entry.sol)}</span><h1>${esc(entry.title)}</h1>${summary?`<p>${esc(summary)}</p>`:''}${extra}</div>`;
  }
- function exampleHash(){return '#'+entry.key+'/'+selectedExample+(expanded?'/raw':'');}
- function rememberExample(){history.replaceState(null,'',exampleHash());}
- function showRaw(){
-  const text=A.models[selectedExample].text,lines=text.replace(/\r?\n$/,'').split(/\r?\n/),canExpand=lines.length>6;
-  linkedDeck(expanded?text:lines.slice(0,6).join('\r\n'));
-  $('analysis-raw-details').dataset.expanded=String(expanded);
-  $('analysis-toggle-raw').textContent=expanded?'6行に戻す':'全て表示';
-  $('analysis-toggle-raw').setAttribute('aria-expanded',String(expanded));
-  $('analysis-toggle-raw').hidden=!canExpand;
-  $('analysis-collapse-raw').hidden=!expanded||!canExpand;
-  $('analysis-code-status').textContent=expanded?`全${lines.length}行を表示`:`先頭${Math.min(6,lines.length)}行 / 全${lines.length}行`;
-  $('analysis-example-raw').setAttribute('aria-label',expanded?'入力ファイル全文。先頭コードからカード解説へ移動':'入力ファイルの先頭6行。全て表示で全文を開く');
+ function contextLinks(entry,related=[]){
+  return links([['theory.html#'+entry.key,'この解析の理論'],...related,['analysis.html#common','共通の確認手順']]);
  }
- function toggleRaw(fromBottom=false){
-  expanded=!expanded;showRaw();rememberExample();
-  if(fromBottom){$('analysis-raw-details').scrollIntoView({block:'start'});$('analysis-toggle-raw').focus({preventScroll:true});}
+ function compare(scenario,selected){
+  return `<table class="analysis-scenario-comparison"><caption>${esc(scenario.shared)}</caption><thead><tr>${scenario.columns.map(col=>`<th scope="col">${esc(col)}</th>`).join('')}</tr></thead><tbody>${scenario.rows.map(([name,...cells],index)=>`<tr${index===selected?' aria-current="true"':''}><th scope="row">${esc(name)}</th>${cells.map(cell=>`<td>${esc(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table><p class="analysis-scenario-summary">${esc(scenario.compare)}</p>`;
  }
- function showExample(){
-  const m=A.models[selectedExample];if(!m)return;
-  showModelConditions(m);showRaw();$('analysis-filename').textContent=m.name;$('analysis-fragment').hidden=m.complete;$('analysis-model-note').textContent=m.note||'';$('analysis-model-note').hidden=!m.note;const command=document.querySelector('.run-command');if(command)command.textContent='nastran '+m.name;
+ function showScenario(entry,scenario,modelKey){
+  const model=scenario.models.find(item=>item.id===modelKey)||scenario.models[0];
+  const figure=`<figure class="analysis-scenario-figure">${window.renderAnalysisScenarioDiagram(model.diagram)}<figcaption>境界条件の模式図</figcaption><p>${esc(model.takeaway)}</p></figure>`;
+  detail.innerHTML=heading(entry,'')+
+   `<label class="analysis-selector analysis-model-selector" for="analysis-example-picker">モデル<select id="analysis-example-picker">${scenario.models.map(item=>`<option value="${item.id}">${esc(item.title)}</option>`).join('')}</select></label>`+
+   figure+`<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+
+   section('1 · モデル化と境界条件',conditions(model.conditions))+
+   section('2 · 主要カードの相関図',chains(model.chains)+`<p>${esc(model.meaning)}</p>`,'analysis-relations')+
+   section('3 · 結果の読み方',list(model.results)+cardLinks(model.check))+
+   section('4 · モデル間の比較',compare(scenario,scenario.models.indexOf(model)))+
+   contextLinks(entry,scenario.links)+sources(scenario.sources||entry.sources);
+  const modelPicker=byId('analysis-example-picker');
+  modelPicker.value=model.id;
+  modelPicker.addEventListener('change',()=>{
+   history.replaceState(null,'','#'+entry.key+'/'+modelPicker.value);
+   showScenario(entry,scenario,modelPicker.value);
+   byId('analysis-example-picker').focus({preventScroll:true});
+  });
  }
- function renderCommon(section){
-  entry=null;selectedExample='';expanded=false;$('analysis-picker').value='common';document.title='共通 — FEM Guide';
-  $('analysis-detail').innerHTML=window.AnalysisCommon;
-  if(['input','run','results','verification','relations','rights'].includes(section))requestAnimationFrame(()=>$('analysis-common-'+section).scrollIntoView({block:'start'}));
+ function solverLinks(key,simcenter=false){
+  return `<nav class="solver-options" aria-label="対象ソルバー"><a href="#${key}"${simcenter?'':' aria-current="page"'}>MSC Nastran</a><a href="#${key}/simcenter"${simcenter?' aria-current="page"':''}>Simcenter Nastran</a></nav>`;
  }
- function render(key){
-  entry=A.entries.find(e=>e.key===key)||A.entries[0];selectedExample=entry.examples?.[0]||'';expanded=false;$('analysis-picker').value=entry.key;document.title=entry.title+' — FEM Guide';
-  const examples=entry.examples?`<section class="analysis-section"><h2>3 · 固定長入力ファイル</h2><div class="analysis-example"><label>モデル<select id="analysis-example-picker">${entry.examples.map(k=>`<option value="${k}">${esc(A.models[k].title)}</option>`).join('')}</select></label><p id="analysis-model-note"></p><p id="analysis-fragment" class="analysis-fragment" hidden>入力断片：単体では解析できません。</p><div id="analysis-raw-details" class="analysis-code-preview" data-expanded="false"><div class="analysis-code-header"><h3>固定長テキスト全文</h3><button id="analysis-toggle-raw" class="button secondary" type="button" aria-expanded="false" aria-controls="analysis-example-raw">全て表示</button></div><p id="analysis-code-status" class="analysis-code-status" aria-live="polite"></p><pre id="analysis-example-raw" tabindex="0"></pre><button id="analysis-collapse-raw" class="button secondary" type="button" aria-controls="analysis-example-raw" hidden>6行に戻す</button></div><p id="analysis-filename"></p><div class="analysis-tools"><button id="copy-analysis" class="button secondary">コピー</button><button id="save-analysis" class="button primary">DATを保存</button></div></div></section>`:`<section class="analysis-section"><h2>3 · 入力データの取得状況</h2><p>${esc(entry.availability)}</p></section>`;
-  $('analysis-detail').innerHTML=`<div class="analysis-head"><span class="analysis-sol">${esc(entry.sol)} · 解析手順</span><h1>${entry.title}</h1><p>${entry.summary}</p><div class="analysis-context-links"><a href="analysis.html#common">共通：入力・実行・検算 →</a><a href="theory.html#${entry.key}">この解析の理論 →</a></div></div><section class="analysis-section"><h2>1 · モデルと境界条件</h2><div class="analysis-visual">${window.analysisDiagram(entry.key,selectedExample)}</div></section><section class="analysis-section"><h2>2 · 条件と入力の対応</h2><div id="analysis-relations">${window.renderAnalysisRelations(entry.key,selectedExample)}</div><dl id="analysis-conditions" class="analysis-inputs">${conditions(entry.inputs)}</dl></section>`+examples+
-   `<section class="analysis-section"><h2>4 · 実行と出力の取得</h2><ul id="analysis-run-notes">${list(entry.runNotes||[])}</ul>${entry.examples?'<pre class="run-command">nastran '+esc(A.models[entry.examples[0]].name)+'</pre>':'<p><a href="analysis.html#common/run">実行手順・終了確認 →</a></p>'}</section><section class="analysis-section"><h2>5 · 結果の読み方・検算</h2><ul id="analysis-results">${list(entry.outputs)}</ul><h3>照合する条件</h3><ul id="analysis-checks">${list(entry.checks)}</ul>${entry.resultLinks?.length?'<h3>欲しい結果が見つからないとき</h3><div class="analysis-links">'+entry.resultLinks.map(([url,title])=>'<a href="'+url+'">'+esc(title)+' →</a>').join('')+'</div>':''}</section>${entry.links.length?'<section class="analysis-section"><h2>関連する解説</h2><div class="analysis-links">'+entry.links.map(([url,title])=>'<a href="'+url+'">'+esc(title)+' →</a>').join('')+'</div></section>':''}<div class="analysis-sources">${entry.sources.map(r=>'<a href="'+r.url+'" target="_blank" rel="noopener">'+esc(r.label)+' ↗</a>').join('')}</div>`;
-  if(entry.examples){selectedExample=entry.examples[0];showExample();$('analysis-toggle-raw').addEventListener('click',()=>toggleRaw());$('analysis-collapse-raw').addEventListener('click',()=>toggleRaw(true));$('analysis-example-picker').addEventListener('change',()=>{selectedExample=$('analysis-example-picker').value;showExample();rememberExample();});$('copy-analysis').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(A.models[selectedExample].text);toast('入力例をコピーしました');}catch{toast('コピーできませんでした。保存を使用してください。');}});$('save-analysis').addEventListener('click',()=>{const m=A.models[selectedExample],a=document.createElement('a'),u=URL.createObjectURL(new Blob([m.text],{type:'text/plain;charset=us-ascii'}));a.href=u;a.download=m.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);});}
+ function showSimcenter(entry){
+  const item=scope.nonlinear[entry.key];
+  document.title=entry.title+' · Simcenter Nastran';
+  detail.innerHTML=`<div class="analysis-head"><span class="analysis-sol">Simcenter Nastran · SOL 401／402</span><h1>${esc(entry.title)}</h1>${solverLinks(entry.key,true)}<p class="solver-scope">Siemensの公開資料で確認した機能と、使用版で照合する設定です。</p></div>`+
+   item.steps.map(([title,body])=>section(esc(title),`<p>${esc(body)}</p>`)).join('')+
+   contextLinks(entry)+sources([{url:scope.support,label:'Siemens公式ドキュメント案内'},{url:scope.training,label:'Siemens公式のSOL 401／402講習'}]);
  }
- function route(){const [key,example,view]=location.hash.slice(1).split('/');if(!key||key==='common'){renderCommon(example);return;}render(key);if(entry.examples?.includes(example)){$('analysis-example-picker').value=example;selectedExample=example;showExample();}if($('analysis-raw-details')){expanded=view==='raw';showRaw();}if(view==='map')requestAnimationFrame(()=>$('analysis-relations').scrollIntoView({block:'start'}));}
- function toast(t){clearTimeout(timer);$('analysis-toast').textContent=t;$('analysis-toast').hidden=false;timer=setTimeout(()=>$('analysis-toast').hidden=true,2200);}
- $('analysis-picker').addEventListener('change',()=>{location.hash=$('analysis-picker').value;window.scrollTo(0,0);});addEventListener('hashchange',route);route();
+ function showAnalysis(entry,modelKey){
+  const variants=entry.variants||[];
+  const model=variants.find(item=>item.id===modelKey)||variants[0]||{};
+  const note=scope.nonlinear[entry.key]?.msc||scope.analysisNote(entry.key).replace('・例題','').replace('入力例','主要カード');
+  const selector=variants.length>1?`<label class="analysis-selector analysis-model-selector" for="analysis-example-picker">モデル<select id="analysis-example-picker">${variants.map(item=>`<option value="${item.id}">${esc(item.title)}</option>`).join('')}</select></label>`:'';
+  const diagram=`<div class="analysis-visual">${window.analysisDiagram(entry.key,model.id)}</div>`;
+  const related=[...(entry.links||[])];
+  detail.innerHTML=heading(entry,entry.summary,scope.nonlinear[entry.key]?solverLinks(entry.key):'')+selector+
+   section('1 · モデルと境界条件',diagram+`<p class="solver-scope">${esc(note)}</p>`+conditions(model.inputs||entry.inputs))+
+   section('2 · 主要カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations')+
+   section('3 · 結果の読み方・照合',list(model.outputs||entry.outputs)+`<h3>確認する条件</h3>`+list(model.checks||entry.checks)+links(entry.resultLinks||[]))+
+   contextLinks(entry,related)+sources(entry.sources);
+  if(selector){
+   const modelPicker=byId('analysis-example-picker');
+   modelPicker.value=model.id;
+   modelPicker.addEventListener('change',()=>{
+    history.replaceState(null,'','#'+entry.key+'/'+modelPicker.value);
+    showAnalysis(entry,modelPicker.value);
+    byId('analysis-example-picker').focus({preventScroll:true});
+   });
+  }
+ }
+ function route(){
+  const [key,model,subsection]=location.hash.slice(1).split('/');
+  if(!key||key==='common'){
+   picker.value='common';
+   document.title='共通 — FEM Guide';
+   detail.innerHTML=window.AnalysisCommon;
+   const target=byId('analysis-common-'+model);
+   if(target)requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));
+   return;
+  }
+  const entry=catalog.entries.find(item=>item.key===key)||catalog.entries[0];
+  picker.value=entry.key;
+  document.title=entry.title+' — FEM Guide';
+  if(model==='simcenter'&&Object.hasOwn(scope.nonlinear,entry.key))showSimcenter(entry);
+  else if(Object.hasOwn(scenarios,entry.key))showScenario(entry,scenarios[entry.key],model);
+  else showAnalysis(entry,model);
+  if(subsection==='map')requestAnimationFrame(()=>byId('analysis-relations')?.scrollIntoView({block:'start'}));
+ }
+ picker.innerHTML='<option value="common">共通</option>'+catalog.entries.map(e=>`<option value="${e.key}">${esc(e.title)}</option>`).join('');
+ picker.addEventListener('change',()=>{location.hash=picker.value;window.scrollTo(0,0);});
+ addEventListener('hashchange',route);
+ route();
 })();

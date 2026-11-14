@@ -28,11 +28,15 @@ for(const [oldPath,oldHash,path,hash] of [
 assert.equal(p.restore('{}').textScale,1);
 assert.equal(p.restore('{"textScale":99}').textScale,1);
 assert.equal(p.restore('{"textScale":1.3}').textScale,1.3);
-assert.equal(content.NAVIGATION.analyses.length,15);
+assert.equal(content.NAVIGATION.analyses.length,16);
 assert.equal(content.NAVIGATION.analyses[0].hash,'#common');
 assert.equal(content.titleFor({path:'analysis.html',hash:'#common/run',y:0}),'共通');
 assert.deepEqual(content.NAVIGATION.intro.map(e=>e.title),['初めての解析','入力規則','応力方向','座標']);
-assert.equal(content.NAVIGATION.materials.length,14);
+assert.equal(content.NAVIGATION.materials.length,15);
+assert.equal(content.titleFor({path:'analysis.html',hash:'#modes',y:0}),'実固有値解析');
+assert.equal(content.titleFor({path:'analysis.html',hash:'#complex-modes',y:0}),'複素固有値解析');
+assert.equal(content.titleFor({path:'theory.html',hash:'#complex-modes',y:0}),'複素固有値解析の理論');
+assert.equal(content.titleFor({path:'comparisons.html',hash:'#eigensolvers',y:0}),'EIGRL・EIGR・EIGC');
 assert.ok(content.NAVIGATION.common.some(e=>e.path==='batch.html'));
 assert.ok(content.NAVIGATION.common.some(e=>e.hash==='#boundary'));
 assert.ok(content.NAVIGATION.common.some(e=>e.hash==='#damping'));

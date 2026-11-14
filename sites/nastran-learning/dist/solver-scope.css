@@ -1,0 +1,6 @@
+.solver-scope{margin:14px 0;padding:12px 14px;border:1px solid #cbd9ea;border-radius:8px;background:#f1f6fc;color:#294968;font-size:14px;line-height:1.65;overflow-wrap:anywhere}
+.solver-scope p{margin:5px 0}
+.solver-options{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+.solver-options a{display:inline-flex;align-items:center;min-height:44px;padding:4px 12px;border:1px solid #a7bdd8;border-radius:6px;background:#fff;color:#234f85;font-weight:600}
+.solver-options [aria-current=page]{background:#244f83;color:#fff;border-color:#244f83}
+.solver-card-scope{margin:8px 0;color:#415c7c;font-size:13px;line-height:1.6}

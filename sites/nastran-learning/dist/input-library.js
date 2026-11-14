@@ -81,6 +81,10 @@
    }
   }
   if(e.family==='parameter')$('card-detail').querySelector('.card-heading').insertAdjacentHTML('afterend','<p class="entry-position">Bulk Data区画に記述するパラメータです。</p>');
+  const scope=window.SolverScope;
+  const note=scope.cardNote(e.key);
+  $('card-detail').querySelector('.card-heading').insertAdjacentHTML('afterend',
+   '<p class="solver-card-scope">MSC版の仕様 · Simcenter版の欄・既定値は未照合'+(note?'。'+esc(note):'')+'</p>');
   const comparisons=(window.CardComparisonIndex||[]).filter(t=>t.cards.includes(e.key));
   if(comparisons.length)$('card-detail').insertAdjacentHTML('beforeend','<section class="reference-section comparison-backlinks"><h3>似たカードとの使い分け</h3><div>'+comparisons.map(t=>'<a href="comparisons.html#'+esc(t.key)+'">'+esc(t.title)+' →</a>').join('')+'</div></section>');
   setHash();document.title=e.id+' — 入力データ学習';

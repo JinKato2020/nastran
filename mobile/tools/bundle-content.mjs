@@ -6,9 +6,9 @@ import { createRequire } from 'node:module';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=path.resolve(root,'../sites/nastran-learning/dist');
 const catalog=[
- ['comparisons.html','似たカードの使い分け','CBAR／CBEAMなど13テーマの選択基準・結果への影響','共通理論','#beam'],
- ['theory.html','理論教材','14解析と境界条件・減衰の理論','理論','#static'],
- ['analysis.html','解析別の学習','共通手順と14種類の解析のモデル・入力・結果','解析','#common'],
+ ['comparisons.html','似たカードの使い分け','CBAR／CBEAMなど14テーマの選択基準・結果への影響','共通理論','#beam'],
+ ['theory.html','理論教材','15解析と境界条件・減衰の理論','理論','#static'],
+ ['analysis.html','解析別の学習','共通手順と15種類の解析のモデル図・主要カード・結果の読み方','解析','#common'],
  ['index.html','線形静解析の基礎','11章と棒の引張り実験室','基礎','#chapter-1'],
  ['modeling.html','モデル化の考え方','片持ち梁をばね・梁・立体の3モデルで比較','基礎',''],
  ['dynamics.html','動解析をはじめる','実固有値・周波数応答・過渡応答と14カード','動解析',''],

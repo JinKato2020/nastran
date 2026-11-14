@@ -1,0 +1,88 @@
+/* Teaching scenarios with schematic geometry and no executable model data. */
+(() => {
+ 'use strict';
+ const structure=(element,property)=>[element+'|'+property+'|MAT1'];
+ const commonStatic=[
+  'CASE_SPC|SPC1|GRID',
+  'CASE_LOAD|FORCE|GRID',
+ ];
+ const displacement=['CASE_DISPLACEMENT','観測点の変位と方向'];
+ const reactions=['CASE_SPCFORCES','固定端の反力'];
+ const stress=['CASE_STRESS','応力の出力'];
+ const method=['CASE_METHOD|EIGRL'];
+ const modesOutput=[displacement,['CASE_METHOD','実固有値の抽出条件']];
+ const complexOutput=[displacement,['CASE_CMETHOD','複素根の抽出条件'],['EIGC','根の探索範囲・手法']];
+ const scenarios={
+  static:{
+   summary:'同じ片持ち部材を梁・シェル・ソリッドで表し、先端変位から固定部の応力分布まで、評価したい量に応じてモデルを選びます。',
+   shared:'矩形断面の細長い部材。材質・寸法・固定端をそろえ、自由端の面外方向に同じ合力を作用させます。荷重の作用位置とつり合いモーメントもそろえます。',
+   columns:['モデル','固定する範囲','主な評価量'],
+   rows:[
+    ['梁','中心線の根元の1点','先端変位、断面力'],
+    ['シェル','中立面の根元の辺','幅方向の変位、表裏の応力'],
+    ['ソリッド','根元の端面','厚さ方向・固定部周辺の応力分布'],
+   ],
+   compare:'先端断面の代表位置・方向をそろえて変位を比較します。支持条件と荷重配置の違いは固定端の局所分布に強く表れるため、応力は同じ断面・成分で比較します。',
+   links:[['comparisons.html#beam','CBARとCBEAMの選び方'],['analysis.html#modes','同じ片持ち部材を振動で見る']],
+   models:[
+    {id:'beam', title:'梁モデル', diagram:'beam', takeaway:'先端変位と根元の曲げモーメントから、部材全体の曲げをつかみます。',
+     conditions:[['モデル化','断面を中心線上の特性にまとめます。断面の向きを指定し、荷重がどの曲げ軸に作用するかを確認します。'],['固定・荷重','根元の節点の並進と回転を固定し、自由端節点に横荷重を与えます。']],
+     chains:[...structure('CBEAM','PBEAM'),...commonStatic], meaning:'CBEAMの断面剛性はPBEAM、弾性定数はMAT1から参照します。支持と荷重はそれぞれ別のCase Controlで選びます。',
+     results:['先端の荷重方向変位、根元断面の曲げモーメント、支持反力を読みます。','細長い一様梁でせん断変形を無視できる場合、先端変位の大きさ PL³/(3EI) が目安です。合反力は荷重の逆向きで大きさP、根元の反力モーメントの大きさはPLです。'],
+     check:[displacement,reactions,['CASE_FORCE','梁の断面力']]},
+    {id:'shell',title:'シェルモデル',diagram:'shell',takeaway:'板幅方向のたわみ方と、板の表・裏で異なる曲げ応力を読みます。',
+     conditions:[['モデル化','板の中立面を四辺形要素で表し、板厚と膜・曲げ特性をPSHELLで定義します。要素法線をそろえます。'],['固定・荷重','根元の辺を固定し、先端辺の節点へ面外荷重を配分します。合力が幅の中央に作用するようにします。']],
+     chains:[...structure('CQUAD4','PSHELL'),...commonStatic],meaning:'CQUAD4で四辺形を構成し、PSHELLで板厚と膜・曲げに用いる材料を指定します。',
+     results:['先端中央の面外変位と幅方向の変位差を読みます。','同じ断面で板の表・裏の長手方向応力を比較します。表裏は要素法線を基準に確認し、根元角部から少し離れた断面も見ます。'],
+     check:[displacement,stress,reactions]},
+    {id:'solid',title:'ソリッドモデル',diagram:'solid',takeaway:'厚さ方向の応力変化と、固定端近くで応力が分布する範囲を見ます。',
+     conditions:[['モデル化','厚みのある体積を六面体要素で表し、厚さ方向にも要素を配置します。'],['固定・荷重','固定面上の節点の3並進を拘束します。自由端面の節点に横方向の力を分配し、合力と作用位置をそろえます。']],
+     chains:[...structure('CHEXA','PSOLID'),...commonStatic],meaning:'ソリッド節点の並進拘束で固定面を作ります。端面の横荷重は節点力の合力で表します。',
+     results:['自由端中央の変位と固定面の合反力を比較します。固定面の反力モーメントは、節点反力とその位置から評価します。','長手方向応力を同一断面の厚さ方向にたどります。出力位置と平均化をそろえ、角の最大値と断面全体の分布を別々に点検します。'],
+     check:[displacement,stress,reactions]},
+   ]},
+  modes:{
+   summary:'支持・材料・質量が、無減衰の固有振動数とモード形にどう効くかを比べます。',
+   shared:'同じ片持ち部材を基準に、外力を加えず実固有値を求めます。変更する条件は一つずつです。',
+   columns:['モデル','変更点','最初に見る結果'],
+   rows:[['基準','片端を固定','低次の曲げモード'],['先端質量あり','先端へ質量を付加','先端が大きく動くモードの振動数'],['両端固定','反対端にも拘束','対応する曲げモードの振動数・形']],
+   compare:'周波数の順番だけで対応づけず、曲げ方向・節の位置・支持点の動きを照合します。モード図の倍率は見やすさのための尺度です。',
+   links:[['analysis.html#complex-modes','減衰を含める場合のSOL 107／110'],['comparisons.html#eigensolvers','実固有値と複素固有値の抽出条件']],
+   models:[
+    {id:'baseline',title:'片持ち・基準',diagram:'baseline',takeaway:'片端を固定したときの低次曲げモードを、比較の基準にします。',
+     conditions:[['モデル化','梁の断面特性と材料の密度を含め、質量と剛性の単位を整合させます。'],['支持','左端の並進・回転を拘束し、右端を自由にします。']],
+     chains:[...structure('CBEAM','PBEAM'),'CASE_SPC|SPC1',...method],meaning:'METHODでEIGRLを選び、対象の周波数範囲・モード数を決めます。',
+     results:['F06の実固有値表で振動数を確認し、DISPLACEMENTで対応するモード形を見ます。','固定点が動いていないか、意図しないほぼゼロの振動数が出ていないかを確認します。'],check:modesOutput},
+    {id:'tip-mass',title:'先端に質量を追加',diagram:'tip-mass',takeaway:'先端が大きく動く曲げモードは、先端質量の影響を受けやすくなります。',
+     conditions:[['モデル化','基準の先端節点に集中質量を加えます。比較では質量中心を先端節点とし、支持と梁の剛性を維持します。']],
+     chains:['CONM2|GRID',...method],meaning:'CONM2は先端節点に慣性を付けます。EIGRLの探索条件をそろえて基準と比較します。',
+     results:['総質量が追加分だけ増えたかを確認します。','低次曲げの形を照合し、振動数がどの程度下がったかを確認します。先端の動きが小さいモードへの影響は別に読みます。'],check:[...modesOutput,['PARAM_GRDPNT','モデル全体の質量確認']]},
+    {id:'both-fixed',title:'両端を固定',diagram:'both-fixed',takeaway:'拘束が増えると動ける形が変わり、同じ部材でもモード形と振動数が変わります。',
+     conditions:[['モデル化','梁と材質は基準と同一です。'],['支持','右端にも並進・回転拘束を加え、両端固定にします。']],
+     chains:['CASE_SPC|SPC1|GRID',...method],meaning:'SPC1の対象を右端にも広げます。METHODで同じ種類の実固有値抽出を行います。',
+     results:['両端が動かず、中央側にたわみが現れる曲げモードを確認します。','探索上限を超えたモードがないか、同じ振動数範囲だけで比較できるかを点検します。'],check:modesOutput},
+   ]},
+  'complex-modes':{
+   summary:'片持ち部材の減衰の有無を比べ、同じ減衰モデルでは直接法とモード法の結果を照合します。',
+   shared:'同じ梁・材料・固定端・観測方向を使います。粘性ダンパは自由端の横方向に働き、固定側と自由端の相対速度に応じた力を与えます。',
+   columns:['モデル／解法','変える条件','確認する点'],
+   rows:[['基準（SOL 107）','ダンパを置かない','無減衰の根とSOL 103の振動数'],['ダンパあり（SOL 107）','先端の横方向に粘性減衰','根の実部、減衰振動数'],['ダンパあり（SOL 110）','同じ物理モデルを実モードに縮約','基底を増やした際の根の変化']],
+   compare:'まずSOL 107同士で減衰の影響を比較します。次にダンパが同じSOL 107と110を比べ、基底の打切りによる違いを確認します。',
+   links:[['analysis.html#modes','実固有値解析 SOL 103'],['comparisons.html#eigensolvers','EIGRL・EIGR・EIGCの違い']],
+   models:[
+    {id:'undamped',title:'ダンパなし · SOL 107',diagram:'undamped',takeaway:'複素根の実部がほぼゼロになる無減衰の基準です。',
+     conditions:[['モデル化','左端固定の弾性梁を用い、比較の基準として減衰を与えません。']],
+     chains:['EXEC_SOL_107|CASE_CMETHOD|EIGC','CASE_SPC|SPC1'],meaning:'SOL 107で物理自由度上の複素根を求め、CMETHODからEIGCを選びます。',
+     results:['F06の複素固有値表でREAL・IMAGを確認します。','無減衰で対称な系の振動根では、実部はほぼゼロとなり、|IMAG|/(2π)は同じモードのSOL 103の振動数に対応します。'],check:complexOutput},
+    {id:'direct-damped',title:'ダンパあり · SOL 107',diagram:'damped',takeaway:'ダンパが効くモードでは、根の負の実部から振幅が減る速さを読みます。',
+     conditions:[['モデル化','自由端の横並進と固定側の間に粘性ダンパを置きます。ダンパの作用方向と、各モードでその方向に生じる相対変位を確認します。']],
+     chains:['CDAMP1|PDAMP','EXEC_SOL_107|CASE_CMETHOD|EIGC'],meaning:'CDAMP1で作用する自由度を、PDAMPで粘性係数を定義します。複素根を物理自由度の行列で求めます。',
+     results:['F06で、基準と対応する曲げモードのREALとIMAGを比較します。','ダンパ位置で相対運動の小さいモードは減衰の影響も小さくなります。目立つ正の実部が出た場合は、符号・単位・モデル化を点検します。'],check:[...complexOutput,['PDAMP','ダンパの粘性係数']]},
+    {id:'modal-damped',title:'ダンパあり · SOL 110',diagram:'damped',takeaway:'同じダンパモデルで、採用する実モードが複素根に与える影響を見ます。',
+     conditions:[['モデル化','SOL 107のダンパありと同じ梁・支持・質量・減衰を用います。'],['縮約','実モードの基底を作り、その基底上で複素根を求めます。']],
+     chains:['CDAMP1|PDAMP','EXEC_SOL_110|CASE_METHOD|EIGRL','EXEC_SOL_110|CASE_CMETHOD|EIGC'],meaning:'METHODは縮約の基底を、CMETHODは複素根の抽出条件を選びます。',
+     results:['実モード数を増やしながら、注目する複素根のREAL・IMAGとモード形を追います。','SOL 107のダンパありと同じモードを照合し、近接する根は番号だけで対応づけず、振動数と位相を確認します。'],check:[...complexOutput,['CASE_METHOD','縮約に使う実モードの選択']]},
+   ]},
+ };
+ window.AnalysisScenarios=scenarios;
+})();

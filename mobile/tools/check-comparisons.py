@@ -30,7 +30,7 @@ try:
         page = browser.new_page(viewport={'width': 390, 'height': 844})
         page.on('pageerror', lambda e: errors.append(str(e)))
         page.goto(base + '/sites/nastran-learning/dist/comparisons.html#beam')
-        assert page.locator('#comparison-picker option').count() == 13
+        assert page.locator('#comparison-picker option').count() == len(TOPICS)
         for width in [320, 390, 768]:
             page.set_viewport_size({'width': width, 'height': 844})
             for topic in TOPICS:
@@ -93,4 +93,4 @@ try:
 finally:
     server.shutdown()
     server.server_close()
-print('PASS: 13 themes × 3 widths; card links, reciprocal navigation, offline app entry, back/scroll, bookmark title and persistence. Native APIs mocked.')
+print(f'PASS: {len(TOPICS)} themes × 3 widths; card links, reciprocal navigation, offline app entry, back/scroll, bookmark title and persistence. Native APIs mocked.')

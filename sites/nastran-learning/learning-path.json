@@ -246,10 +246,17 @@
         "kind": "解析の理論"
       },
       {
-        "title": "固有値解析の理論",
+        "title": "実固有値解析の理論",
         "description": "固有振動数・モード形・規格化",
         "path": "theory.html",
         "hash": "#modes",
+        "kind": "解析の理論"
+      },
+      {
+        "title": "複素固有値解析の理論",
+        "description": "実固有値との違い・複素平面と波形・モードの位相差",
+        "path": "theory.html",
+        "hash": "#complex-modes",
         "kind": "解析の理論"
       },
       {
@@ -340,24 +347,31 @@
     "analyses": [
       {
         "title": "共通",
-        "description": "入力ファイル・実行・結果の照合・教材の検証範囲",
+        "description": "モデル図・主要カード・結果の照合",
         "path": "analysis.html",
         "hash": "#common",
         "kind": "解析手順"
       },
       {
         "title": "静解析",
-        "description": "変位・反力・応力／線形弾性",
+        "description": "片持ち梁を梁・シェル・ソリッドで比較",
         "path": "analysis.html",
         "hash": "#static",
         "kind": "SOL 101"
       },
       {
-        "title": "固有値解析",
-        "description": "実固有値・固有振動数・モード形",
+        "title": "実固有値解析",
+        "description": "片持ち・先端質量・両端固定の比較（SOL 103）",
         "path": "analysis.html",
         "hash": "#modes",
         "kind": "SOL 103"
+      },
+      {
+        "title": "複素固有値解析",
+        "description": "減衰の有無と直接法／モード法の比較",
+        "path": "analysis.html",
+        "hash": "#complex-modes",
+        "kind": "SOL 107／110"
       },
       {
         "title": "熱伝導解析",
@@ -448,7 +462,7 @@
     "common": [
       {
         "title": "似たカードの使い分け",
-        "description": "CBAR／CBEAMなど13テーマ。目的・相違点・選択基準・結果への影響",
+        "description": "CBAR／CBEAMなど14テーマ。目的・相違点・選択基準・結果への影響",
         "path": "comparisons.html",
         "hash": "#beam",
         "kind": "カード比較"
