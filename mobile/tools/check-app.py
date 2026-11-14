@@ -101,12 +101,12 @@ with sync_playwright() as p:
  page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).textScale===1.3')
  page.screenshot(path='.qa/five-tabs-settings.png')
  nav('解析');frame=page.frame_locator('iframe')
- assert frame.locator('.analysis-scenario-summary').evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
+ assert frame.locator('.analysis-scenario-summary').first.evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
  page.screenshot(path='.qa/five-tabs-heat.png')
  page.reload(wait_until='networkidle')
  page.get_by_role('button',name='続きから読む →').click()
  assert page.frame_locator('iframe').locator('h1').inner_text()=='実固有値解析'
- assert page.frame_locator('iframe').locator('.analysis-scenario-summary').evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
+ assert page.frame_locator('iframe').locator('.analysis-scenario-summary').first.evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
  # Home bookmark list and error search remain reachable without another bottom tab.
  root('ホーム');page.get_by_role('button',name='しおり一覧').click()
  assert page.get_by_text('実固有値解析',exact=True).count()>=1
@@ -127,4 +127,4 @@ with sync_playwright() as p:
  assert page.get_by_role('button',name='エラーメッセージ',exact=True).is_visible()
  assert not errors,errors
  browser.close()
-print('PASS: 5 persistent bottom tabs / 3 widths; all 8 analysis routes; home/materials grouping; per-tab input selection; public DAT/native transport; bookmarks/restart; persisted font size; error search; menu/back. Native APIs mocked.')
+print('PASS: 5 persistent bottom tabs / 3 widths; all 9 tested analysis routes; home/materials grouping; per-tab input selection; model selection and linked-card return; bookmarks/restart; persisted font size; error search; menu/back. Native APIs mocked.')
