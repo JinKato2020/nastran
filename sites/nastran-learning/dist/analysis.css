@@ -39,3 +39,26 @@
 .analysis-complex-options label{display:block}
 .analysis-complex-options select{display:block;width:100%;margin-top:6px;padding:6px 8px}
 .analysis-example-switch{display:inline-block;margin-bottom:4px}
+
+/* Compact heading, inline model picker and section tabs */
+.analysis-head{margin-bottom:10px}.analysis-title{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px}
+.analysis-head .analysis-title h1{margin:0;font-size:24px;line-height:1.35}.analysis-title .analysis-sol{padding:4px 9px;font-size:13px}
+.analysis-head>p{margin:8px 0 0}
+label.analysis-model-selector{display:flex;align-items:center;gap:10px;margin:0 0 8px}
+label.analysis-model-selector select{display:block;flex:1;width:auto;min-width:0;margin-top:0}
+.analysis-scenario-figure{margin-top:8px;padding:8px 12px 10px}
+.analysis-tabs{display:flex;gap:6px;overflow-x:auto;margin:10px 0 0;padding:6px 0;position:sticky;top:0;z-index:2;background:var(--bg);scrollbar-width:none}
+.analysis-tabs::-webkit-scrollbar{display:none}
+.analysis-tabs button{flex:0 0 auto;min-height:40px;padding:6px 13px;border:1px solid #c8d6ec;border-radius:20px;background:#fff;color:#345887;font:inherit;font-size:14px;cursor:pointer}
+.analysis-tabs button[aria-selected=true]{background:#2f5aa8;border-color:#2f5aa8;color:#fff;font-weight:600}
+.analysis-tabs button:focus-visible{outline:2px solid #3259d8;outline-offset:2px}
+.analysis-section.analysis-tab-panel{border-top:0;margin-top:4px;padding-top:6px}.analysis-tab-panel h2{font-size:17px;margin-bottom:10px}
+.analysis-switch{margin:28px 0 0}
+.analysis-tabs button{padding:6px 10px;font-size:13.5px}
+.analysis-tab-panel .analysis-inputs{gap:8px}.analysis-tab-panel .analysis-inputs>div{padding:10px 12px}.analysis-tab-panel .analysis-inputs dd{margin-top:4px;line-height:1.75}
+[data-analysis-panel=cards] .analysis-inputs{gap:0;background:#fff;border:1px solid #dce5f1;border-radius:8px;padding:0 12px}
+[data-analysis-panel=cards] .analysis-inputs>div{display:grid;grid-template-columns:112px minmax(0,1fr);gap:10px;padding:8px 0;border:0;border-bottom:1px solid #e6ecf4;border-radius:0;background:none}
+[data-analysis-panel=cards] .analysis-inputs>div:last-child{border-bottom:0}
+[data-analysis-panel=cards] .analysis-inputs dt{overflow-wrap:anywhere;font-size:13.5px}[data-analysis-panel=cards] .analysis-inputs dd{margin:0;line-height:1.7}
+[data-analysis-panel=cards] .analysis-card-group{margin:14px 0 6px;font-size:14.5px}
+.analysis-tab-panel .analysis-scenario-summary{margin:0 0 10px}

@@ -22,7 +22,7 @@
    label.forEach((s,k)=>{const yy=(skip?y2-30:mid-8)+(k-(label.length-1)/2)*13,lw=Math.min(310,units(s)*10+10),xx=Math.max(lw/2+2,Math.min(w-lw/2-2,labelX));lines+=`<rect x="${xx-lw/2}" y="${yy-10}" width="${lw}" height="13" fill="#f5f8fc"/>`+text(xx,yy,s,10,color,'middle');});
   }
   for(const n of p.nodes){const box=positions[n.id],caseNode=n.card?.startsWith('CASE_'),paramNode=n.card?.startsWith('PARAM_'),color=caseNode?'#315ba0':paramNode?'#805497':'#426581',fill=caseNode?'#e9f0ff':paramNode?'#f4edf8':'#fff';
-   const link=n.card?`<a href="bulk.html#${esc(n.card)}" data-relation-card="${esc(n.card)}" aria-label="${esc(n.label)}のInputデータ解説">`:'<g>';
+   const link=n.card?`<a href="bulk.html#${esc(n.card)}" data-relation-card="${esc(n.card)}" data-analysis-card="${esc(n.card)}" aria-label="${esc(n.label)}のInputデータ解説">`:'<g>';
    nodes+=link+`<title>${esc(n.label+'：'+n.detail)}</title><rect x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" rx="7" fill="${fill}" stroke="${color}"/>`;
    let yy=box.y+21;for(const s of box.labels){nodes+=text(box.x+9,yy,s,13,color);yy+=18;}yy+=3;for(const s of box.details){nodes+=text(box.x+9,yy,s,11);yy+=16;}nodes+=n.card?'</a>':'</g>';
   }

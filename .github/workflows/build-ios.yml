@@ -8,7 +8,7 @@ on:
         description: アプリのバージョン（app.jsonと一致させる）
         type: string
         required: true
-        default: '1.2.5'
+        default: '1.2.6'
       build_number:
         description: 同じバージョンのビルド番号（再ビルドは増加）
         type: string

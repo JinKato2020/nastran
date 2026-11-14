@@ -192,6 +192,7 @@ with sync_playwright() as p:
     page.locator('#analysis-example-picker').select_option('tip-mass')
     page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#modes/tip-mass")')
     assert page.locator('#save-analysis,#analysis-example-raw').count()==0
+    page.locator('[data-analysis-tab="map"]').click()
     page.locator('[data-analysis-card="CONM2"]').click()
     assert page.evaluate('messages.filter(m=>m.type==="navigate").at(-1).hash')=='#CONM2'
     page.select_option('#analysis-picker','transient')

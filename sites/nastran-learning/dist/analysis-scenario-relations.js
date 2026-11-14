@@ -3,7 +3,7 @@
  'use strict';
  const n=(id,label,card,detail)=>({id,label,card,detail});
  const e=(from,to,label,dashed=false)=>({from,to,label,...(dashed?{dashed:true}:{})});
- const scope='矢印は、カードが番号で参照する相手を示します。計算の実行順ではありません。カード名を押すとInputデータの解説へ移動します。';
+ const scope='このモデルで使う主なカードと、番号による参照を示します。矢印は参照する相手で、計算の実行順ではありません。枠を押すとInputデータの解説へ移動します。';
  const structures={
   beam:{note:'梁要素12個。要素は物性を、物性は材料を番号で参照します。',element:['CBEAM','EID=101–112 / PID=20 / GA・GB'],property:['PBEAM','PID=20 / MID=70 / 断面積・I1・I2・J'],material:['MAT1','MID=70 / E・ν・ρ'],grid:'ID=1–13',materialLabel:'MID=70'},
   shell:{note:'四辺形シェル48個。板厚はPSHELLに、弾性はMAT1にあります。',element:['CQUAD4','EID=101–148 / PID=20 / G1–G4'],property:['PSHELL','PID=20 / 板厚6 mm'],material:['MAT1','MID=70 / E・ν・ρ'],grid:'ID=1–65',materialLabel:'MID1・MID2・MID3=70'},
@@ -107,9 +107,35 @@
   'buck-pinned':buckling('1234 と 23','節点1（1234）・節点13（23）','SPC1を2枚使い、節点ごとに異なる成分を拘束します。'),
   'buck-fixed':buckling('123456 と 23456','節点1（全成分）・節点13（軸方向以外）','SPC1を2枚使います。荷重側は軸方向の成分1だけを自由にします。'),
  };
+ const solText={101:'線形静解析',103:'実固有値解析',105:'線形座屈解析',107:'複素固有値 · 直接法',108:'周波数応答 · 直接法',109:'過渡応答 · 直接法',110:'複素固有値 · モード法',111:'周波数応答 · モード法',112:'過渡応答 · モード法',153:'定常の熱伝導解析'};
+ const linkedSol=new Set([101,103,105,107,110,112,153]);
+ const out=(name,detail)=>n('out-'+name,name,'CASE_'+name,detail);
+ function control(sol,outputs,extra=[]){
+  const rows=[];for(let i=0;i<outputs.length;i+=2)rows.push(outputs.slice(i,i+2).map(o=>o.id));
+  return {title:'解析の種類と出力要求',note:'SOLが解析の種類を決め、出力要求がF06に書き出す結果の表を選びます。破線は番号の参照ではなく、解析と出力の対応です。',
+   layers:[['sol',...extra.map(x=>x.id)],...rows],
+   nodes:[n('sol','SOL '+sol,linkedSol.has(sol)?'EXEC_SOL_'+sol:undefined,solText[sol]),...extra,...outputs],
+   edges:outputs.map(o=>e('sol',o.id,'出力',true))};
+ }
+ const staticOut=[out('DISPLACEMENT','変位 / 先端のT3を読む'),out('SPCFORCES','固定部の反力'),out('FORCE','要素力・断面力'),out('STRESS','応力')];
+ const modeOut=[out('DISPLACEMENT','規格化されたモード形')],complexOut=[out('DISPLACEMENT','複素モード形')];
+ const heatOut=[out('THERMAL','節点の温度'),out('FLUX','要素の熱流束'),out('SPCFORCES','温度指定点の熱流量')];
+ const freqOut=[out('DISPLACEMENT','SORT2・PHASE / 振幅と位相')],timeOut=[out('DISPLACEMENT','SORT2 / 先端T3の時刻歴')];
+ const resvec=[n('resvec','RESVEC',undefined,'NO / 残余ベクトルなし')];
+ const controls={
+  beam:[101,staticOut],shell:[101,staticOut],solid:[101,staticOut],
+  baseline:[103,modeOut],'tip-mass':[103,modeOut],'both-fixed':[103,modeOut],
+  undamped:[107,complexOut],'direct-damped':[107,complexOut],'modal-undamped':[110,complexOut],'modal-damped':[110,complexOut],
+  'heat-insulated':[153,heatOut,[n('analysis','ANALYSIS','CASE_ANALYSIS','HEAT / 熱伝導として解く')]],
+  'heat-convection':[153,heatOut,[n('analysis','ANALYSIS','CASE_ANALYSIS','HEAT / 熱伝導として解く')]],
+  'dfreq-coarse':[108,freqOut],'dfreq-fine':[108,freqOut],'mfreq-one':[111,freqOut,resvec],'mfreq-six':[111,freqOut,resvec],
+  'trans-short':[109,timeOut],'trans-long':[109,timeOut],'trans-modal':[112,timeOut],
+  'buck-cantilever':[105,[out('DISPLACEMENT','SUBCASE 1は変位、SUBCASE 2は座屈形')]],
+ };
+ controls['buck-pinned']=controls['buck-fixed']=controls['buck-cantilever'];
  for(const [key,panels] of Object.entries(maps)){
   if(window.AnalysisRelationMaps[key])throw Error('Duplicate relation map: '+key);
-  window.AnalysisRelationMaps[key]={title:'カード相関図',scope,panels};
+  window.AnalysisRelationMaps[key]={title:'カード相関図',scope,panels:[control(...controls[key]),...panels]};
  }
  window.AnalysisScenarioRelationKeys=Object.keys(maps);
 })();

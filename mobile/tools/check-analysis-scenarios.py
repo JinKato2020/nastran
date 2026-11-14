@@ -67,6 +67,7 @@ with ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=str(R
                 assert frame.locator(f'[data-analysis-card="{key}"]').count()>=1
                 assert frame.locator('.analysis-scenario-comparison tr[aria-current=true]').count()==1
         page.set_viewport_size({'width':390, 'height':844})
+        frame.locator('[data-analysis-tab="dat"]').click()
         expect(frame.locator('#analysis-original-input summary')).to_be_visible()
         frame.locator('#analysis-original-input summary').click()
         original=frame.locator('#analysis-original-input pre').text_content()
@@ -89,6 +90,7 @@ with ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=str(R
         page.screenshot(path=str(ROOT/'.qa'/f"analysis-{variants[-1][0]}.png"))
         model_key,card_key=variants[-1]
         card=frame.locator(f'[data-analysis-card="{card_key}"]').first
+        frame.locator('[data-analysis-tab="map"]').click()
         card.scroll_into_view_if_needed()
         scroll=frame.locator('body').evaluate('()=>scrollY')
         card.click()
@@ -111,6 +113,9 @@ with ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=str(R
         page.get_by_role('button',name=title,exact=True).click()
         expect(frame.locator('h1')).to_have_text(title)
         assert frame.locator(HISTORICAL_DECK_CONTROLS).count()==0
+        relation_tab=frame.locator('[data-analysis-tab="map"]')
+        if relation_tab.count():
+            relation_tab.click()
         expect(frame.locator('#analysis-relations')).to_be_visible()
         analysis.click()
     page.get_by_role('tab',name='設定',exact=True).click()
