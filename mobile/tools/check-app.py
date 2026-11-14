@@ -63,7 +63,7 @@ with sync_playwright() as p:
  frame=page.frame_locator('iframe')
  assert frame.locator('#analysis-example-raw,#save-analysis').count()==0
  frame.locator('#analysis-example-picker').select_option('tip-mass')
- card=frame.locator('[data-relation-card="CONM2"]')
+ card=frame.locator('[data-analysis-card="CONM2"]')
  card.scroll_into_view_if_needed()
  before=frame.locator('body').evaluate('()=>window.scrollY')
  card.click()

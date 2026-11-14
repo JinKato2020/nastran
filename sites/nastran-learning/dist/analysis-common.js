@@ -1,9 +1,9 @@
 // Shared technical guidance for every analysis. Card definitions live in Input data.
 
 window.AnalysisCommon = `
-<div class="analysis-head"><span class="analysis-sol">Nastran共通</span><h1>共通</h1><p>モデル図で条件を確かめ、主要カードの役割を追い、結果で照合する観点を学びます。</p></div>
-<nav class="analysis-common-index" aria-label="共通の目次"><a href="analysis.html#common/relations">相関図の読み方</a><a href="analysis.html#common/input">入力規則</a><a href="analysis.html#common/run">実行・終了確認</a><a href="analysis.html#common/results">結果の照合</a><a href="analysis.html#common/verification">図と参照資料</a></nav>
-<section class="analysis-section" id="analysis-common-relations"><h2>相関図の読み方</h2><p>カードのつながりを矢印で示します。たとえば梁要素から断面特性を参照し、断面特性から材料へつながります。カード名を押すとInputデータの解説へ移動します。戻ると選んでいたモデルへ戻ります。</p></section>
+<div class="analysis-head"><span class="analysis-sol">Nastran共通</span><h1>共通</h1><p>モデル図で条件を確かめ、主要カードの役割と、結果を照合する観点を学びます。</p></div>
+<nav class="analysis-common-index" aria-label="共通の目次"><a href="analysis.html#common/relations">主要カードの読み方</a><a href="analysis.html#common/input">入力規則</a><a href="analysis.html#common/run">実行・終了確認</a><a href="analysis.html#common/results">結果の照合</a><a href="analysis.html#common/verification">図と参照資料</a></nav>
+<section class="analysis-section" id="analysis-common-relations"><h2>主要カードの読み方</h2><p>カードのつながりを矢印で示します。たとえば梁要素から断面特性を参照し、断面特性から材料へつながります。カード名を押すとInputデータの解説へ移動します。戻ると選んでいたモデルへ戻ります。</p></section>
 <section class="analysis-section" id="analysis-common-input"><h2>入力規則とカードの詳細</h2><div class="analysis-links"><a href="input.html#rules">入力規則・固定長・継続行 →</a><a href="bulk.html">カードの用途・全フィールド →</a><a href="include.html">INCLUDEによるファイル分割 →</a></div></section>
 <section class="analysis-section" id="analysis-common-run"><h2>実行・終了確認</h2><p>手元で実行したら、F06の終了状態、警告、対象のSUBCASE、要求した結果の順に確認します。非線形解析では到達した荷重・増分と収束履歴も読みます。</p><div class="analysis-links"><a href="workflow.html#files">入力・出力ファイルの役割 →</a><a href="batch.html">バッチ・実行オプション・並列計算 →</a><a href="errors.html">エラーメッセージ →</a></div></section>
 <section class="analysis-section" id="analysis-common-results"><h2>結果の照合</h2><ul><li>比較する単位・座標系・成分・位置をそろえます。</li><li>応力の出力位置、表裏、平均化の有無を確認します。</li><li>目当ての結果を出す出力要求、対象のSET・SUBCASE、出力先を確認します。</li></ul><div class="analysis-links"><a href="workflow.html#results">F06の結果表を読む →</a><a href="coordinates.html">座標・応力の符号 →</a></div></section>

@@ -19,10 +19,6 @@
 .analysis-scenario-figure figcaption{font-size:.875em;color:#435c79}
 .analysis-scenario-figure p{margin:.45em 0 0;color:#234e45;font-weight:650;line-height:1.7}
 .analysis-scenario-summary{margin:14px 0 4px;color:#385674;line-height:1.8}
-.analysis-scenario-chains{display:grid;gap:9px;margin:0 0 14px}
-.analysis-scenario-chain{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:9px 12px;background:#eef4fb;border-radius:8px;color:#3c5675}
-.analysis-scenario-chain a{display:inline-block;padding:3px 6px;border-radius:4px;background:#fff;border:1px solid #c4d3e6;font-family:ui-monospace,monospace;color:#174c88}
-.analysis-scenario-chain a:focus-visible{outline:2px solid #3259d8;outline-offset:3px}
 .analysis-scenario-comparison{width:100%;border-collapse:collapse;table-layout:fixed;font-size:.93em;line-height:1.55}
 .analysis-scenario-comparison caption{padding:0 0 8px;text-align:left;color:#34506b}
 .analysis-scenario-comparison th,.analysis-scenario-comparison td{padding:8px;vertical-align:top;text-align:left;border-bottom:1px solid #dbe5ee;overflow-wrap:anywhere}
@@ -31,3 +27,15 @@
 .analysis-model-selector{margin-bottom:0}
 .analysis-model-selector select{min-height:44px;padding:8px 12px}
 .analysis-section .analysis-links+div,.analysis-section+.analysis-links{margin-top:16px}
+
+.analysis-card-group{margin:18px 0 8px;font-size:16px;color:#32506f}
+.analysis-section .analysis-inputs a{color:#215698;text-decoration:underline;text-underline-offset:3px}
+#analysis-original-input{padding:14px;border:1px solid #d4e0ef;background:white;border-radius:9px}
+#analysis-original-input summary{cursor:pointer;color:#215698;line-height:1.6}
+#analysis-original-input pre{max-height:460px;overflow:auto;font:13px/1.7 ui-monospace,monospace;padding:12px;background:#eef4fa;border-radius:6px}
+.analysis-original-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:12px 0;color:#3c5675;font-size:13px}
+
+.analysis-complex-options{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:10px}
+.analysis-complex-options label{display:block}
+.analysis-complex-options select{display:block;width:100%;margin-top:6px;padding:6px 8px}
+.analysis-example-switch{display:inline-block;margin-bottom:4px}

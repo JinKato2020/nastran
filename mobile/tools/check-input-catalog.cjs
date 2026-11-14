@@ -7,7 +7,7 @@ const comparisons=JSON.parse(fs.readFileSync(path.join(dir,'../card-comparisons.
 for(const topic of comparisons)for(const key of topic.cards)assert(keys.has(key),topic.key+' comparison -> '+key);
 vm.runInContext(fs.readFileSync(path.join(dir,'analysis-relations-data.js'),'utf8'),context);
 const maps=context.window.AnalysisRelationMaps;
-for(const name of ['analysis-data','extended-analysis-data','analysis-scenarios'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
+for(const name of ['analysis-data','extended-analysis-data','analysis-scenarios','analysis-scenario-cards','analysis-original-decks'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
 const {entries:analyses}=context.window.NastranAnalysis;
 const scenarios=context.window.AnalysisScenarios;
 for(const entry of analyses){
@@ -17,13 +17,41 @@ for(const entry of analyses){
   for(const model of entry.variants||[])assert(maps[model.id],model.id+' missing variant map');
  }
 }
+const {generated,official}=context.window.AnalysisScenarioCards;
+const decks=context.window.AnalysisOriginalDecks;
+const applicabilityOnly=new Set(['DMIG','K2PP','SVECT','SDISP','PARAM,FRIC']);
 for(const key of ['static','modes','complex-modes']){
  const models=scenarios[key].models;
- assert.equal(models.length,3,key+' needs three comparison models');
- assert.equal(new Set(models.map(model=>model.id)).size,models.length);
+ assert.equal(models.length,key==='complex-modes'?4:3,key+' comparison model count');
+ if(key==='complex-modes'){
+  assert.deepEqual(models.map(model=>[model.sol,model.damped].join('/')).sort().join(','),'107/false,107/true,110/false,110/true');
+ }
+ assert(/^https:\/\//.test(official[key].source.url));
+ for(const [,rows] of official[key].groups)for(const [id] of rows)assert(applicabilityOnly.has(id)||keys.has(id),key+' official example -> '+id);
  for(const model of models){
-  const links=model.chains.flatMap(row=>row.split('|')).concat(model.check.map(([id])=>id));
-  for(const id of links)assert(keys.has(id),model.id+' scenario -> '+id);
+  const described=generated(key,model).flatMap(([,rows])=>rows.map(([id])=>id));
+  for(const id of [...described,...model.check.map(([id])=>id)])assert(keys.has(id),model.id+' scenario -> '+id);
+  const [executive,bulk]=decks[model.id].text.slice(0,-2).split('BEGIN BULK\r\n');
+  const sol=/^SOL (\d+)/.exec(executive)[1];
+  if(key==='complex-modes'){
+   assert.equal(Number(sol),model.sol);
+   assert.equal(/^CDAMP1/m.test(bulk),model.damped);
+   assert.equal(/^PDAMP/m.test(bulk),model.damped);
+   assert.equal(/  METHOD = 30/.test(executive),model.sol===110);
+   assert.equal(/^EIGRL/m.test(bulk),model.sol===110);
+   assert.match(executive,/  CMETHOD = 50/);
+  }
+  const expected=new Set(['EXEC_SOL_'+sol,'EXEC_CEND','CASE_BEGIN_BULK']);
+  for(const line of executive.split('\r\n').slice(2).filter(Boolean)){
+   expected.add('CASE_'+line.trim().split(/[ (=]/)[0]);
+  }
+  for(const line of bulk.split('\r\n')){
+   assert.equal(line.length,80,model.id+' invalid fixed-field width');
+   if(line.startsWith('+'))continue;
+   const id=line.slice(0,8).trim();
+   expected.add(id==='PARAM'?'PARAM_'+line.slice(8,16).trim():id);
+  }
+  assert.deepEqual([...described].sort(),[...expected].sort(),model.id+' missing card explanation');
  }
 }
 const blocked=require('../content-rights.json').blockedModels;

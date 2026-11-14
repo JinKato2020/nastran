@@ -37,5 +37,18 @@
   }
   return svg({baseline:'左端固定、右端自由の梁。先端を観測する。','tip-mass':'左端固定の梁の自由端に集中質量を追加する。','both-fixed':'梁の左端と右端を固定し、梁中央を観測する。',undamped:'左端を固定した梁。先端は自由でダンパなし。',damped:'左端固定の梁の先端から固定側へ横方向のダンパを接続する。'}[kind],shape);
  }
- window.renderAnalysisScenarioDiagram=kind=>({beam,shell,solid}[kind]?.()||vibration(kind));
+ const officialStatic=()=>svg('固定端から伸びる矩形片持ち梁。自由端の荷重方向を変えて先端変位を評価する。',
+  wall(43,94)+path('M43 77H265V111H43Z',stroke,2,'#eaf1fa')+dot(265,94)+
+  path('M279 94h43m-6-5 6 5-6 5 M265 82V45m-6 6 6-6 6 6',force,2)+
+  text(42,143,'固定',fixed,'middle')+text(270,138,'先端変位',result,'middle')+text(318,38,'荷重方向を変える',force,'end'));
+ const officialModes=()=>svg('固定端を介して、2つのばねと2点の集中質量を直列に結ぶ。',wall(37,89)+
+  path('M37 89H63l8-9 9 18 9-18 9 18 9-9h24 M162 89h30l8-9 9 18 9-18 9 18 9-9h25',stroke,2)+
+  path('M131 72h31v34h-31z M260 72h36v34h-36z',stroke,2,'#eaf1fa')+
+  text(91,55,'ばね',stroke,'middle')+text(212,55,'ばね',stroke,'middle')+
+  text(147,136,'質量1',stroke,'middle')+text(278,136,'質量2',stroke,'middle')+text(19,122,'固定',fixed));
+ const officialComplex=()=>svg('筐体側とパッド側の接触を概念的に表した断面。法線力に応じた摩擦力が接線方向へ作用する。',
+  path('M75 48H264V86H75Z',stroke,2,'#dde9f7')+path('M108 99H230V137H108Z',stroke,2,'#e6f3ef')+
+  path('M75 92H264',stroke,1)+path('M171 31v18m-5-5 5 5 5-5',force,2)+path('M236 113h66m-7-6 7 6-7 6',force,2)+
+  text(178,28,'法線方向',force,'middle')+text(168,73,'筐体側',stroke,'middle')+text(164,124,'パッド側',stroke,'middle')+text(270,138,'摩擦力',force,'middle'));
+ window.renderAnalysisScenarioDiagram=kind=>({beam,shell,solid,'static-official':officialStatic,'modes-official':officialModes,'complex-modes-official':officialComplex}[kind]?.()||vibration(kind));
 })();

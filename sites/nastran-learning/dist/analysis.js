@@ -8,17 +8,28 @@
  const picker=byId('analysis-picker');
  const detail=byId('analysis-detail');
  const list=items=>`<ul>${items.map(item=>`<li>${esc(item)}</li>`).join('')}</ul>`;
- const conditions=rows=>`<dl class="analysis-inputs">${rows.map(([label,body])=>`<div><dt>${esc(label)}</dt><dd>${esc(body)}</dd></div>`).join('')}</dl>`;
+ const conditions=(rows,cardLabels=false)=>`<dl class="analysis-inputs">${rows.map(([label,body])=>`<div><dt>${cardLabels?label:esc(label)}</dt><dd>${esc(body)}</dd></div>`).join('')}</dl>`;
  const links=items=>`<div class="analysis-links">${items.map(([url,label])=>`<a href="${esc(url)}">${esc(label)} →</a>`).join('')}</div>`;
  const cardLinks=items=>links(items.map(([id,label])=>['bulk.html#'+id,label]));
  const sources=items=>`<div class="analysis-sources">${items.map(({url,label})=>`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(label)} ↗</a>`).join('')}</div>`;
  const section=(title,body,id='')=>`<section class="analysis-section"${id?' id="'+id+'"':''}><h2>${title}</h2>${body}</section>`;
- const displayCard=id=>id.startsWith('CASE_')?id.slice(5):id.startsWith('EXEC_SOL_')?id.replace('EXEC_SOL_','SOL '):id;
- function chains(rows){
-  return `<div class="analysis-scenario-chains">${rows.map(row=>{
-   const cards=row.split('|').map(id=>`<a href="bulk.html#${id}" data-relation-card="${id}">${displayCard(id)}</a>`);
-   return `<div class="analysis-scenario-chain">${cards.join('<span aria-hidden="true">→</span>')}</div>`;
-  }).join('')}</div>`;
+ const explanation=window.AnalysisScenarioCards;
+ const unlinkedCards=new Set(['DMIG','K2PP','SVECT','SDISP','PARAM,FRIC']);
+ const displayCard=id=>id.startsWith('EXEC_SOL_')?id.replace('EXEC_SOL_','SOL '):id.replace(/^EXEC_|^CASE_/,'').replace(/^PARAM_/,'PARAM,').replaceAll('_',' ');
+ function cardGroups(groups){
+  return groups.map(([title,rows])=>`<h3 class="analysis-card-group">${esc(title)}</h3>`+conditions(rows.map(([id,body])=>[!unlinkedCards.has(id)?'<a href="bulk.html#'+id+'" data-analysis-card="'+id+'">'+esc(displayCard(id))+'</a>':esc(displayCard(id)),body]),true)).join('');
+ }
+ function deckSection(deck){
+  const count=deck.text.trimEnd().split(/\r?\n/).length;
+  return `<p>Bulk Dataは8文字固定長です。MSC Nastran本体での実行は未確認です。</p>
+   <details id="analysis-original-input"><summary>入力データ全文を開く（${count}行）</summary><div class="analysis-original-tools">
+   <button type="button" id="save-original-dat" class="button secondary">DATを保存</button><span>${esc(deck.name)}</span></div>
+   <pre tabindex="0" aria-label="8文字固定長の入力データ">${esc(deck.text)}</pre></details>`;
+ }
+ function saveDeck(deck){
+  const url=URL.createObjectURL(new Blob([deck.text],{type:'text/plain'}));
+  const link=document.createElement('a');link.href=url;link.download=deck.name;link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
  }
  function heading(entry,summary,extra=''){
   return `<div class="analysis-head"><span class="analysis-sol">MSC Nastran · ${esc(entry.sol)}</span><h1>${esc(entry.title)}</h1>${summary?`<p>${esc(summary)}</p>`:''}${extra}</div>`;
@@ -29,24 +40,52 @@
  function compare(scenario,selected){
   return `<table class="analysis-scenario-comparison"><caption>${esc(scenario.shared)}</caption><thead><tr>${scenario.columns.map(col=>`<th scope="col">${esc(col)}</th>`).join('')}</tr></thead><tbody>${scenario.rows.map(([name,...cells],index)=>`<tr${index===selected?' aria-current="true"':''}><th scope="row">${esc(name)}</th>${cells.map(cell=>`<td>${esc(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table><p class="analysis-scenario-summary">${esc(scenario.compare)}</p>`;
  }
+ const complexChoices=[
+  {id:'analysis-damping-picker',label:'ダンパ',options:[['off','なし'],['on','あり']],value:model=>model.damped?'on':'off'},
+  {id:'analysis-method-picker',label:'解法',options:[['107','直接法（SOL 107）'],['110','モード法（SOL 110）']],value:model=>String(model.sol)},
+ ];
+ function select(id,label,options,value,css=''){
+  return `<label class="analysis-selector analysis-model-selector ${css}" for="${id}">${esc(label)}<select id="${id}">${options.map(([key,title])=>`<option value="${esc(key)}"${key===value?' selected':''}>${esc(title)}</option>`).join('')}</select></label>`;
+ }
+ function scenarioControls(scenario,reference,model,official,complex){
+  if(!complex)return select('analysis-example-picker','モデル',
+   [...scenario.models.map(item=>[item.id,item.title]),['official','公式例題 · '+reference.title]],official?'official':model.id);
+  if(official)return `<a class="analysis-example-switch" href="#complex-modes/${model.id}">自作例を見る →</a>`;
+  return `<div class="analysis-complex-options">${complexChoices.map(({id,label,options,value})=>select(id,label,options,value(model))).join('')}</div>`;
+ }
  function showScenario(entry,scenario,modelKey){
+  const reference=explanation.official[entry.key];
+  const official=modelKey==='official';
+  const complex=entry.key==='complex-modes';
   const model=scenario.models.find(item=>item.id===modelKey)||scenario.models[0];
-  const figure=`<figure class="analysis-scenario-figure">${window.renderAnalysisScenarioDiagram(model.diagram)}<figcaption>境界条件の模式図</figcaption><p>${esc(model.takeaway)}</p></figure>`;
-  detail.innerHTML=heading(entry,'')+
-   `<label class="analysis-selector analysis-model-selector" for="analysis-example-picker">モデル<select id="analysis-example-picker">${scenario.models.map(item=>`<option value="${item.id}">${esc(item.title)}</option>`).join('')}</select></label>`+
-   figure+`<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+
-   section('1 · モデル化と境界条件',conditions(model.conditions))+
-   section('2 · 主要カードの相関図',chains(model.chains)+`<p>${esc(model.meaning)}</p>`,'analysis-relations')+
-   section('3 · 結果の読み方',list(model.results)+cardLinks(model.check))+
-   section('4 · モデル間の比較',compare(scenario,scenario.models.indexOf(model)))+
-   contextLinks(entry,scenario.links)+sources(scenario.sources||entry.sources);
+  const deck=window.AnalysisOriginalDecks[model.id];
+  const figure=`<figure class="analysis-scenario-figure">${window.renderAnalysisScenarioDiagram(official?entry.key+'-official':model.diagram)}<figcaption>境界条件の模式図</figcaption><p>${esc(official?reference.title:model.takeaway)}</p></figure>`;
+  const selection=scenarioControls(scenario,reference,model,official,complex);
+  const related=complex&&!official?[['analysis.html#complex-modes/official','公式例題 · '+reference.title],...scenario.links]:scenario.links;
+  detail.innerHTML=heading(entry,'')+selection+figure+(official
+   ? `<p class="analysis-scenario-summary">${esc(reference.intro)}</p>`+
+     sources([reference.source])+section('公式例題の主要カード',cardGroups(reference.groups),'analysis-relations')
+   : `<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+
+     section('1 · モデル化と境界条件',conditions(model.conditions))+
+     section('2 · 使用カードの解説',cardGroups(explanation.generated(entry.key,model)),'analysis-relations')+
+     section('3 · 自作モデルのDAT',deckSection(deck))+
+     section('4 · 結果の読み方',list(model.results)+cardLinks(model.check))+
+     section('5 · モデル間の比較',compare(scenario,scenario.models.indexOf(model))))+
+   contextLinks(entry,related)+sources(scenario.sources||entry.sources);
+  byId('save-original-dat')?.addEventListener('click',()=>saveDeck(deck));
+  function changeModel(id,controlId){
+   history.replaceState(null,'','#'+entry.key+'/'+id);
+   showScenario(entry,scenario,id);
+   byId(controlId)?.focus({preventScroll:true});
+  }
+  if(complex&&!official){
+   for(const {id} of complexChoices)byId(id).addEventListener('change',()=>{
+    const selected=scenario.models.find(item=>complexChoices.every(choice=>choice.value(item)===byId(choice.id).value));
+    if(selected)changeModel(selected.id,id);
+   });
+  }
   const modelPicker=byId('analysis-example-picker');
-  modelPicker.value=model.id;
-  modelPicker.addEventListener('change',()=>{
-   history.replaceState(null,'','#'+entry.key+'/'+modelPicker.value);
-   showScenario(entry,scenario,modelPicker.value);
-   byId('analysis-example-picker').focus({preventScroll:true});
-  });
+  modelPicker?.addEventListener('change',()=>changeModel(modelPicker.value,modelPicker.id));
  }
  function solverLinks(key,simcenter=false){
   return `<nav class="solver-options" aria-label="対象ソルバー"><a href="#${key}"${simcenter?'':' aria-current="page"'}>MSC Nastran</a><a href="#${key}/simcenter"${simcenter?' aria-current="page"':''}>Simcenter Nastran</a></nav>`;
