@@ -50,5 +50,38 @@
   path('M75 48H264V86H75Z',stroke,2,'#dde9f7')+path('M108 99H230V137H108Z',stroke,2,'#e6f3ef')+
   path('M75 92H264',stroke,1)+path('M171 31v18m-5-5 5 5 5-5',force,2)+path('M236 113h66m-7-6 7 6-7 6',force,2)+
   text(178,28,'法線方向',force,'middle')+text(168,73,'筐体側',stroke,'middle')+text(164,124,'パッド側',stroke,'middle')+text(270,138,'摩擦力',force,'middle'));
- window.renderAnalysisScenarioDiagram=kind=>({beam,shell,solid,'static-official':officialStatic,'modes-official':officialModes,'complex-modes-official':officialComplex}[kind]?.()||vibration(kind));
+ const hot='#b2452f', cold='#2c60ad';
+ function heatStrip(convection){
+  let shape=path('M70 78H290V112H70Z',stroke,2,'#eaf1fa')+path('M70 78V112',hot,6)+path('M290 78V112',cold,6)+
+   path('M96 95H256m-7-6 7 6-7 6',force,2)+dot(180,95)+
+   text(70,140,'100 ℃を指定',hot,'middle')+text(290,140,'20 ℃を指定',cold,'middle')+text(180,170,'中央の未知温度',result,'middle');
+  if(convection)shape+=[132,180,228].map(x=>path(`M${x} 72v-26m-5 6 5-6 5 6 M${x} 118v26m-5-6 5 6 5-6`,force,2)).join('')+text(180,28,'表裏から周囲20 ℃へ対流',force,'middle');
+  else shape+=path('M70 70H290 M70 120H290','#7b8794',2)+text(180,60,'表裏は断熱','#5b6673','middle');
+  return svg(convection?'左端100度、右端20度の板。表と裏から周囲へ対流で放熱する。中央の温度が未知量。':'左端100度、右端20度の板。表と裏は断熱。熱は左から右へ流れる。',shape);
+ }
+ const cantilever=()=>wall(49,96)+chain(49,286,96)+dot(286,96)+text(21,140,'固定',fixed);
+ const harmonic=()=>svg('左端を固定した梁の先端を、正弦波の力で上下に加振する。先端の変位を読む。',
+  cantilever()+path('M286 52v-22m-6 6 6-6 6 6 M286 52v22',force,2.5)+path('M214 40c7-18 14-18 21 0s14 18 21 0',force,2)+
+  text(238,20,'正弦加振 1 N',force,'middle')+text(286,128,'先端の観測点',result,'middle')+text(160,84,'梁の中心線'));
+ function pulse(long){
+  const w=long?70:14;
+  return svg(long?'左端固定の梁の先端に、周期より長い矩形波の荷重を与える。':'左端固定の梁の先端に、周期より短い矩形波の荷重を与える。',
+   cantilever()+arrow(286,96)+text(286,128,'先端の観測点',result,'middle')+
+   path(`M96 60H110V30H${110+w}V60H216`,force,2)+path('M92 60H222',stroke,1)+text(96,22,'荷重の時間変化',force)+
+   text(110+w/2,76,long?'0.05 s':'0.005 s',force,'middle')+text(226,64,'時間'));
+ }
+ function column(kind){
+  const pin=(x,y)=>path(`M${x} ${y}l-11 18h22z`,fixed,2,'#fff')+ground(x,y+20);
+  let shape=chain(60,286,92)+path('M340 92H292m7-6-7 6 7 6',force,2.5)+text(332,78,'圧縮',force,'end')+dot(173,92)+text(173,70,'座屈形を読む',result,'middle');
+  if(kind==='buck-pinned')shape+=pin(60,94)+pin(286,94)+text(60,150,'ピン',fixed,'middle')+text(286,150,'ピン（軸方向に可動）',fixed,'end');
+  else{
+   shape+=wall(60,92)+text(34,138,'固定',fixed);
+   if(kind==='buck-fixed')shape+=path('M286 70v44',fixed,5)+text(290,138,'回転を拘束（軸方向に可動）',fixed,'end');
+   else shape+=text(286,124,'自由端',stroke,'middle');
+  }
+  return svg({'buck-cantilever':'一端を固定し他端が自由な柱に、軸方向の圧縮を与える。','buck-pinned':'両端をピンで支えた柱に、軸方向の圧縮を与える。','buck-fixed':'両端の回転を拘束した柱に、軸方向の圧縮を与える。'}[kind],shape);
+ }
+ const extra={'heat-insulated':()=>heatStrip(false),'heat-convection':()=>heatStrip(true),harmonic,'pulse-short':()=>pulse(false),'pulse-long':()=>pulse(true),
+  'buck-cantilever':()=>column('buck-cantilever'),'buck-pinned':()=>column('buck-pinned'),'buck-fixed':()=>column('buck-fixed')};
+ window.renderAnalysisScenarioDiagram=kind=>extra[kind]?extra[kind]():({beam,shell,solid,'static-official':officialStatic,'modes-official':officialModes,'complex-modes-official':officialComplex}[kind]?.()||vibration(kind));
 })();

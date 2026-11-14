@@ -14,7 +14,7 @@
  const sources=items=>`<div class="analysis-sources">${items.map(({url,label})=>`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(label)} ↗</a>`).join('')}</div>`;
  const section=(title,body,id='')=>`<section class="analysis-section"${id?' id="'+id+'"':''}><h2>${title}</h2>${body}</section>`;
  const explanation=window.AnalysisScenarioCards;
- const unlinkedCards=new Set(['DMIG','K2PP','SVECT','SDISP','PARAM,FRIC']);
+ const unlinkedCards=new Set(['DMIG','K2PP','SVECT','SDISP','PARAM,FRIC','EXEC_SOL_108','EXEC_SOL_109','EXEC_SOL_111','CASE_RESVEC']);
  const displayCard=id=>id.startsWith('EXEC_SOL_')?id.replace('EXEC_SOL_','SOL '):id.replace(/^EXEC_|^CASE_/,'').replace(/^PARAM_/,'PARAM,').replaceAll('_',' ');
  function cardGroups(groups){
   return groups.map(([title,rows])=>`<h3 class="analysis-card-group">${esc(title)}</h3>`+conditions(rows.map(([id,body])=>[!unlinkedCards.has(id)?'<a href="bulk.html#'+id+'" data-analysis-card="'+id+'">'+esc(displayCard(id))+'</a>':esc(displayCard(id)),body]),true)).join('');
@@ -49,13 +49,13 @@
  }
  function scenarioControls(scenario,reference,model,official,complex){
   if(!complex)return select('analysis-example-picker','モデル',
-   [...scenario.models.map(item=>[item.id,item.title]),['official','公式例題 · '+reference.title]],official?'official':model.id);
+   [...scenario.models.map(item=>[item.id,item.title]),...(reference?[['official','公式例題 · '+reference.title]]:[])],official?'official':model.id);
   if(official)return `<a class="analysis-example-switch" href="#complex-modes/${model.id}">自作例を見る →</a>`;
   return `<div class="analysis-complex-options">${complexChoices.map(({id,label,options,value})=>select(id,label,options,value(model))).join('')}</div>`;
  }
  function showScenario(entry,scenario,modelKey){
   const reference=explanation.official[entry.key];
-  const official=modelKey==='official';
+  const official=modelKey==='official'&&!!reference;
   const complex=entry.key==='complex-modes';
   const model=scenario.models.find(item=>item.id===modelKey)||scenario.models[0];
   const deck=window.AnalysisOriginalDecks[model.id];
@@ -67,10 +67,11 @@
      sources([reference.source])+section('公式例題の主要カード',cardGroups(reference.groups),'analysis-relations')
    : `<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+
      section('1 · モデル化と境界条件',conditions(model.conditions))+
-     section('2 · 使用カードの解説',cardGroups(explanation.generated(entry.key,model)),'analysis-relations')+
-     section('3 · 自作モデルのDAT',deckSection(deck))+
-     section('4 · 結果の読み方',list(model.results)+cardLinks(model.check))+
-     section('5 · モデル間の比較',compare(scenario,scenario.models.indexOf(model))))+
+     section('2 · カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relation-map')+
+     section('3 · 使用カードの解説',cardGroups(explanation.generated(entry.key,model)),'analysis-relations')+
+     section('4 · 自作モデルのDAT',deckSection(deck))+
+     section('5 · 結果の読み方',list(model.results)+cardLinks(model.check))+
+     section('6 · モデル間の比較',compare(scenario,scenario.models.indexOf(model))))+
    contextLinks(entry,related)+sources(scenario.sources||entry.sources);
   byId('save-original-dat')?.addEventListener('click',()=>saveDeck(deck));
   function changeModel(id,controlId){
