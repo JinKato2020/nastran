@@ -81,7 +81,53 @@
   }
   return svg({'buck-cantilever':'一端を固定し他端が自由な柱に、軸方向の圧縮を与える。','buck-pinned':'両端をピンで支えた柱に、軸方向の圧縮を与える。','buck-fixed':'両端の回転を拘束した柱に、軸方向の圧縮を与える。'}[kind],shape);
  }
- const extra={'heat-insulated':()=>heatStrip(false),'heat-convection':()=>heatStrip(true),harmonic,'pulse-short':()=>pulse(false),'pulse-long':()=>pulse(true),
+ const mass='#855612';
+ const spring=(x)=>path(`M${x} 90h14l6-9 8 18 8-18 8 18 6-9h10`,stroke,2);
+ const officialHeat=()=>svg('両端の温度を指定した棒。5本の要素でつなぎ、途中の節点の温度を求める。',
+  path('M60 88H300V104H60Z',stroke,2,'#eaf1fa')+path('M60 80V112',hot,6)+path('M300 80V112',cold,6)+[108,156,204,252].map(x=>dot(x,96)).join('')+
+  text(64,140,'1300 K を指定',hot,'middle')+text(296,140,'300 K を指定',cold,'middle')+text(180,66,'5本の棒要素',stroke,'middle')+text(180,170,'途中の節点の温度を読む',result,'middle'));
+ const officialDirect=()=>svg('ばねとダンパで台に支えた重り。台を上下に揺らし、重りの振幅を読む。',
+  path('M90 150H270',fixed,5)+path('M150 150v-12l-9-6 18-9-18-9 18-9-9-6v-15',stroke,2)+
+  path('M210 150v-24 M201 126h18 M197 112v20h26v-20 M210 112v-28',stroke,2)+path('M125 48H235V84H125Z',stroke,2,'#eaf1fa')+
+  path('M300 118v40 M294 124l6-6 6 6 M294 152l6 6 6-6',force,2)+dot(235,66)+
+  text(180,71,'重り',stroke,'middle')+text(132,122,'ばね',stroke,'end')+text(230,122,'ダンパ')+text(300,178,'台を上下に加振',force,'middle')+text(296,58,'振幅を読む',result,'middle'));
+ const officialModal=()=>svg('大きな質量の土台に、2つの質量をばねで直列につなぐ。土台に一定の加速度を与える。',
+  path('M40 70H100V110H40Z',mass,2,'#f7e1bd')+spring(100)+path('M160 72H200V108H160Z',stroke,2,'#eaf1fa')+spring(200)+path('M260 76H290V104H260Z',stroke,2,'#eaf1fa')+
+  path('M40 52h60m-7-6 7 6-7 6',force,2.5)+text(70,38,'一定の加速度',force,'middle')+
+  text(70,134,'大質量（土台）',mass,'middle')+text(180,134,'質量2',stroke,'middle')+text(275,134,'質量1',stroke,'middle'));
+ const officialTransient=()=>svg('片持ち梁の根元に大質量を置き、根元へ立ち上がる加速度を与える。先端の応答を読む。',
+  path('M30 76H70V116H30Z',mass,2,'#f7e1bd')+chain(70,290,96)+dot(290,96)+path('M50 70V34m-6 6 6-6 6 6',force,2.5)+
+  path('M170 60H190L230 30V60H300',force,2)+path('M166 60H306',stroke,1)+
+  text(60,26,'根元に加速度',force)+text(50,140,'大質量',mass,'middle')+text(290,128,'先端の観測点',result,'middle')+text(196,22,'加速度の時間変化',force));
+ function heated(both){
+  let shape=path('M49 84H286V108H49Z',stroke,2,'#fbe9e4')+wall(49,96)+text(21,140,'固定',fixed)+text(168,66,'全体を 20 → 80 ℃ に加熱',hot,'middle');
+  if(both)shape+=path('M286 74v44',fixed,5)+text(300,140,'固定',fixed,'middle')+text(168,140,'伸びられず圧縮になる',force,'middle');
+  else shape+=path('M292 96h36m-7-6 7 6-7 6',result,2.5)+text(300,128,'伸びを読む',result,'middle');
+  return svg(both?'両端を固定した梁を一様に加熱する。伸びが止められ、圧縮の応力が生じる。':'左端を固定し右端が自由な梁を一様に加熱する。右端が自由に伸びる。',shape);
+ }
+ function ring(nr){
+  const cx=110,cy=164,pt=(r,a)=>(cx+r*Math.cos(a)).toFixed(1)+' '+(cy-r*Math.sin(a)).toFixed(1),q=Math.PI/2;
+  let lines='';
+  for(let i=1;i<nr;i++){const r=60+60*i/nr;lines+=`M${pt(r,0)}A${r} ${r} 0 0 0 ${pt(r,q)}`;}
+  for(let j=1;j<2*nr;j++){const a=q*j/(2*nr);lines+=`M${pt(60,a)}L${pt(120,a)}`;}
+  const push=[1,2,3].map(k=>{const a=q*k/4;return `M${pt(26,a)}L${pt(54,a)}M${pt(45,a-.16)}L${pt(54,a)}L${pt(45,a+.16)}`;}).join('');
+  return svg('内圧を受ける厚肉円筒の4分の1。切り口の2面に対称条件を与え、内面の点で変位と応力を読む。',
+   path(`M${pt(60,0)}L${pt(120,0)}A120 120 0 0 0 ${pt(120,q)}L${pt(60,q)}A60 60 0 0 1 ${pt(60,0)}Z`,stroke,2,'#eaf1fa')+path(lines,'#9eb4ce',1)+
+   path(`M${pt(60,0)}L${pt(120,0)}`,fixed,5)+path(`M${pt(60,q)}L${pt(120,q)}`,fixed,5)+path(push,force,2)+dot(170,164)+
+   text(102,160,'内圧',force,'end')+text(240,182,'Y方向を固定',fixed,'middle')+text(102,80,'X方向を固定',fixed,'end')+text(238,52,'内面の点で',result)+text(238,70,'変位・応力を読む',result));
+ }
+ function prestressed(kind){
+  const pin=(x,y)=>path(`M${x} ${y}l-11 18h22z`,fixed,2,'#fff')+ground(x,y+20);
+  let shape=chain(60,286,92)+pin(60,94)+pin(286,94)+path('M60 92Q173 38 286 92',result,2)+text(173,50,'1次のモード形',result,'middle')+
+   text(60,150,'ピン',fixed,'middle')+text(286,150,'ピン（軸方向に可動）',fixed,'end');
+  if(kind==='pre-tension')shape+=path('M292 92h44m-7-6 7 6-7 6',force,2.5)+text(346,76,'引張 1727 N',force,'end');
+  if(kind==='pre-compression')shape+=path('M340 92H292m7-6-7 6 7 6',force,2.5)+text(346,76,'圧縮 1727 N',force,'end');
+  return svg({'pre-none':'両端をピンで支えた梁。軸方向の力はない。','pre-tension':'両端をピンで支えた梁を、軸方向に引っ張った状態で振動させる。','pre-compression':'両端をピンで支えた梁を、軸方向に圧縮した状態で振動させる。'}[kind],shape);
+ }
+ const extra={'ts-free':()=>heated(false),'ts-fixed':()=>heated(true),'cyl-coarse':()=>ring(2),'cyl-standard':()=>ring(4),'cyl-fine':()=>ring(8),
+  'pre-none':()=>prestressed('pre-none'),'pre-tension':()=>prestressed('pre-tension'),'pre-compression':()=>prestressed('pre-compression'),
+  'heat-official':officialHeat,'direct-frequency-official':officialDirect,'modal-frequency-official':officialModal,'transient-official':officialTransient,'buckling-official':()=>column('buck-pinned'),
+  'heat-insulated':()=>heatStrip(false),'heat-convection':()=>heatStrip(true),harmonic,'pulse-short':()=>pulse(false),'pulse-long':()=>pulse(true),
   'buck-cantilever':()=>column('buck-cantilever'),'buck-pinned':()=>column('buck-pinned'),'buck-fixed':()=>column('buck-fixed')};
  window.renderAnalysisScenarioDiagram=kind=>extra[kind]?extra[kind]():({beam,shell,solid,'static-official':officialStatic,'modes-official':officialModes,'complex-modes-official':officialComplex}[kind]?.()||vibration(kind));
 })();

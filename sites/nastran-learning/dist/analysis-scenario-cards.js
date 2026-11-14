@@ -99,8 +99,8 @@
   return [...groups,['入力の終端',end]];
  }
  const base = 'https://documentation-be.hexagon.com/bundle/';
- function guide(book,page){
-  const name='MSC_Nastran_2025.1_'+book;
+ function guide(book,page,version='2025.1'){
+  const name='MSC_Nastran_'+version+'_'+book;
   return base+name+'/raw/resource/enus/'+name+'.pdf#page='+page;
  }
  const official={
@@ -130,10 +130,60 @@
     ['構造と結合',[['GRID','筐体・パッド・結合点を定義します。'],['CONM2','筐体やパッド側の集中質量を与えます。'],['CELAS2','筐体の支持剛性と、法線力を評価するばねを表します。'],['RBE2','筐体側の節点を剛体運動で結びます。'],['RBE3','パッド側の節点の動きを参照点に関連付けます。'],['CHEXA','パッドを立体要素で表します。'],['PSOLID','パッドの立体要素の物性を指定します。'],['CQUAD4','地盤側の節点間の剛性を表す板要素です。'],['PSHELL','板要素の物性を与えます。'],['MAT1','各構造部の線形弾性や密度を定義します。'],['CASE_MPC','多点拘束のセットを選びます。'],['MPC','パッド側と筐体側の自由度の関係を式で指定します。'],['OMIT1','縮約の対象となる自由度を指定します。']]],
     ['質量・減衰と出力',[['PARAM_GRDPNT','質量特性の出力を要求します。'],['PARAM_G','全体の構造減衰を指定します。'],['PARAM,FRIC','摩擦係数を表す例題中のパラメータです。K2PPによる行列の倍率との対応は原典の設定を確認します。'],['CASE_DISPLACEMENT','原典表記のDISP。複素モード形を出力します。'],['SVECT','実モード形を確認するための出力指定です。'],['SDISP','複素モードを構成する実モードの成分を出力します。']]],
    ]},
+  heat:{
+   title:'棒の1次元熱伝導（Example 1a）',
+   reference:['Thermal Analysis User’s Guide 2023.1 · Listing 5-1 · PDF 98–100','Thermal_Analysis_User_Guide',98,'2023.1'],
+   intro:'長さ0.5 mの棒の両端に1300 Kと300 Kを指定し、棒の中の温度分布を求める例です。対流や放射はなく、熱伝導だけを扱います。',
+   groups:[
+    ['解析の指定',[['EXEC_SOL_153','定常の熱伝導解析を選びます。'],['CASE_ANALYSIS','ANALYSIS = HEATで、熱の解析であることを指定します。'],['CASE_NLPARM','反復計算の条件を選びます。例題のCase Controlで指定されています。'],['NLPARM','例題では番号だけを指定し、他の欄は既定値です。'],['CASE_TEMPERATURE','TEMP(INIT)で、反復計算を始める温度のセットを選びます。'],['TEMPD','全節点の初期温度を1300として与えます。']]],
+    ['棒と材料',[['GRID','0.1 m間隔の6節点です。'],['CROD','5本の棒要素で節点をつなぎます。'],['PROD','断面積を与え、材料を参照します。'],['MAT4','熱伝導率204 W/(m·K)を与えます。']]],
+    ['温度の境界条件',[['CASE_SPC','温度を指定する拘束セットを選びます。'],['SPC','熱の解析では指定温度を表します。節点1に1300、節点6に300を与えます。']]],
+    ['確認する出力',[['CASE_THERMAL','各節点の温度です。両端の間で直線的に変わるかを確認します。'],['CASE_FLUX','要素の熱流束と温度勾配です。'],['CASE_SPCFORCES','温度を指定した節点を出入りする熱量です。両端で大きさが等しく、符号が逆になります。'],['CASE_OLOAD','与えた熱負荷の出力です。この例題に熱負荷の入力はありません。']]],
+   ]},
+  'direct-frequency':{
+   title:'1自由度系の基礎加振（問題2.30）',
+   reference:['Verification Guide · 問題2.30 · PDF 133–135','Verification_Guide',133],
+   intro:'ばねとダンパで台に支えた重りを、台ごと共振振動数で上下に揺らし、重りの最大振幅を理論値と比べる検証例です。PDFに入力ファイルの本文は載っていません。下のカードは問題の内容から選んだ代表で、実際の記述は例題に付属する入力ファイルで確認します。',
+   groups:[
+    ['解析の指定',[['EXEC_SOL_108','直接法の周波数応答です。モードを使わず、指定した周波数ごとに解きます。'],['CASE_FREQUENCY','計算する加振周波数のセットを選びます。'],['CASE_DLOAD','周波数に対する加振のセットを選びます。']]],
+    ['ばね・ダンパ・質量',[['CELAS2','ばね定数333 lb/inを表す代表カードです。'],['CDAMP2','減衰係数28 lb·s/inを表す代表カードです。'],['CONM2','重りの質量を表す代表カードです。重量3000 lbは質量へ換算します。']]],
+    ['加振',[['RLOAD1','周波数ごとの加振の大きさを定義する代表カードです。'],['FREQ','計算する周波数を並べます。この問題では共振振動数で評価します。']]],
+    ['確認する出力',[['CASE_DISPLACEMENT','重りの変位の振幅です。理論値2.0731 inと比べます。']]],
+   ]},
+  'modal-frequency':{
+   title:'2自由度系の強制加速度（大質量法）',
+   reference:['Dynamic Analysis User’s Guide · Listing 7-3 · PDF 347–348','Dynamic_Analysis_User_Guide',347],
+   intro:'2つの質量をもつ系の土台に、一定の加速度を2〜10 Hzで与える例です。土台に非常に大きな質量を置き、そこへ力を加えて加速度を作る「大質量法」を使います。入力は抜粋で掲載されています。',
+   groups:[
+    ['解析の指定',[['EXEC_SOL_111','モード法の周波数応答です。'],['CASE_METHOD','使う実モードの抽出条件を選びます。'],['EIGRL','−1〜30 Hzの範囲のモードを求めます。'],['CASE_FREQUENCY','加振周波数のセットを選びます。'],['FREQ1','2 Hzから0.05 Hz刻みで160区間、10 Hzまで計算します。']]],
+    ['加振と大質量',[['CONM2','土台の節点に1.0E7 kgの大質量を置きます。構造全体の10.1 kgより約6桁大きい値です。'],['CASE_DLOAD','動荷重のセットを選びます。'],['DLOAD','倍率1.0E7を掛けます。力＝大質量×加速度なので、加速度1を与えることになります。'],['RLOAD1','周波数に対する荷重を定義し、DAREAとTABLED4を参照します。'],['DAREA','荷重を与える節点と成分です。'],['TABLED4','周波数によらず一定の大きさを与える表です。']]],
+    ['減衰',[['CASE_SDAMPING','モード減衰の表を選びます。'],['TABDMP1','全周波数で臨界減衰比5%を与えます。']]],
+    ['確認する出力',[['CASE_DISPLACEMENT','振幅と位相で出力します。'],['CASE_ACCELERATION','土台の加速度が、与えた値になっているかを確認します。']]],
+   ]},
+  transient:{
+   title:'片持ち梁の強制加速度（モード法・大質量法）',
+   reference:['Dynamic Analysis User’s Guide · Listing 7-5 · PDF 354–356','Dynamic_Analysis_User_Guide',354],
+   intro:'片持ち梁の根元に、0.05秒かけて立ち上がる加速度を与える例です。根元に1.0E9 kgの大質量を置き、力を加えて加速度を作ります。入力は抜粋で掲載されています。',
+   groups:[
+    ['解析の指定',[['EXEC_SOL_112','モード法の過渡応答です。'],['CASE_METHOD','使う実モードの抽出条件を選びます。'],['EIGRL','3000 Hzまでのモードを求めます。'],['CASE_TSTEP','時間刻みのセットを選びます。'],['TSTEP','0.001秒刻みで1000ステップ、1.0秒まで計算します。']]],
+    ['加振と大質量',[['CONM2','根元の節点1に1.0E9 kgの大質量を置きます。'],['CASE_SPC','拘束セットを選びます。'],['SPC','大質量の節点は軸方向と回転を拘束し、加振する横方向は自由にします。'],['CASE_DLOAD','動荷重のセットを選びます。'],['DLOAD','大質量の値1.0E9と、単位換算の0.102を掛けます。'],['TLOAD1','時間に対する荷重を定義し、DAREAとTABLED1を参照します。'],['DAREA','節点1の横方向に0.15を与えます。'],['TABLED1','0.05秒で1まで上がり、0.052秒で0へ戻る波形です。急に切らず、2ステップかけて下げています。'],['PARAM_WTMASS','重量で入力した値を質量へ換算する係数0.102（＝1/9.81）です。']]],
+    ['減衰',[['CASE_SDAMPING','モード減衰の表を選びます。全モードに5%を与える例です。']]],
+    ['確認する出力',[['CASE_SET','出力する節点を1と11に絞ります。'],['CASE_DISPLACEMENT','節点の変位の時刻歴です。'],['CASE_ACCELERATION','根元の加速度が、意図した波形になっているかを確認します。']]],
+   ]},
+  buckling:{
+   title:'オイラー柱の座屈（Example 1）',
+   reference:['Linear Static Analysis User’s Guide · Listing 13-2 · PDF 512–514','Linear_Static_Analysis_User_Guide',512],
+   intro:'長さ10 mの両端支持の柱に1000 Nの圧縮を与え、座屈荷重の倍率を求める例です。断面二次モーメントが小さい向きに、先に座屈します。',
+   groups:[
+    ['解析と2つのSUBCASE',[['EXEC_SOL_105','線形座屈解析を選びます。'],['CASE_SUBCASE','SUBCASE 1が静解析、SUBCASE 2が座屈の固有値計算です。'],['CASE_LOAD','SUBCASE 1で、基準にする圧縮荷重を選びます。'],['CASE_METHOD','SUBCASE 2で、固有値の抽出条件を選びます。'],['EIGRL','ランチョス法で最初の5モードを求めます。']]],
+    ['柱のモデル',[['GRID','柱の軸に沿って節点を並べます。'],['CBAR','例題はCBARで分割しています。CBEAMでも解けると本文に書かれています。'],['PBAR','断面積と、2方向の断面二次モーメントを与えます。'],['MAT1','ヤング率などの弾性定数です。']]],
+    ['支持と荷重',[['CASE_SPC','拘束セットを選びます。'],['SPC1','一端は並進3成分、他端は横の2成分を拘束し、軸方向に動けるローラーにします。'],['SPC','軸まわりの回転を1点で止めます。'],['FORCE','ローラー側の端に、軸方向の圧縮1000 Nを与えます。']]],
+    ['確認する出力',[['CASE_DISPLACEMENT','SUBCASE 2では座屈形です。振幅は規格化された値で、実際の変位ではありません。固有値×1000 Nが座屈荷重です。']]],
+   ]},
  };
  for(const model of Object.values(official)){
-  const [label,book,page]=model.reference;
-  model.source={label,url:guide(book,page)};
+  const [label,book,page,version]=model.reference;
+  model.source={label,url:guide(book,page,version)};
  }
  window.AnalysisScenarioCards={generated,official};
 })();

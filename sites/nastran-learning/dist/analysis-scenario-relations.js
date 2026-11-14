@@ -88,7 +88,38 @@
    edges:[e('temp','tempd','SID=90'),e('nl','nlparm','ID=95')]});
   return panels;
  }
+ Object.assign(structures,{
+  hotbeam:{...structures.beam,material:['MAT1','MID=70 / E・ν・α・TREF']},
+  'cyl-coarse':{note:'六面体8個。ソリッドの物性は材料番号を受け渡します。',element:['CHEXA','EID=101–108 / PID=20 / G1–G8'],property:['PSOLID','PID=20 / MID=70'],material:['MAT1','MID=70 / E・ν'],grid:'ID=1–30 / PS=3456',materialLabel:'MID=70'},
+ });
+ structures['cyl-standard']={...structures['cyl-coarse'],note:'六面体32個。ソリッドの物性は材料番号を受け渡します。',element:['CHEXA','EID=101–132 / PID=20 / G1–G8'],grid:'ID=1–90 / PS=3456'};
+ structures['cyl-fine']={...structures['cyl-coarse'],note:'六面体128個。ソリッドの物性は材料番号を受け渡します。',element:['CHEXA','EID=101–228 / PID=20 / G1–G8'],grid:'ID=1–306 / PS=3456'};
+ const thermal=target=>[structure('hotbeam'),support('123456',target),
+  {title:'温度荷重',note:'Case ControlのTEMPERATURE(LOAD)が温度セットを選びます。TEMPDは全節点の温度を与え、MAT1の線膨張係数と基準温度が熱ひずみを決めます。破線は番号の参照ではなく、計算での関係です。',
+   layers:[['case'],['tempd'],['mat']],
+   nodes:[n('case','TEMPERATURE(LOAD)','CASE_TEMPERATURE','選択値=60'),n('tempd','TEMPD','TEMPD','SID=60 / 80 ℃'),n('mat','MAT1','MAT1','α=2.3E-5 / TREF=20 ℃')],
+   edges:[e('case','tempd','SID=60'),e('tempd','mat','温度差60 ℃',true)]}];
+ const cylinder=kind=>[structure(kind),
+  {title:'対称条件と平面ひずみ',note:'SPC1は、切り口の面に垂直な変位を止めます。Z方向の変位と回転は、GRIDのPS欄で全節点について止めています。',
+   layers:[['case'],['sx','sy'],['grid']],
+   nodes:[n('case','SPC','CASE_SPC','選択値=10'),n('sx','SPC1','SPC1','SID=10 / C=2 / X軸上の面'),n('sy','SPC1','SPC1','SID=10 / C=1 / Y軸上の面'),n('grid','GRID','GRID','PS=3456')],
+   edges:[e('case','sx','SID=10'),e('case','sy','SID=10'),e('sx','grid','節点'),e('sy','grid','節点')]},
+  {title:'内圧',note:'Case ControlのLOADが荷重セットを選びます。PLOAD4は要素と、その面の対角の2節点を参照します。',
+   layers:[['case'],['pload'],['el','grid']],
+   nodes:[n('case','LOAD','CASE_LOAD','選択値=40'),n('pload','PLOAD4','PLOAD4','SID=40 / 10 MPa'),n('el','CHEXA','CHEXA','内面に接する要素'),n('grid','GRID','GRID','G1・G3 / 内面の対角')],
+   edges:[e('case','pload','SID=40'),e('pload','el','EID'),e('pload','grid','G1・G3')]}];
+ const coupled={title:'質量の設定',note:'PARAMは番号の参照を持たず、モデル全体に作用します。',layers:[['coup']],nodes:[n('coup','PARAM,COUPMASS','PARAM_COUPMASS','値=1 / 連成質量')],edges:[]};
+ const pinnedSpan=()=>support('1234 と 23','節点1（1234）・節点13（23）','SPC1を2枚使い、両端をピン支持にします。');
+ const prestress=direction=>[structure('beam'),pinnedSpan(),
+  {title:'2つのSUBCASEの関係',note:'SUBCASE 1の静解析で求めた軸力が、SUBCASE 2の固有値の計算に使われます。STATSUBは荷重セットではなく、SUBCASEの番号を参照します。',
+   layers:[['s2'],['statsub','method'],['s1','eigrl'],['load'],['force'],['grid']],
+   nodes:[n('s2','SUBCASE 2','CASE_SUBCASE','固有値解析'),n('statsub','STATSUB(PRELOAD)','CASE_STATSUB','選択値=1'),n('method','METHOD','CASE_METHOD','選択値=30'),n('eigrl','EIGRL','EIGRL','SID=30 / ND=6'),
+    n('s1','SUBCASE 1','CASE_SUBCASE','静解析'),n('load','LOAD','CASE_LOAD','選択値=40'),n('force','FORCE','FORCE','SID=40 / '+direction+'方向へ1727 N'),n('grid','GRID','GRID','節点13')],
+   edges:[e('s2','statsub','予荷重を選ぶ'),e('statsub','s1','SUBCASE=1'),e('s2','method','抽出条件を選ぶ'),e('method','eigrl','SID=30'),e('s1','load','荷重を選ぶ'),e('load','force','SID=40'),e('force','grid','G=13')]},coupled];
  const maps={
+  'ts-free':thermal('根元の節点1'),'ts-fixed':thermal('節点1と節点13'),
+  'cyl-coarse':cylinder('cyl-coarse'),'cyl-standard':cylinder('cyl-standard'),'cyl-fine':cylinder('cyl-fine'),
+  'pre-none':[structure('beam'),pinnedSpan(),realModes(6),coupled],'pre-tension':prestress('+X'),'pre-compression':prestress('−X'),
   beam:[structure('beam'),root(),staticLoad('先端の節点13','−Z方向へ18 N')],
   shell:[structure('shell'),support('123456','固定辺の節点1–5'),staticLoad('先端辺の節点61–65','合計18 Nを配分')],
   solid:[structure('solid'),support('123','固定面の節点1–15'),staticLoad('先端面の節点361–375','合計18 Nを配分')],
@@ -108,7 +139,7 @@
   'buck-fixed':buckling('123456 と 23456','節点1（全成分）・節点13（軸方向以外）','SPC1を2枚使います。荷重側は軸方向の成分1だけを自由にします。'),
  };
  const solText={101:'線形静解析',103:'実固有値解析',105:'線形座屈解析',107:'複素固有値 · 直接法',108:'周波数応答 · 直接法',109:'過渡応答 · 直接法',110:'複素固有値 · モード法',111:'周波数応答 · モード法',112:'過渡応答 · モード法',153:'定常の熱伝導解析'};
- const linkedSol=new Set([101,103,105,107,110,112,153]);
+ const linkedSol=new Set([101,103,105,107,108,109,110,111,112,153]);
  const out=(name,detail)=>n('out-'+name,name,'CASE_'+name,detail);
  function control(sol,outputs,extra=[]){
   const rows=[];for(let i=0;i<outputs.length;i+=2)rows.push(outputs.slice(i,i+2).map(o=>o.id));
@@ -121,7 +152,7 @@
  const modeOut=[out('DISPLACEMENT','規格化されたモード形')],complexOut=[out('DISPLACEMENT','複素モード形')];
  const heatOut=[out('THERMAL','節点の温度'),out('FLUX','要素の熱流束'),out('SPCFORCES','温度指定点の熱流量')];
  const freqOut=[out('DISPLACEMENT','SORT2・PHASE / 振幅と位相')],timeOut=[out('DISPLACEMENT','SORT2 / 先端T3の時刻歴')];
- const resvec=[n('resvec','RESVEC',undefined,'NO / 残余ベクトルなし')];
+ const resvec=[n('resvec','RESVEC','CASE_RESVEC','NO / 残余ベクトルなし')];
  const controls={
   beam:[101,staticOut],shell:[101,staticOut],solid:[101,staticOut],
   baseline:[103,modeOut],'tip-mass':[103,modeOut],'both-fixed':[103,modeOut],
@@ -133,6 +164,11 @@
   'buck-cantilever':[105,[out('DISPLACEMENT','SUBCASE 1は変位、SUBCASE 2は座屈形')]],
  };
  controls['buck-pinned']=controls['buck-fixed']=controls['buck-cantilever'];
+ const thermalOut=[out('DISPLACEMENT','変位 / 先端のT1を読む'),out('SPCFORCES','固定点の反力'),out('FORCE','要素の軸力'),out('STRESS','応力')];
+ const ringOut=[out('DISPLACEMENT','変位 / 節点1のT1を読む'),out('STRESS','応力 / 要素101の節点1の位置')];
+ const preOut=[out('DISPLACEMENT','SUBCASE 1は変位、SUBCASE 2はモード形'),out('FORCE','SUBCASE 1の軸力')];
+ Object.assign(controls,{'ts-free':[101,thermalOut],'ts-fixed':[101,thermalOut],'cyl-coarse':[101,ringOut],'cyl-standard':[101,ringOut],'cyl-fine':[101,ringOut],
+  'pre-none':[103,modeOut],'pre-tension':[103,preOut],'pre-compression':[103,preOut]});
  for(const [key,panels] of Object.entries(maps)){
   if(window.AnalysisRelationMaps[key])throw Error('Duplicate relation map: '+key);
   window.AnalysisRelationMaps[key]={title:'カード相関図',scope,panels:[control(...controls[key]),...panels]};

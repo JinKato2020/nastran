@@ -2,7 +2,7 @@
 window.NastranAnalysis.entries.push(...[
   {
     "key": "thermal-stress",
-    "title": "熱応力解析 — 加熱部材と機械荷重",
+    "title": "熱応力解析 — 加熱と拘束",
     "sol": "SOL 101",
     "summary": "同じトラスで機械荷重のみ・温度荷重のみ・両者の合成を比較し、温度差、自由膨張、拘束による応力を区別します。温度を求める熱伝導解析ではなく、既知の温度を構造へ与える解析です。",
     "inputs": [

@@ -4,7 +4,7 @@
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const byKey=new Map(entries.map(e=>[e.key,e]));
  const cardOrder=new Intl.Collator('en',{numeric:true,sensitivity:'base'});
- const qrg=p=>'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2020_Quick_Reference_Guide.pdf#page='+p;
+ const qrg=(p,v)=>{const n='MSC_Nastran_'+(v||'2020')+'_Quick_Reference_Guide';return 'https://documentation-be.hexagon.com/bundle/'+n+'/raw/resource/enus/'+n+'.pdf#page='+p;};
  let selected='EXEC_SOL',field='',timer;
  const label=f=>families.find(x=>x[0]===f)?.[1]||'';
  function options(select,items){select.innerHTML=items.map(([v,t])=>`<option value="${esc(v)}">${esc(t)}</option>`).join('');}
@@ -71,7 +71,7 @@
    content+=depth(e);
    if(e.notes?.length)content+='<div class="pitfalls"><h3>指定上の注意</h3><ul>'+e.notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul></div>';
    if(e.reference)content+='<p><a class="library-reference-link" href="'+esc(e.reference)+'">関連する入力例・解析条件 →</a></p>';
-   content+='<div class="reference-sources"><span>原典：MSC Nastran 2020 SP1 QRG（PDF通しページ）</span><div>'+(e.sourcePages||[e.page]).map(p=>'<a href="'+qrg(p)+'" target="_blank" rel="noopener">p.'+p+' ↗</a>').join(' ')+'</div></div>';
+   content+='<div class="reference-sources"><span>原典：MSC Nastran '+(e.sourceVersion||'2020 SP1')+' QRG（PDF通しページ）</span><div>'+(e.sourcePages||[e.page]).map(p=>'<a href="'+qrg(p,e.sourceVersion)+'" target="_blank" rel="noopener">p.'+p+' ↗</a>').join(' ')+'</div></div>';
    $('card-detail').innerHTML=content;controls(e,raw);
    if(e.kind==='fixed'){
     const position=field&&/^\d+:\d+$/.test(field)?field.split(':').map(Number):[];
