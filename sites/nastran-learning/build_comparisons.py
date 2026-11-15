@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parent
 data = json.loads((ROOT / 'card-comparisons.json').read_text(encoding='utf-8'))
 keys = [t['key'] for t in data['topics']]
 assert len(keys) == len(set(keys))
+assert all(alias not in keys and target in keys for alias, target in data.get('aliases', {}).items())
 for topic in data['topics']:
     assert all(len(row) == len(topic['columns']) + 1 for row in topic['differences']), topic['key']
     assert all(key in keys for key in topic['related']), topic['key']

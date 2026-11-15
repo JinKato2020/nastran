@@ -47,6 +47,16 @@
 <p>表の「性質の決まり方」の列が、この記事全体を貫くポイントです。CROD なら、Nastran が断面積（<a href="bulk.html#PROD">PROD</a>）、縦弾性係数（<a href="bulk.html#MAT1">MAT1</a>）、両端の節点の位置から軸の剛さ EA/L を<strong>自分で計算</strong>します。スカラーのばねでは、この計算をユーザーが済ませておき、結果のばね定数だけを入れます。GENEL はそれをさらに押し進めて、行列ごと入れる要素です。つまり、形の情報が少ない要素ほど、Nastran が自動で守ってくれること（座標の向き、剛体として動いたときに力が出ないこと）をユーザーが自分で守る必要があります。</p>
 
 <p class="element-key">要点：要素を選ぶ最初の問いは「その部品の形を、点・線・面・立体のどれで表せば十分か」です。形の情報を減らすほどモデルは軽くなりますが、向きや釣合いの管理がユーザー側の責任になります。</p>
+<details class="guide-details"><summary>第4章の各テーマから読み進める</summary><div>
+<ul>
+<li><a href="#scalar-concept">スカラー要素</a>：CELASとCBUSH。つないだ成分が動いたとき、どこへ力が伝わるかを確認する。</li>
+<li><a href="elements.html#beam">棒・梁</a>：CROD・CBAR・CBEAMの使い分けから、任意断面・複合材・曲がり梁へ進む。</li>
+<li><a href="elements.html#shell">シェル</a>：板厚・法線・材料軸と表裏の応力を学ぶ。せん断パネルと二次元き裂先端要素もこの章に含む。</li>
+<li><a href="elements.html#solid">ソリッド</a>：六面体・四面体などの節点順と応力の位置を学ぶ。軸対称と三次元き裂先端要素まで扱う。</li>
+<li><a href="elements.html#genel">GENEL</a>：離れた節点の変位と力の関係を、剛性または柔性行列で与える。</li>
+<li><a href="elements.html#connector">コネクタ</a>と<a href="elements.html#connector-cohesive">凝着界面</a>：点・線・面で結合する違いと、開口・すべりで界面力がどう変わるかを学ぶ。</li>
+</ul><p><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide.pdf#page=73" target="_blank" rel="noopener">線形静解析ユーザーガイド2024.1 第4章（PDF 73–202ページ） ↗</a></p>
+</div></details>
 </section>
 
 <section class="theory-section" id="scalar-concept"><h2>2. スカラー要素 — 形を持たない要素</h2>
@@ -333,6 +343,7 @@
 </section>
 
 <section class="theory-section" id="beam-axes"><h2>5. 要素座標と向きベクトル v</h2>
+<div class="analysis-links"><a href="coordinates.html#elements">最初に学ぶ「要素の向き」へ →</a></div>
 <p>梁要素で初心者が最もつまずくのが「向きベクトル」です。同じ寸法の I形鋼でも、縦に置くか横に置くかで構造の硬さは大きく変わります。両端の節点と断面の値だけでは、断面がどちらを向いているかが決まりません。そこで、断面の向きを決める矢印 v を別に与えます。</p>
 <figure class="element-figure"><svg viewBox="0 0 355 172" role="img" aria-label="梁のAからBへ局所x。斜めの向きベクトルvのうちxに垂直な成分が局所y。局所zは手前。Bに下向き荷重。"><g font-size="13" fill="#29466b"><text x="17" y="22" fill="#29466b">① 軸を決める</text><text x="213" y="22" fill="#29466b">② 荷重を読む</text><path d="M36 112L147 112" stroke="#234e91" stroke-width="2.5"/><polygon points="147.0,112.0 138.0,116.0 138.0,108.0" fill="#234e91"/><path d="M36 112L36 45" stroke="#234e91" stroke-width="2.5"/><polygon points="36.0,45.0 40.0,54.0 32.0,54.0" fill="#234e91"/><path d="M36 112L95 55" stroke="#166548" stroke-width="2.5"/><polygon points="95.0,55.0 91.3,64.1 85.7,58.4" fill="#166548"/><path d="M95 55V112H36" stroke="#a0aab8" stroke-dasharray="4 3" fill="none"/><text x="11" y="130" fill="#29466b">A／GA</text><text x="135" y="130" fill="#29466b">B／GB</text><text x="151" y="108" fill="#234e91">+x</text><text x="13" y="42" fill="#234e91">+y</text><text x="101" y="58" fill="#166548">v</text><text x="28" y="152" fill="#234e91">⊙ +z（手前）</text><path d="M209 105H311 M209 88V121" stroke="#526e8a" stroke-width="3"/><path d="M311 58L311 102" stroke="#ad3928" stroke-width="2.5"/><polygon points="311.0,102.0 307.0,93.0 315.0,93.0" fill="#ad3928"/><path d="M225 92L225 59" stroke="#234e91" stroke-width="2.5"/><polygon points="225.0,59.0 229.0,68.0 221.0,68.0" fill="#234e91"/><text x="233" y="63" fill="#234e91">+y</text><text x="274" y="49" fill="#ad3928">荷重 −y</text><text x="210" y="143" fill="#29466b">面1（x–y面）で曲がる</text></g></svg><figcaption>オフセットなしの例。青は要素の正方向、緑は断面の向きを決める v、赤は外力です。この例は局所 x・y が基本 X・Y と一致しています。v が斜めでも y は x に直角です。</figcaption></figure>
 <h3>座標の決まり方</h3>
@@ -383,13 +394,17 @@
 <h3>断面寸法と座標をセットで確認する</h3><p>矩形の寸法を入れ替えると曲げ剛性が入れ替わります。断面の表示と梁の局所y・zを同時に出し、荷重方向に対する高さを確認します。</p></section>
 
 <section class="theory-section" id="beam-pin"><h2>8. 端の結合を外す（ピンフラグ PA・PB）</h2>
-<p>CBAR の継続行の PA・PB 欄に自由度の番号を書くと、要素の端と節点の間で、その自由度のつながりを外せます。すべての軸まわりのモーメントを伝えない接続の例では、片側の端で456を解放します。面1内だけを曲がり自由にする場合は、局所z軸まわりの6を解放します。456 は要素座標の x・y・z 軸まわりの回転です。</p>
-<figure class="element-figure"><svg viewBox="0 0 360 120" role="img" aria-label="2本のCBARがヒンジでつながる。片方の端でPB=456を指定">
-<line x1="30" y1="70" x2="172" y2="70" stroke="#2f5c9e" stroke-width="6"/><line x1="188" y1="70" x2="330" y2="40" stroke="#2f5c9e" stroke-width="6"/>
-<circle cx="180" cy="68" r="9" fill="#fff" stroke="#c0392b" stroke-width="3"/>
-<text x="70" y="98" font-size="13" fill="#2f5c9e">CBAR 1（PB = 456）</text><text x="220" y="80" font-size="13" fill="#2f5c9e">CBAR 2</text>
-<text x="132" y="34" font-size="12" fill="#c0392b">ヒンジ：回転を伝えない</text>
-</svg><figcaption>回転だけを外し、並進（123）はつないだままにします。</figcaption></figure>
+<p>CBAR の継続行の PA（A端）・PB（B端）には、梁端と節点の間で<strong>結合を外す自由度</strong>を書きます。図の <code>PB=456</code> は、CBAR 1 の B端で要素座標の x・y・z 軸まわりの回転を自由にする指定です。面1内だけを曲がり自由にする場合は、局所z軸まわりの <code>PB=6</code> を指定します。</p>
+<figure class="element-figure"><svg viewBox="0 0 360 145" role="img" aria-label="CBAR 1 の B端と CBAR 2 は共通節点で接続する。PB=456 で回転を解放し、並進は一緒に動く">
+<line x1="25" y1="83" x2="180" y2="83" stroke="#2f5c9e" stroke-width="6"/><line x1="180" y1="83" x2="335" y2="54" stroke="#2f5c9e" stroke-width="6"/>
+<circle cx="180" cy="83" r="8" fill="#fff" stroke="#c0392b" stroke-width="3"/>
+<text x="180" y="23" text-anchor="middle" font-size="14" fill="#c0392b">回転 456：解放</text>
+<path d="M159 61 A24 24 0 0 1 200 62 M193 60 L200 62 L201 54" fill="none" stroke="#c0392b" stroke-width="2"/>
+<text x="25" y="106" font-size="13" fill="#2f5c9e">CBAR 1（PB=456）</text><text x="259" y="88" font-size="13" fill="#2f5c9e">CBAR 2</text>
+<line x1="180" y1="94" x2="180" y2="116" stroke="#2f5c9e"/>
+<text x="180" y="136" text-anchor="middle" font-size="14" fill="#2f5c9e">共通節点で並進 123 を共有</text>
+</svg><figcaption>接続点で2本の梁は一緒に移動し、互いに回転できます。この結合では軸力・せん断力を伝え、曲げモーメント・ねじりモーメントは解放します。</figcaption></figure>
+<p>図は梁同士の接続です。共通節点自体を支持点として空間に固定する場合は、別途 <a href="bulk.html#SPC1">SPC1</a> などで節点の並進 <code>123</code> を拘束します。SPC1 の番号は拘束する自由度、PB の番号は解放する自由度です。</p>
 <ul>
 <li>自由度は要素座標で数えます。全体座標ではありません。</li>
 <li>外す自由度に対応する剛性を、物性カードに持っている必要があります。たとえば PA = 4 なら、PBAR に J が必要です。</li>
@@ -525,18 +540,15 @@ h = 5 × 150 / 50² = 0.3、k ≈ 1.65 / 0.3 ≈ 5.5
 <p>CBEAM3 を2次のシェル要素（<a href="bulk.html#CTRIA6">CTRIA6</a>・<a href="bulk.html#CQUAD8">CQUAD8</a>）と組み合わせて補強材を表す使い方を挙げています。2次のシェルは辺の中央にも節点を持ちます。中央の節点を持つ CBEAM3 なら、シェルの辺のすべての節点を共有して、辺に沿ってぴったり補強できます（2節点の梁では中央の節点がつながりません。この理由づけは解説としての補足です）。</p>
 </section>
 <section class="theory-section" id="beam-choose"><h2>14. 選び方と、よくある間違い</h2>
+<div class="analysis-links"><a href="comparisons.html#beam">CBARとCBEAMの選び方を比較する →</a><a href="comparisons.html#beam-properties">断面プロパティの選び方 →</a></div>
 <h3>要素の選び方</h3>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>こんなとき</th><th>使う要素</th><th>理由</th></tr></thead>
 <tbody>
-<tr><td>ピン結合のトラス、ワイヤ、つなぎ棒</td><td>CROD（円管なら CTUBE）</td><td>軸力だけを伝えればよい</td></tr>
-<tr><td>一定断面で、断面が2軸対称の骨組み</td><td>CBAR</td><td>入力が少なく、向きベクトルを決めれば十分</td></tr>
-<tr><td>断面が途中で変わる梁</td><td>CBEAM</td><td>途中の断面を最大9か所指定できる</td></tr>
-<tr><td>溝形・L形などの非対称断面</td><td>CBEAM</td><td>せん断中心のずれによるねじれを表せる</td></tr>
-<tr><td>薄肉の開いた断面で、ねじりが重要</td><td>CBEAM（反りあり）</td><td>反りの拘束の効果を入れられる</td></tr>
+<tr><td>ピン結合のトラス、ワイヤ、つなぎ棒</td><td><a href="bulk.html#CROD">CROD</a>（円管なら <a href="bulk.html#CTUBE">CTUBE</a>）</td><td>軸力と、必要な場合はねじりを表す。CTUBEは外径・肉厚を<a href="bulk.html#PTUBE">PTUBE</a>で与える</td></tr>
 <tr><td>標準形にない断面</td><td>PBRSECT／PBMSECT</td><td>点で断面を描いて性質を計算</td></tr>
-<tr><td>配管のエルボ、円弧の部材</td><td>CBEND</td><td>曲がりによる柔らかさを考慮</td></tr>
-<tr><td>初めから曲がった梁、複合材の梁</td><td>CBEAM3</td><td>初期曲率とせん断変形、VAM の断面</td></tr>
+<tr><td>配管のエルボ、円弧の部材</td><td><a href="bulk.html#CBEND">CBEND</a>＋<a href="bulk.html#PBEND">PBEND</a></td><td>円弧の形を指定し、曲がりによる柔らかさを考慮</td></tr>
+<tr><td>初めから曲がった梁、複合材の梁</td><td><a href="bulk.html#CBEAM3">CBEAM3</a></td><td>初期曲率とせん断変形、VAM の断面</td></tr>
 <tr><td>部材が太く短い、板厚の応力分布を見たい</td><td>ソリッド（CHEXA など）</td><td>梁の仮定（平面保持）が成り立ちにくい</td></tr>
 </tbody></table></div>
 <h3>よくある間違い</h3>
@@ -545,17 +557,23 @@ h = 5 × 150 / 50² = 0.3、k ≈ 1.65 / 0.3 ≈ 5.5
 <li><strong>向きベクトルが要素の軸と平行。</strong>面1 が決まらずエラーになります。</li>
 <li><strong>G0 に構造の節点を使う。</strong>モデルを修正したときに断面の向きが変わり、気付きにくい誤りになります。専用の固定節点を作ります。</li>
 <li><strong>CBEAM の A・I1・I2 を空欄にする。</strong>CBAR では許されますが、CBEAM では致命的エラーになります。</li>
-<li><strong>CBAR と CBEAM でせん断変形の既定値が違うことを忘れる。</strong>同じ値を入れても、短い梁では結果が変わります。</li>
 <li><strong>オフセットの座標系を取り違える。</strong>WA・WB は節点の変位座標系（OFFT の指定による）、PBEAM の中立軸のずれは要素座標です。</li>
 <li><strong>安全余裕にねじりが入っていると思い込む。</strong>CBAR の安全余裕は曲げと軸だけです。</li>
 <li><strong>テーパー梁で根元だけを確認する。</strong>最大応力は途中に出ることがあります。</li>
 <li><strong>単位をそろえない。</strong>N・mm・MPaなど、一貫した単位で荷重・形状・物性を入力します。</li>
 </ul>
-<div class="analysis-links"><a href="comparisons.html#beam">CBAR と CBEAM の比較 →</a><a href="modeling.html">片持ち梁をばね・梁・立体で比べる →</a><a href="coordinates.html#elements">要素座標と応力の向き →</a></div>
+<div class="analysis-links"><a href="modeling.html">片持ち梁をばね・梁・立体で比べる →</a><a href="coordinates.html#elements">要素座標と応力の向き →</a></div>
 </section>
 
 <section class="theory-section" id="beam-sources"><h2>仕様を調べる</h2>
 <p>各カード名からInputデータの書式・適用条件を確認できます。計算例は手計算用の条件です。</p>
+<p>複雑な断面の入力には、断面寸法・材料層・応力回復点の指定が関係します。書式を決める際は、該当するQRGの定義を確認します。</p>
+<ul>
+<li><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=2498" target="_blank" rel="noopener">PBEAM3 · 3節点梁の断面特性</a></li>
+<li><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=2526" target="_blank" rel="noopener">PBMSECT · 任意断面・複合材の断面</a></li>
+<li><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=2531" target="_blank" rel="noopener">PBRSECT · 棒・梁の任意断面</a></li>
+<li><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=2487" target="_blank" rel="noopener">PBCOMP · 梁の複合断面</a></li>
+</ul>
 </section>
 </article>
 <article id="shell" data-element="shell" data-title="シェル要素（CQUAD4・CTRIA3ほか）">
@@ -724,6 +742,7 @@ Z1 = −6、Z2 = +6（面板の外面で応力を見る）</div>
 </section>
 
 <section class="theory-section" id="shell-axes"><h2>6. 節点順・法線・材料方向</h2>
+<div class="analysis-links"><a href="coordinates.html#elements">最初に学ぶ「要素の向き」へ →</a></div>
 <figure class="element-figure"><svg viewBox="0 0 355 172" role="img" aria-label="左は反時計回りの節点順で正法線が手前。右は逆順で正法線が奥。物理的に同じ観測面のZの符号が変わる。"><g font-size="13" fill="#29466b"><g fill="#e8f0fb" stroke="#6780a3"><rect x="27" y="36" width="115" height="80"/><rect x="208" y="36" width="115" height="80"/></g><path d="M44 103L124 103" stroke="#234e91" stroke-width="2.5"/><polygon points="124.0,103.0 115.0,107.0 115.0,99.0" fill="#234e91"/><path d="M128 98L128 53" stroke="#234e91" stroke-width="2.5"/><polygon points="128.0,53.0 132.0,62.0 124.0,62.0" fill="#234e91"/><path d="M309 53L309 98" stroke="#234e91" stroke-width="2.5"/><polygon points="309.0,98.0 305.0,89.0 313.0,89.0" fill="#234e91"/><path d="M305 103L225 103" stroke="#234e91" stroke-width="2.5"/><polygon points="225.0,103.0 234.0,99.0 234.0,107.0" fill="#234e91"/><text x="33" y="153" fill="#234e91">⊙ +z：手前</text><text x="217" y="153" fill="#234e91">⊗ +z：奥</text><text x="31" y="130" fill="#29466b">G1</text><text x="122" y="130" fill="#29466b">G2</text><text x="122" y="30" fill="#29466b">G3</text><text x="26" y="30" fill="#29466b">G4</text><text x="210" y="130" fill="#29466b">G1</text><text x="207" y="30" fill="#29466b">G2</text><text x="304" y="30" fill="#29466b">G3</text><text x="303" y="130" fill="#29466b">G4</text></g></svg><figcaption>同じ長方形の節点順だけを反転。表裏と荷重の表示を確認し、実空間で同じ面と方向を比較します。</figcaption></figure><p>右手の指を節点順に回したとき、親指が局所＋zを示します。Z1・Z2は要素基準面からの符号付き距離です。既定の対称断面では−z側と＋z側に対応します。オフセットや出力点を指定した場合は距離を確認します。</p><p>要素xは、四辺形では一般にG1→G2と一致するとは限りません。三角形と四辺形で面内軸の決め方が異なります。一方、THETAで指定する材料方向はG1→G2を基準に法線まわりに回します。MCIDを使う場合は指定座標系のx軸を要素面へ投影します。投影が小さくなる向きは避けます。</p><figure class="element-figure"><svg viewBox="0 0 360 148" role="img" aria-label="長方形シェルを正法線側から見る。G1からG2への基準線から反時計回りの角度で材料1軸を指定。">
 <rect x="42" y="34" width="270" height="77" fill="#e5eefb" stroke="#6780a3"/>
 <path d="M58 99H187 M58 99L141 54 M99 99Q99 90 94 79" fill="none" stroke="#234e91" stroke-width="2"/>
@@ -1426,6 +1445,7 @@ F2 も辺 2-3・1-4 について同様</div>
 </section>
 
 <section class="theory-section" id="connector-sources"><h2>出典と例題ファイル</h2>
+<div class="analysis-links"><a href="bulk.html#CWELD">CWELD・PWELDの入力 →</a><a href="bulk.html#CFAST">CFAST・PFASTの入力 →</a><a href="bulk.html#CSEAM">CSEAM・PSEAMの入力 →</a><a href="bulk.html#CIFHEX">凝着要素の入力 →</a><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=1448" target="_blank" rel="noopener">CINTC · QRGの境界曲線の指定 ↗</a></div>
 <p>出典：MSC Nastran 2025.1 Linear Static Analysis User’s Guide、第4章「Connector Elements」（PDF 185〜198ページ）と「MSC Nastran Cohesive Elements」（PDF 199〜202ページ）。以下のリンクは公式サイトで公開されているPDFの該当ページを開きます。</p>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>内容</th><th>例題ファイル</th><th>PDFのページ</th></tr></thead>
@@ -1781,45 +1801,7 @@ b = Σ (x − 50)·w / Σ (x − 50)² = (2 × 50 × 6×10⁻⁴) / (4 × 50²) 
 <p class="element-note">本文は「管先端の 10 lb による反力は 10 lb と 100 in·lb」と書いていますが、示された入力の FORCE と MOMENT はどちらも大きさ 1.0 です（単位荷重で入れた可能性がありますが、本文に説明はありません）。重み 0.265・0.08 も、せん断の分布曲線を2領域に分けた面積とだけ説明されており、その絶対値の求め方は未確認です（RBE3 では重みの比だけが効くので、配分の結果には影響しません）。点の座標から計算した中心からの距離は約 1.26 in で、本文の「半径 1.2 in」とは少し違います。</p>
 </section>
 
-<section class="theory-section" id="rigid-compare"><h2>10. RBE2 と RBE3 の違いを数字で読む</h2>
-<p>マニュアルは取付リングの例で、RBE2 を使えばリングは Z 方向に剛になり、RBE3 なら剛性は追加されない、どちらも近似なので使い分けは技術者の判断だ、と述べています。違いを数字で実感するために、簡単な考え方のモデルで比べます（一般的な理論の補足。Nastran の入力ではなく手計算だけのモデルです）。</p>
-<figure class="element-figure"><svg viewBox="0 0 380 200" role="img" aria-label="3つのばねの上に剛な棒。左と中央のばね定数k、右は4k。中央に荷重P。RBE2では棒がまっすぐ傾き、RBE3では各点がばらばらに沈む">
-<g font-size="12" fill="#29466b"><text x="20" y="20">RBE2：足先は一直線（剛）</text><text x="210" y="20">RBE3：足先はばらばら</text></g>
-<g stroke="#7d93ad" stroke-width="2" fill="none">
-<path d="M40 150 l5 -6 l-10 -6 l10 -6 l-10 -6 l10 -6 l-5 -4"/><path d="M100 150 l5 -6 l-10 -6 l10 -6 l-10 -6 l10 -6 l-5 -4"/><path d="M160 150 l5 -6 l-10 -6 l10 -6 l-10 -6 l10 -6 l-5 -4"/>
-<path d="M230 150 l5 -6 l-10 -6 l10 -6 l-10 -6 l10 -6 l-5 -4"/><path d="M290 150 l5 -6 l-10 -6 l10 -6 l-10 -6 l10 -6 l-5 -4"/><path d="M350 150 l5 -6 l-10 -6 l10 -6 l-10 -6 l10 -6 l-5 -4"/></g>
-<g stroke="#5a6f88" stroke-width="3"><line x1="25" y1="152" x2="175" y2="152"/><line x1="215" y1="152" x2="365" y2="152"/></g>
-<line x1="40" y1="106" x2="160" y2="96" stroke="#2f5c9e" stroke-width="4"/>
-<g fill="#29466b"><circle cx="40" cy="106" r="4"/><circle cx="100" cy="101" r="4"/><circle cx="160" cy="96" r="4"/></g>
-<g stroke="#7d93ad" stroke-width="1.5" stroke-dasharray="4 3"><line x1="290" y1="88" x2="230" y2="106"/><line x1="290" y1="88" x2="290" y2="106"/><line x1="290" y1="88" x2="350" y2="96"/></g>
-<g fill="#29466b"><circle cx="230" cy="106" r="4"/><circle cx="290" cy="106" r="4"/><circle cx="350" cy="96" r="4"/></g>
-<circle cx="290" cy="88" r="5" fill="#d9822b"/>
-<g stroke="#c0392b" stroke-width="2.5"><line x1="100" y1="50" x2="100" y2="88"/><line x1="290" y1="45" x2="290" y2="76"/></g>
-<polygon points="94,84 106,84 100,94" fill="#c0392b"/><polygon points="284,73 296,73 290,83" fill="#c0392b"/>
-<g font-size="11" fill="#5a6f88"><text x="30" y="170">k</text><text x="92" y="170">k</text><text x="150" y="170">4k</text><text x="222" y="170">k</text><text x="282" y="170">k</text><text x="340" y="170">4k</text></g>
-<g font-size="11" fill="#c0392b"><text x="20" y="190">0.381P 0.238P 0.381P</text><text x="212" y="190">0.333P 0.333P 0.333P</text></g>
-</svg><figcaption>間隔1で並んだ3本のばね（k、k、4k）の上に、中央の点から荷重 P を配る。下の赤字が各ばねの受ける力。RBE2 は荷重の配分がばねの硬さで変わり、RBE3 は硬さに関係なく重み（ここでは等しい）で決まります。</figcaption></figure>
-<div class="element-formula">【RBE2】足先は剛な棒の上 → w = a + b·x（x = −1, 0, +1）
-　力のつり合い：k(a − b) + k·a + 4k(a + b) = P
-　モーメントのつり合い：−k(a − b) + 4k(a + b) = 0　→　b = −0.6a
-　→ a = P/(4.2k) ≈ 0.238 P/k、各ばねの力 0.381P、0.238P、0.381P
-【RBE3（重み全て1）】足先の力は形と重みだけで決まる → P/3 = 0.333P ずつ
-　各点の沈み：0.333、0.333、0.083（× P/k）→ 一直線に並ばない
-　参照点の沈み（平均の当てはめ、x = 0）：(0.333 + 0.333 + 0.083)/3 = 0.250 P/k</div>
-<div class="element-table-wrap"><table class="element-table">
-<thead><tr><th>比べる点</th><th>RBE2</th><th>RBE3</th></tr></thead>
-<tbody>
-<tr><td>足先の力の配分</td><td>構造の硬さで決まる（棒が傾き、中央が 0.238P に減って両端が 0.381P ずつ）</td><td>形と重みだけで決まる（硬さに無関係）</td></tr>
-<tr><td>足先どうしの関係</td><td>一直線（平面）に縛られる＝剛性が増える</td><td>縛られない。各点は構造の剛性どおりに動く</td></tr>
-<tr><td>荷重点の変位</td><td class="num">0.238 P/k</td><td class="num">0.250 P/k（剛さを足さない分だけ柔らかい）</td></tr>
-<tr><td>独立・従属</td><td>中心が独立、足先が従属</td><td>足先が独立、中心（参照点）が従属</td></tr>
-<tr><td>足先を拘束したいとき</td><td>不可（従属自由度の拘束＝規則①違反）</td><td>可（足先は独立）</td></tr>
-<tr><td>中心を拘束したいとき</td><td>可（独立点）</td><td>そのままでは不可（UM で従属を移す）</td></tr>
-</tbody></table></div>
-<p>支えのばねが全部同じ硬さなら、RBE2 でも足先の沈みは「直線」、力も距離に比例する直線分布になり、RBE3 と同じ配分になります。違いが出るのは、支える構造の硬さが場所によって違うとき（補強材の近く、穴の周りなど）です。そのとき RBE2 は硬い所へ荷重を集め、しかも接続部の周りを不自然に硬くして局所の応力を乱します。RBE3 は配分を形で決め、接続部の変形を邪魔しません。</p>
-<p>板の例題（8節）に当てはめると、RBE3 では点1・4に配られた 20 N がそのまま固定端へ流れ、板は点2・3の 30 N ずつで曲がりました。もし参照点99を独立点にした RBE2 で四隅をつなごうとすると、四隅（従属）のうち点1・4は SPC で固定されているので、規則①に触れてそもそも成り立ちません。マニュアルの管のねじり（6節）のように「端面を丸いまま剛に回したい」のなら RBE2、「荷重を配りたいが剛さは足したくない」のなら RBE3、というのが使い分けの軸です。</p>
-<p class="element-key">要点：RBE2 は「剛にする」要素なので、力の配分は周りの硬さ任せになり、接続部を硬くします。RBE3 は「平均をとる」要素なので、力の配分は重みと形で決まり、剛さを足しません。どちらも近似で、選ぶのは技術者です。</p>
-</section>
+<section class="theory-section" id="rigid-compare"><h2>10. RBE2とRBE3の荷重分担</h2><p>剛性が異なる3本のばねに同じ中心荷重を加え、各ばねの力と中心変位を手計算で比べます。</p><div class="analysis-links"><a href="comparisons.html#rigid-interpolation/worked">比較ページの図・検算へ →</a></div></section>
 
 <section class="theory-section" id="rigid-rjoint"><h2>11. RJOINT — 長さゼロの機構の継手</h2>
 <p>RJOINT は機械的な継手を表します。入力は EID、GA、GB、CB だけです。GA が独立点（6成分すべて独立）、GB が従属点で、<strong>GA と GB の距離はゼロでなければなりません</strong>。長さがないので熱荷重は関係しません。</p>
@@ -1838,13 +1820,12 @@ b = Σ (x − 50)·w / Σ (x − 50)² = (2 × 50 × 6×10⁻⁴) / (4 × 50²) 
 </section>
 
 <section class="theory-section" id="rigid-choose"><h2>12. 選び方と、よくある間違い</h2>
+<div class="analysis-links"><a href="comparisons.html#rigid-interpolation">RBE2とRBE3の選び方と検算 →</a><a href="comparisons.html#rigid-interpolation/choose">SPCで支える場合とRBE2で結ぶ場合 →</a></div>
 <h3>要素の選び方</h3>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>こんなとき</th><th>使う要素</th><th>理由</th></tr></thead>
 <tbody>
 <tr><td>2点を剛につなぐ、板の端に梁をつなぐ</td><td>RBAR（RBAR1）</td><td>1〜6成分を選んで剛に結べる</td></tr>
-<tr><td>多数の点の同じ成分を1点に剛につなぐ（剛な隔壁、端面を丸いまま回す）</td><td>RBE2</td><td>1枚で書ける。変位座標系を工夫すれば方向も選べる</td></tr>
-<tr><td>荷重や質量を多数の点に配りたいが、剛さは足したくない</td><td>RBE3</td><td>重み付き平均なので構造を硬くしない</td></tr>
 <tr><td>手計算のせん断分布などを節点に写したい</td><td>RBE3（重みを変える）</td><td>重みの比で配分を指定できる</td></tr>
 <tr><td>ヒンジ・球継手などの機構</td><td>RJOINT（または長さゼロの RBAR）</td><td>CB から外した成分が自由に動く</td></tr>
 <tr><td>1方向だけ剛につなぐ</td><td>RROD</td><td>拘束式は1本だけ</td></tr>
@@ -1858,7 +1839,6 @@ b = Σ (x − 50)·w / Σ (x − 50)² = (2 × 50 × 6×10⁻⁴) / (4 × 50²) 
 <li><strong>RBE3 の Ci に 456 を入れる。</strong>マニュアルが挙げる最も多い誤り。原則は 123 だけです。</li>
 <li><strong>RBE3 の Ci から並進を抜く。</strong>伝えたくない方向でも 123 をすべて書かないと、剛体運動が決まらず致命的エラーになります。</li>
 <li><strong>RBE3 の参照点の変位を「その位置の構造の変位」と思い込む。</strong>あくまで平均の当てはめの値です（板の例で 3.6×10⁻⁴ と実際の板のたわみは別物）。</li>
-<li><strong>RBE2 の剛さを忘れる。</strong>広い範囲を RBE2 でつなぐと、その範囲は変形できなくなり、周囲に不自然な応力集中が出ます。</li>
 <li><strong>線形法のまま座屈解析や熱応力解析をする。</strong>剛体要素の微分剛性と熱膨張が入らず、答えが正しくありません。</li>
 <li><strong>剛な要素で大きな回転を出す。</strong>線形解析では剛な棒が伸びてしまいます（熱膨張の例で長さ 2.0 が 2.06 に）。</li>
 <li><strong>同じ位置の節点を統合してしまう。</strong>ヒンジ用の節点がプリプロセッサの equivalence で1つになり、ヒンジが消えます。</li>

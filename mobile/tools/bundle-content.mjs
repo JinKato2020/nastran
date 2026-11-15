@@ -6,8 +6,8 @@ import { createRequire } from 'node:module';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const source=path.resolve(root,'../sites/nastran-learning/dist');
 const catalog=[
- ['comparisons.html','似たカードの使い分け','CBAR／CBEAMなど14テーマの選択基準・結果への影響','共通理論','#beam'],
- ['theory.html','理論教材','15解析と境界条件・減衰の理論','理論','#static'],
+ ['comparisons.html','似たカードの使い分け','要素・拘束などの選択基準と結果への影響','共通理論','#beam'],
+ ['theory.html','理論教材','解析別の理論と、材料・拘束・荷重などの共通技術','理論','#materials'],
  ['elements.html','各要素理論','ばね・梁・シェル・ソリッド・結合・剛体・GENELの仕組み・モデル化・結果の読み方','理論','#scalar'],
  ['analysis.html','解析別の学習','共通手順と15種類の解析のモデル図・主要カード・結果の読み方','解析','#common'],
  ['index.html','線形静解析の基礎','11章と棒の引張り実験室','基礎','#chapter-1'],
@@ -26,7 +26,9 @@ const catalog=[
  ['include.html','INCLUDEファイルの作成','ファイルの分割と荷重の切替え','実践',''],
 ].map(([id,title,description,category,hash])=>({id,title,description,category,hash}));
 const course=JSON.parse(fs.readFileSync(path.join(source,'../learning-path.json'),'utf8'));
-const comparisonTopics=JSON.parse(fs.readFileSync(path.join(source,'../card-comparisons.json'),'utf8')).topics.map(({key,title})=>({key,title}));
+const comparisons=JSON.parse(fs.readFileSync(path.join(source,'../card-comparisons.json'),'utf8'));
+const comparisonTopics=comparisons.topics.map(({key,title})=>({key,title}));
+for(const [key,target] of Object.entries(comparisons.aliases||{}))comparisonTopics.push({key,title:comparisonTopics.find(topic=>topic.key===target).title});
 const pages={};const hashes={};
 const read=name=>{const p=path.resolve(source,name);if(!p.startsWith(source+path.sep))throw Error('Invalid asset');const bytes=fs.readFileSync(p);hashes[name]=crypto.createHash('sha256').update(bytes).digest('hex');return bytes.toString('utf8');};
 const pdf='https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide.pdf';

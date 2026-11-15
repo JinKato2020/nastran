@@ -6,14 +6,33 @@
  const moved={'workflow.html#rules':'input.html#rules','workflow.html#build':'input.html#complete','index.html#chapter-4':'basics.html#node','index.html#chapter-5':'basics.html#constraints','index.html#chapter-6':'input.html#executive','index.html#chapter-8':'workflow.html#results'};
  function relocate(){const url=moved[document.body.dataset.learningPage+location.hash];if(!url)return false;const a=document.createElement('a');a.href=url;document.body.append(a);a.click();a.remove();return true;}
  let done=[];try{const v=JSON.parse(localStorage.getItem(storageKey)||'[]');if(Array.isArray(v))done=[...new Set(v.filter(k=>course.steps.some(s=>s.key===k)))];}catch{}
- const navGroups=[['intro','イントロダクション'],['common','共通の解析技術論'],['materials','各解析技術理論'],['elements','各要素理論']];
+ const nav=course.navigation;
+ const basics=[nav.intro[0],nav.homeResources[0],...nav.intro.slice(1)];
+ const theoryGroups=[...new Set(nav.materials.map(item=>item.group))].map(group=>[group,nav.materials.filter(item=>item.group===group)]);
+ const navGroups=[
+  ['各解析技術理論', [['共通の解析技術論',nav.common],...theoryGroups]],
+  ['各要素理論', [[null,nav.elements]]],
+ ];
+ const learningCard=x=>'<a class="learning-card" href="'+href(x)+'"><div><strong>'+esc(x.title)+'</strong><p>'+esc(x.description)+'</p></div></a>';
+ const basicList=document.getElementById('learning-basics');
+ if(basicList)basicList.innerHTML=basics.map(learningCard).join('');
+ const operations=document.getElementById('learning-operations');
+ if(operations)operations.innerHTML=nav.operations.map(learningCard).join('');
  const catalog=document.getElementById('learning-catalog');
- if(catalog)catalog.innerHTML=navGroups.map(([key,title],i)=>'<details class="curriculum-group" '+(i===0?'open':'')+'><summary>'+esc(title)+'<small>'+course.navigation[key].length+'項目</small></summary><div class="learning-list">'+course.navigation[key].map(x=>'<a class="learning-card" href="'+href(x)+'"><div><strong>'+esc(x.title)+'</strong><p>'+esc(x.description)+'</p></div></a>').join('')+'</div></details>').join('');
+ if(catalog)catalog.innerHTML=navGroups.map(([title,sections],i)=>{
+  const count=sections.reduce((total,[,items])=>total+items.length,0);
+  const content=sections.map(([heading,items])=>(heading?'<h3 class="learning-group-label">'+esc(heading)+'</h3>':'')+
+   '<div class="learning-list">'+items.map(learningCard).join('')+'</div>').join('');
+  return '<details class="curriculum-group" '+(i===0?'open':'')+'><summary>'+esc(title)+'<small>'+count+'項目</small></summary>'+content+'</details>';
+ }).join('');
  function cards(group){return course[group].map((x,i)=>'<a class="learning-card" href="'+href(x)+'"><span'+(done.includes(x.key)?' class="learning-complete-mark"':'')+'>'+(done.includes(x.key)?'✓':group==='steps'?String(i+1).padStart(2,'0'):group==='next'?'→':'?')+'</span><div><strong>'+esc(x.title)+'</strong><p>'+esc(x.description)+'</p>'+(group==='next'?'<small>'+esc(x.goal)+'</small>':x.kind?'<small>'+esc(x.kind)+'</small>':'')+'</div></a>').join('');}
  function home(){const el=document.getElementById('learning-home');if(!el)return;
   el.innerHTML='<div class="learning-progress"><b>初めての解析の学習記録</b><span>'+done.length+' / 6ステップ</span></div><div class="learning-list">'+cards('steps')+'</div>';
  }
- const side=document.getElementById('learning-sidebar');if(side)side.innerHTML=navGroups.map(([g,t])=>'<div class="learning-group-label">'+t+'</div>'+course.navigation[g].map(x=>'<a class="learning-side-link" href="'+href(x)+'">'+esc(x.title)+'</a>').join('')).join('');
+ const side=document.getElementById('learning-sidebar');
+ if(side)side.innerHTML=[['最初に学ぶ',[[null,basics]]],['モデル作成・実行・結果',[[null,nav.operations]]],...navGroups].map(([title,sections])=>'<div class="learning-group-label">'+esc(title)+'</div>'+
+  sections.map(([heading,items])=>(heading?'<div class="learning-group-label">'+esc(heading)+'</div>':'')+
+   items.map(x=>'<a class="learning-side-link" href="'+href(x)+'">'+esc(x.title)+'</a>').join('')).join('')).join('');
  function current(){const path=document.body.dataset.learningPage,hash=location.hash;
   if(path==='index.html'){
    if(/^#chapter-[123]$/.test(hash))return 0;

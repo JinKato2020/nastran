@@ -52,7 +52,10 @@
     <main id="main">
       <section class="lesson" id="home" aria-labelledby="catalog-heading">
         <div class="eyebrow">FEM Guide for nas · 教材</div><h1 id="catalog-heading">教材一覧</h1><p class="lead">分類を選び、経験と目的に合う内容から学べます。</p>
-        <div id="learning-catalog"></div>
+        <section aria-labelledby="start-here-heading"><h2 id="start-here-heading">最初に学ぶ</h2><div id="learning-basics" class="learning-list"></div></section>
+        <section aria-labelledby="home-operations-heading"><h2 id="home-operations-heading">モデル作成・実行・結果</h2><div id="learning-operations" class="learning-list"></div></section>
+        <section aria-labelledby="materials-heading"><h2 id="materials-heading">教材</h2><div id="learning-catalog"></div></section>
+        <p><a href="#linear-guide-help">資料・サポート →</a></p>
       </section>
       <section class="lesson" id="first-analysis" hidden aria-labelledby="home-heading">
         <div class="hero">
@@ -61,7 +64,6 @@
           <p class="hero-description">初学者向けの入門コースです。棒1本の静解析で、モデル・入力・実行・結果の確認を6ステップで学びます。</p>
           <p class="beginner-note"><strong>解析経験者は読み飛ばして構いません。</strong>必要な入力規則・座標・応力方向や、各解析の理論から確認できます。<a href="#home">教材一覧へ →</a></p>
           <div class="hero-actions"><button class="button primary" data-go="chapter-1">教材を読み始める <span>→</span></button><button class="button secondary" data-go="lab">まず触ってみる ↗</button></div>
-          <div class="hero-meta"><span>日本語</span><span>入門6ステップ＋体験例題</span><span>2020 SP1 ガイド準拠</span></div>
           <div class="cover-diagram" role="img" aria-label="左端を固定した長さ1000 mmの棒。右端を1000 Nで引っ張ると約0.047619 mm伸び、軸応力は10 MPaになる。">
             <div class="diagram-heading"><span class="diagram-tag">最初に解く問題</span><span>軸方向の引張り</span></div>
             <div class="cover-drawing"><div class="cover-support"></div><div class="cover-bar"><span>断面積 100 mm²</span></div><div class="cover-force"><span>1000 N</span><div></div></div></div>
@@ -69,15 +71,36 @@
             <div class="cover-results"><div><span>右端の変位</span><strong>0.047619 <small>mm</small></strong></div><div><span>軸応力</span><strong>10 <small>MPa</small></strong></div><p>手計算と解析の答えを<br>一つずつつなげていく。</p></div>
           </div>
         </div>
+        <section class="reading" aria-labelledby="linear-start-purpose"><h2 id="linear-start-purpose">モデルを作る前に決めること</h2>
+        <p>最初に、どこに荷重が加わり、どの支持へ力が伝わるかを考えます。次に知りたい量を決めます。同じ部材でも、先端の変位と、薄い壁が局部的に座屈するかどうかでは、必要なモデルが変わります。</p>
+        <p>たとえば横向きの荷重を受ける薄肉管では、全体のたわみは梁で見積もれます。壁の局部座屈を調べるときは、管の表面をシェルで表し、メッシュを変えて座屈形と荷重倍率を確かめます。モデルの細かさは、確かめたい結果から決めます。</p>
+        <p><a href="modeling.html#model-compare">モデル化の考え方 →</a> · <a href="analysis.html#static">静解析の入力・出力の確認 →</a></p>
+        <p><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=19" target="_blank" rel="noopener">線形静解析ユーザーガイド 2025.1 第1章（PDF 19–34ページ） ↗</a></p></section>
         <div id="learning-home" class="learning-home"></div>
-        <details class="about-source reading"><summary>この教材の範囲・原典について</summary><p>棒1本の引張り解析から、モデルの作り方、入力データの読み方、結果の確かめ方を学びます。目標は、SOL 101の小さな入力ファイルを読み、変位・応力・反力が妥当かを自分で説明できるようになることです。</p>
-<p>本教材は <strong>MSC Nastran 2020 Service Pack 1 — Linear Static Analysis User’s Guide</strong> の第1〜10章を中心に、日本語で学習順に再構成したものです。例題の数値と入力ファイルは、この教材のために作成しました。原典の全訳ではありません。2019版で実行する場合の個別の仕様差までは検証していません。</p>
-<ul>
-<li><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide.pdf">原典の静解析ガイドPDF</a></li>
-<li><a href="reference/linear-static-text.txt">原典全709ページの抽出テキスト</a></li>
-<li><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2020_Quick_Reference_Guide.pdf">入力形式を調べるQuick Reference Guide</a></li>
-</ul>
-<p>以下の「PDFページ」は、表紙を含めたファイル先頭からのページ番号です。紙面に印刷された番号とは異なります。抽出テキストでは <code>===== PDF PAGE 0088 / 0709 =====</code> のような区切りを検索すると、そのページに移動できます。図は抽出されず、数式や表は並びが崩れることがあるため、詳細はPDFで確認してください。</p></details>
+      </section>
+      <section class="lesson reading" id="file-structure" hidden aria-labelledby="file-structure-heading">
+        <h1 id="file-structure-heading">MSC Nastranファイルの構成</h1>
+        <p>入力ファイル（DAT・BDF）を上から読むと、最初に実行方法が分かり、その後で解析ケースと、ケースが参照するモデル定義を確認できます。</p>
+        <ol>
+          <li><strong>NASTRAN文</strong>で実行環境に関する設定を指定します。</li>
+          <li><strong>File Management Section</strong>でファイルやデータベースの扱いを指定します。</li>
+          <li><strong>Executive Control</strong>で <code>SOL 101</code> などの解法を選び、通常は <code>CEND</code> で区切ります。</li>
+          <li><strong>Case Control</strong>でSUBCASE、使う拘束・荷重、必要な出力を指定します。</li>
+          <li><strong>Bulk Data</strong>は <code>BEGIN BULK</code> から始まり、節点・要素・材料・拘束・荷重などを定義します。解析や出力に関わる <code>PARAM</code> も通常はここに記述します。</li>
+        </ol>
+        <h2>実行後に見るファイル</h2>
+        <p><strong>F06</strong>はメッセージと計算結果の確認に使います。実行や処理の経過を追うときは <strong>F04</strong> や <strong>LOG</strong> も参照します。出力設定によっては、後処理用の <strong>OP2</strong> やテキスト形式の <strong>PCH</strong> が生成されます。</p>
+        <ul><li><a href="input.html#rules">入力規則と固定長フィールド</a></li><li><a href="bulk.html">カード・設定の辞書</a></li><li><a href="analysis.html#common/run">実行・終了確認の順番</a></li><li><a href="workflow.html#files">入力・出力ファイルの詳細</a></li></ul>
+        <p><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=35" target="_blank" rel="noopener">線形静解析ユーザーガイド 2025.1 第2章（PDF 35–58ページ） ↗</a></p>
+      </section>
+      <section class="lesson reading" id="linear-guide-help" hidden aria-labelledby="linear-guide-help-heading">
+        <h1 id="linear-guide-help-heading">資料・サポート</h1>
+        <ul>
+          <li>解析の考え方と使用例は<a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=19" target="_blank" rel="noopener">線形静解析ユーザーガイド</a>で確認できます。</li>
+          <li>フィールドの書式・選択肢・既定値は<a href="bulk.html">Inputデータ</a>と<a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf" target="_blank" rel="noopener">クイックリファレンス</a>を参照します。</li>
+          <li>実行が止まったときは<a href="errors.html">エラーメッセージ検索</a>で、番号と説明を確認します。</li>
+          <li>製品の問い合わせ先、資料、講習の探し方は<a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=15" target="_blank" rel="noopener">公式ガイドの序文（PDF 15–18ページ）</a>にあります。</li>
+        </ul>
       </section>
       <section class="lesson reading" id="chapter-1" hidden aria-labelledby="heading-1"><div class="eyebrow">基礎ノート 01</div><h1 id="heading-1">学ぶ順序</h1><p>この入門では、棒1本の静解析を <strong>6ステップ</strong> で一周します。まず「何を求めるか」と単位を決め、点・要素・支え・力を学び、入力を作り、手計算と結果を比べます。</p>
 <p>最初から全カードや全解析を覚える必要はありません。分からない欄は図鑑、止まった理由はエラー検索で調べます。</p>
@@ -682,7 +705,7 @@ ENDDATA
     lessons.forEach(el=>el.hidden=el.id!==id);
     links.forEach(el=>{const active=el.dataset.target===id;el.classList.toggle('active',active);if(active)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
     const selected=links.find(el=>el.dataset.target===id);
-    $('location-label').textContent=id==='home'?'教材一覧':id==='first-analysis'?'初めての解析':(selected?selected.children[1].textContent:'');
+    $('location-label').textContent=id==='home'?'教材一覧':(selected?selected.children[1].textContent:$(id).querySelector('h1').textContent);
     $('sidebar').classList.remove('open');$('menu-button').setAttribute('aria-expanded','false');
     window.scrollTo({top:0,behavior:'instant'});
     document.title=(id==='home'?'教材一覧':$(id).querySelector('h1').textContent)+' — FEM Guide for nas';

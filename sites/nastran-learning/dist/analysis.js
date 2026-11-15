@@ -84,7 +84,12 @@
   const deck=window.AnalysisOriginalDecks[model.id];
   const figure=`<figure class="analysis-scenario-figure">${window.renderAnalysisScenarioDiagram(official?entry.key+'-official':model.diagram)}<figcaption>境界条件の模式図</figcaption><p>${esc(official?reference.title:model.takeaway)}</p></figure>`;
   const selection=scenarioControls(scenario,reference,model,official,complex);
-  const related=complex&&!official?[['analysis.html#complex-modes/official','公式例題 · '+reference.title],...scenario.links]:scenario.links;
+  const related=complex&&!official?[['analysis.html#complex-modes/official','公式例題 · '+reference.title],...scenario.links]:[...(scenario.links||[])];
+  if(entry.key==='static')related.push(
+   ['analysis.html#common/material-check','共通 · 材料と断面の照合'],
+   ['analysis.html#common/constraint-check','共通 · 支持・強制変位の照合'],
+   ['analysis.html#common/load-check','共通 · 荷重・反力の照合'],
+  );
   const guide=window.AnalysisScenarioGuides?.[entry.key];
   const state={current:official?'model':tabOf(tabKey)};
   // "dat" in the address means the Input tab with the full deck open, so Back from a card returns there.
@@ -95,7 +100,9 @@
      sources([reference.source])+section('公式例題の主要カード',cardGroups(reference.groups),'analysis-relations')
    : tabbed(state.current,{
       model:[['モデル化と境界条件',`<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+conditions(model.conditions)],guide&&['この解析の基礎',guideBasics(guide)]],
-      input:[['カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations'],['自作モデルのDAT',deckSection(deck,tabKey==='dat')]],
+      input:[['カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations'],
+       guide?.inputReview&&['入力で確認する指定',cardGroups(guide.inputReview)+sources([{url:'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=38',label:'線形静解析ユーザーガイド 2025.1 · 第2章 PDF 38–40ページ'}])],
+       ['自作モデルのDAT',deckSection(deck,tabKey==='dat')]],
       results:[['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(guide)],['モデル間の比較',compare(scenario,scenario.models.indexOf(model))],guide&&['よくある失敗と直し方',conditions(guide.pitfalls)]]
      }))+
    contextLinks(entry,related)+sources(scenario.sources||entry.sources);
@@ -181,8 +188,22 @@
   else showAnalysis(entry,model,subsection);
   if(subsection==='map')requestAnimationFrame(()=>byId('analysis-relations')?.scrollIntoView({block:'start'}));
  }
- picker.innerHTML='<option value="common">共通</option>'+catalog.entries.map(e=>`<option value="${e.key}">${esc(e.title)}（${esc(e.sol)}）</option>`).join('');
- picker.addEventListener('change',()=>{location.hash=picker.value;window.scrollTo(0,0);});
- addEventListener('hashchange',route);
- route();
+ document.addEventListener('DOMContentLoaded',()=>{
+  const groups=new Map();
+  const listed=new Set();
+  for(const item of window.NASTRAN_LEARNING.navigation.analyses){
+   const entry=catalog.entries.find(e=>e.key===item.hash.slice(1));
+   if(!entry)continue;
+   if(!groups.has(item.group))groups.set(item.group,[]);
+   groups.get(item.group).push(entry);
+   listed.add(entry.key);
+  }
+  const remaining=catalog.entries.filter(e=>!listed.has(e.key));
+  if(remaining.length)groups.set('その他',remaining);
+  picker.innerHTML='<option value="common">共通</option>'+[...groups].map(([group,entries])=>
+   `<optgroup label="${esc(group)}">${entries.map(e=>`<option value="${e.key}">${esc(e.title)}（${esc(e.sol)}）</option>`).join('')}</optgroup>`).join('');
+  picker.addEventListener('change',()=>{location.hash=picker.value;window.scrollTo(0,0);});
+  addEventListener('hashchange',route);
+  route();
+ });
 })();

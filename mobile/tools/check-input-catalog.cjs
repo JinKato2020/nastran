@@ -1,11 +1,29 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const dir=path.resolve(__dirname,'../../sites/nastran-learning/dist');
 const context={window:{}};vm.createContext(context);
-for(const name of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
+for(const name of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards','element-input-cards'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
 const entries=context.window.InputCatalog.entries,keys=new Map(entries.map(e=>[e.key,e]));
 const elementLinks=[...fs.readFileSync(path.join(dir,'elements.html'),'utf8').matchAll(/href="bulk\.html#([^"]+)"/g)].map(m=>m[1]);
 assert(elementLinks.length>=30,'element theory links');
 for(const key of elementLinks)assert(keys.has(key),'elements.html -> '+key);
+for(const name of ['theory-data','extended-theory-data','practice-theory-data','linear-foundations','analysis-common']){
+ vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
+}
+for(const topic of context.window.NastranTheory){
+ for(const [url] of topic.links||[]){
+  if(url.startsWith('bulk.html#'))assert(keys.has(url.split('#')[1]),topic.key+' -> '+url);
+ }
+}
+for(const section of ['material-check','constraint-check','load-check','contact-check','damping-check','restart']){
+ const common=context.window.AnalysisCommon;
+ assert(common.includes('id="analysis-common-'+section+'"'),section);
+ assert(common.includes('href="analysis.html#common/'+section+'"'),section);
+ const [,body]=common.split('id="analysis-common-'+section+'"');
+ for(const [,key] of body.split('</section>')[0].matchAll(/href="bulk\.html#([^"]+)"/g))assert(keys.has(key),section+' -> '+key);
+}
+assert.equal(keys.get('MPCY').lines[1][2].label,'G1');
+assert.equal(keys.get('MAT3').lines[1][3].label,'GZX');
+assert.equal(keys.get('ACCEL1').lines[1][1].label,'GRIDID1');
 const comparisons=JSON.parse(fs.readFileSync(path.join(dir,'../card-comparisons.json'),'utf8')).topics;
 for(const topic of comparisons)for(const key of topic.cards)assert(keys.has(key),topic.key+' comparison -> '+key);
 vm.runInContext(fs.readFileSync(path.join(dir,'analysis-relations-data.js'),'utf8'),context);

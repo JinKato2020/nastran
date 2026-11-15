@@ -2,13 +2,40 @@
  'use strict';
  const entries=window.NastranTheory,$=id=>document.getElementById(id);
  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- $('theory-picker').innerHTML=entries.map(e=>`<option value="${e.key}">${esc(e.title)}</option>`).join('');
- function render(){const e=entries.find(e=>e.key===location.hash.slice(1))||entries[0];$('theory-picker').value=e.key;document.title=e.title+' — FEM Guide';
+ const picker=$('theory-picker'),detail=$('theory-detail');
+ function render(){const e=entries.find(e=>e.key===location.hash.slice(1))||entries.find(e=>e.key===picker.options[0]?.value)||entries[0];picker.value=e.key;document.title=e.title+' — FEM Guide';
   const visual=e.visual==='eigenvalues'?window.EigenvalueVisuals:null;
-  $('theory-detail').innerHTML=`<div class="analysis-head"><span class="analysis-sol">${window.SolverScope.basic.has(e.key)?'Nastran共通 · 理論':'教材 · 理論'}</span><h1>${esc(e.title)}</h1><p>${esc(e.summary)}</p></div>${visual?.growthFigure||''}<div class="theory-formula"><p class="analysis-equation">${esc(e.equation)}</p><p>${esc(e.symbols)}</p></div>`+
-   e.sections.map(([title,paragraphs,figure])=>`<section class="theory-section"><h2>${esc(title)}</h2>${paragraphs.map(p=>`<p>${esc(p)}</p>`).join('')}${visual?.[figure]||''}</section>`).join('')+
-   `<section class="theory-section"><h2>適用範囲を判断する</h2><ul>${e.limits.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></section>${e.related?`<div class="analysis-links"><a href="${e.related[0]}">${esc(e.related[1])} →</a></div>`:''}<a class="theory-bridge" href="${e.technical[0]}"><strong>${esc(e.technical[1])} →</strong><span>モデル・境界条件・Input・実行・出力は技術情報へ</span></a><div class="theory-sources">${e.sources.map(([url,title])=>`<a href="${url}" target="_blank" rel="noopener">${esc(title)} ↗</a>`).join('')}</div>`;
-  visual?.connect($('theory-detail'));
+  const related=[...(e.related?[e.related]:[]),...(e.links||[])];
+  const sectionIndex=e.sectionIndex?`<nav class="theory-section-index" aria-label="この教材の目次">${e.sections.map(([title],i)=>`<button type="button" data-theory-target="theory-section-${i}">${esc(title)}</button>`).join('')}</nav>`:'';
+  detail.innerHTML=`<div class="analysis-head"><span class="analysis-sol">${window.SolverScope.basic.has(e.key)?'Nastran共通 · 理論':'教材 · 理論'}</span><h1>${esc(e.title)}</h1><p>${esc(e.summary)}</p></div>${sectionIndex}${visual?.growthFigure||''}<div class="theory-formula"><p class="analysis-equation">${esc(e.equation)}</p><p>${esc(e.symbols)}</p></div>`+
+   e.sections.map(([title,paragraphs,figure],i)=>`<section class="theory-section"><h2 id="theory-section-${i}" tabindex="-1">${esc(title)}</h2>${paragraphs.map(p=>`<p>${esc(p)}</p>`).join('')}${visual?.[figure]||''}</section>`).join('')+
+   `<section class="theory-section"><h2>適用範囲を判断する</h2><ul>${e.limits.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></section>${related.length?`<div class="analysis-links">${related.map(([url,title])=>`<a href="${esc(url)}">${esc(title)} →</a>`).join('')}</div>`:''}<a class="theory-bridge" href="${e.technical[0]}"><strong>${esc(e.technical[1])} →</strong><span>モデル・境界条件・Input・実行・出力は技術情報へ</span></a><div class="theory-sources">${e.sources.map(([url,title])=>`<a href="${url}" target="_blank" rel="noopener">${esc(title)} ↗</a>`).join('')}</div>`;
+  visual?.connect(detail);
  }
- $('theory-picker').addEventListener('change',()=>{location.hash=$('theory-picker').value;window.scrollTo(0,0);});addEventListener('hashchange',render);render();
+ detail.addEventListener('click',event=>{
+  const button=event.target.closest('button[data-theory-target]');
+  if(!button)return;
+  const heading=$(button.dataset.theoryTarget);
+  heading.focus({preventScroll:true});
+  heading.scrollIntoView({block:'start'});
+ });
+ document.addEventListener('DOMContentLoaded',()=>{
+  const nav=window.NASTRAN_LEARNING.navigation;
+  const groups=new Map();
+  const used=new Set();
+  for(const item of [...nav.common,...nav.materials]){
+   if(item.path!=='theory.html')continue;
+   const entry=entries.find(e=>e.key===item.hash.slice(1));
+   if(!entry)continue;
+   const group=item.group||'共通の解析技術論';
+   if(!groups.has(group))groups.set(group,[]);
+   groups.get(group).push(entry);
+   used.add(entry.key);
+  }
+  groups.set('応用・確認',entries.filter(e=>!used.has(e.key)));
+  picker.innerHTML=[...groups].map(([group,items])=>`<optgroup label="${esc(group)}">${items.map(e=>`<option value="${e.key}">${esc(e.title)}</option>`).join('')}</optgroup>`).join('');
+  picker.addEventListener('change',()=>{location.hash=picker.value;window.scrollTo(0,0);});
+  addEventListener('hashchange',render);
+  render();
+ });
 })();

@@ -14,7 +14,8 @@ sys.stdout.reconfigure(encoding='utf-8')
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'mobile/.qa/comparisons'
 OUT.mkdir(parents=True, exist_ok=True)
-TOPICS = json.loads((ROOT / 'sites/nastran-learning/card-comparisons.json').read_text(encoding='utf-8'))['topics']
+DATA = json.loads((ROOT / 'sites/nastran-learning/card-comparisons.json').read_text(encoding='utf-8'))
+TOPICS = DATA['topics']
 
 class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, *args):
@@ -51,6 +52,14 @@ try:
         page.locator('.comparison-backlinks a[href="comparisons.html#beam"]').click()
         assert page.locator('#comparison-picker').input_value() == 'beam'
         page.locator('#comparison-picker').select_option('rigid-interpolation')
+        page.locator('.comparison-jumps a[href="#rigid-interpolation/worked"]').click()
+        assert '0.250 P/k' in page.locator('#comparison-worked').inner_text()
+        assert page.locator('.comparison-card-links a[href="bulk.html#SPC"]').count() == 1
+        assert page.locator('#comparison-compare tbody th').all_text_contents() == ['SPC', 'RBE2', 'RBE3', 'MPC']
+        for alias, target in DATA['aliases'].items():
+            page.goto(base + '/sites/nastran-learning/dist/comparisons.html#' + alias + '/compare')
+            assert page.locator('#comparison-picker').input_value() == target
+        page.locator('#comparison-picker').select_option('rigid-interpolation')
         page.locator('.comparison-flow').scroll_into_view_if_needed()
         page.screenshot(path=str(OUT / 'rigid-relationships.png'))
         # Source links to theory/coordinate sections must resolve, not silently fall back.
@@ -61,8 +70,11 @@ try:
         page.set_viewport_size({'width': 390, 'height': 844})
         page.goto(base + '/mobile/.qa/app/', wait_until='networkidle')
         page.get_by_role('tab', name='教材', exact=True).click()
-        page.get_by_role('button', name='共通の解析技術論', exact=True).click()
-        page.get_by_role('button', name='似たカードの使い分け', exact=True).click()
+        comparison = page.get_by_role('button', name='似たカードの使い分け', exact=True)
+        page.get_by_role('button', name='各解析技術理論', exact=True).wait_for()
+        if comparison.count() == 0:
+            page.get_by_role('button', name='各解析技術理論', exact=True).click()
+        comparison.click()
         frame = page.frame_locator('iframe')
         frame.locator('#comparison-picker').wait_for()
         assert frame.locator('#comparison-picker').input_value() == 'beam'
@@ -85,7 +97,7 @@ try:
         page.screenshot(path=str(OUT / 'app-return.png'))
         page.get_by_role('tab', name='ホーム', exact=True).click()
         page.get_by_role('button', name='しおり一覧', exact=True).click()
-        assert page.get_by_text('RBE2とRBE3', exact=True).count() >= 1
+        assert page.get_by_text('支持・拘束の選び方（SPC・RBE2・RBE3・MPC）', exact=True).count() >= 1
         page.reload(wait_until='networkidle')
         assert page.evaluate('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="comparisons.html")')
         assert not errors, errors

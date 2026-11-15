@@ -1,5 +1,5 @@
 import appConfig from './app.json';
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, AppState, BackHandler, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -76,7 +76,10 @@ function LearningApp(){
   function ownerTab(p:Position):TabKey{
     if(p.path==='bulk.html')return 'input';
     if(p.path==='analysis.html'||p.path==='relations.html')return 'analysis';
-    if(p.path==='errors.html')return 'home';
+    if(p.path==='errors.html'||NAVIGATION.operations.some(item=>item.path===p.path)||
+      NAVIGATION.homeResources.some(item=>item.path===p.path&&item.hash===p.hash)||
+      NAVIGATION.intro.some(item=>item.path===p.path&&item.hash===p.hash)||
+      (p.path==='index.html'&&(/^#chapter-\d+$/.test(p.hash)||p.hash==='#lab')))return 'home';
     return 'materials';
   }
   function open(p:Position,remember=true){
@@ -139,15 +142,16 @@ function LearningApp(){
     }catch(e){const text=e instanceof Error?e.message:'操作を完了できませんでした。';reply(session,m.id,false,text);}
   }
   function bookmark(){const p=current.current;if(!p)return;const old=savedRef.current.bookmarks;const exists=old.some(b=>samePlace(b,p));updateSaved({...savedRef.current,bookmarks:exists?old.filter(b=>!samePlace(b,p)):[p,...old].slice(0,100)});}
-  type CourseItem={key?:string;title:string;description:string;path:string;hash:string;kind?:string};
-  const [materialGroup,setMaterialGroup]=useState('intro');
+  type CourseItem={key?:string;title:string;description:string;path:string;hash:string;kind?:string;group?:string};
+  const [materialGroup,setMaterialGroup]=useState('theory');
   const materialGroups=[
-    {key:'intro',title:'イントロダクション',description:'初めての解析・入力規則・応力方向・座標',items:NAVIGATION.intro},
-    {key:'common',title:'共通の解析技術論',description:'カードの使い分け・境界条件・減衰・モデル化・並列計算',items:NAVIGATION.common},
-    {key:'theory',title:'各解析技術理論',description:'線形・非線形・熱・振動の支配式、物理的意味と適用範囲',items:NAVIGATION.materials},
+    {key:'theory',title:'各解析技術理論',description:'共通の解析技術から、解析ごとの理論へ',items:[...NAVIGATION.common,...NAVIGATION.materials]},
     {key:'elements',title:'各要素理論',description:'ばね・梁・シェル・ソリッド・結合・剛体・GENELの仕組み・モデル化・結果の読み方',items:NAVIGATION.elements},
   ];
   const menuGroups:{title:string;tab:TabKey;items:CourseItem[]}[]=[
+    {title:'最初に学ぶ',tab:'home',items:[...NAVIGATION.intro,NAVIGATION.homeResources[0]]},
+    {title:'モデル作成・実行・結果',tab:'home',items:NAVIGATION.operations},
+    {title:'資料・サポート',tab:'home',items:[NAVIGATION.homeResources[1]]},
     ...materialGroups.map(g=>({title:g.title,tab:'materials' as TabKey,items:g.items})),
     {title:'解析',tab:'analysis',items:NAVIGATION.analyses},
     {title:'Inputデータ',tab:'input',items:[{title:'入力データ学習',description:'入力区分 → カテゴリー → カード',path:'bulk.html',hash:''}]},
@@ -157,6 +161,15 @@ function LearningApp(){
   const complete=JSON.parse(saved.courseProgress).length;
   function lesson(l:CourseItem,index:number){return <Pressable key={l.path+l.hash} style={styles.lesson} onPress={()=>open({path:l.path,hash:l.hash,y:0},false)} accessibilityRole="button" accessibilityLabel={l.title}>
     <View style={styles.lessonNumber}><Text style={styles.lessonNumberText}>{String(index+1).padStart(2,'0')}</Text></View><View style={styles.lessonCopy}><View style={styles.lessonHead}><Text style={styles.lessonTitle}>{l.title}</Text>{l.kind?<Text style={styles.lessonKind}>{l.kind}</Text>:null}</View><Text style={styles.description}>{l.description}</Text></View><Text style={styles.arrow}>›</Text>
+  </Pressable>;}
+  function groupedLessons(items:CourseItem[],offset=0){
+    return items.map((item,index)=><Fragment key={item.path+item.hash}>
+      {item.group&&item.group!==items[index-1]?.group&&item.group!=='共通'&&<Text accessibilityRole="header" style={styles.menuSection}>{item.group}</Text>}
+      {lesson(item,index+offset)}
+    </Fragment>);
+  }
+  function homeCard(l:CourseItem){return <Pressable key={l.path+l.hash} style={styles.searchRow} onPress={()=>open({path:l.path,hash:l.hash,y:0},false)} accessibilityRole="button" accessibilityLabel={l.title}>
+    <View style={styles.lessonCopy}><Text style={styles.lessonTitle}>{l.title}</Text><Text style={styles.description}>{l.description}</Text></View><Text style={styles.arrow}>›</Text>
   </Pressable>;}
   if(!loaded)return <SafeAreaView style={styles.app}><ActivityIndicator style={styles.loading} color="#3259d8"/><Text style={styles.loadingText}>教材を準備しています</Text></SafeAreaView>;
   return <SafeAreaView style={styles.app} edges={['top','bottom']}>
@@ -168,13 +181,23 @@ function LearningApp(){
     </>:<ScrollView key={tab} style={styles.screen} contentContainerStyle={styles.home}>
       <View style={styles.brandRow}><Image style={styles.logo} source={require('./assets/icon-fem-guide-for-nas.png')} accessibilityLabel="FEM Guide for nas" resizeMode="contain" /><Text style={styles.screenTitle}>{ROOT_TABS.find(t=>t.id===tab)?.title}</Text><View style={styles.brandMark}><Text style={styles.brand}>FEM Guide for nas</Text><Text style={styles.brandSub}>非公式学習教材</Text></View></View>
       {tab==='home'&&<>
-        <View style={[styles.resumeCard,styles.homeFirst]}><Text style={styles.smallHeading}>{saved.last?'最近開いた内容':'教材一覧'}</Text>{saved.last&&<Text style={styles.lastTitle}>{titleFor(saved.last)}</Text>}<Pressable style={styles.primary} onPress={()=>saved.last?open(saved.last,false):activateTab('materials')} accessibilityRole="button"><Text style={styles.primaryText}>{saved.last?'続きから読む →':'教材を選ぶ →'}</Text></Pressable>{complete<6&&<Text style={styles.description}>初めての解析の読了 {complete} / 6</Text>}</View>
+        {saved.last&&<View style={[styles.resumeCard,styles.homeFirst]}><Text style={styles.smallHeading}>最近開いた内容</Text><Text style={styles.lastTitle}>{titleFor(saved.last)}</Text><Pressable style={styles.primary} onPress={()=>open(saved.last!,false)} accessibilityRole="button"><Text style={styles.primaryText}>続きから読む →</Text></Pressable>{complete<6&&<Text style={styles.description}>初めての解析の読了 {complete} / 6</Text>}</View>}
+        <Text accessibilityRole="header" style={styles.sectionTitle}>最初に学ぶ</Text>
+        {[NAVIGATION.intro[0],NAVIGATION.homeResources[0],...NAVIGATION.intro.slice(1)].map(homeCard)}
+        <Text accessibilityRole="header" style={styles.sectionTitle}>モデル作成・実行・結果</Text>
+        {NAVIGATION.operations.map(homeCard)}
         <Pressable style={styles.searchRow} onPress={()=>open({path:'errors.html',hash:'',y:0},false)} accessibilityRole="button" accessibilityLabel="エラーメッセージ"><Text style={styles.searchIcon}>⌕</Text><Text style={styles.searchText}>エラー番号・メッセージを検索</Text><Text style={styles.arrow}>›</Text></Pressable>
+        {homeCard(NAVIGATION.homeResources[1])}
         <Pressable style={styles.bookmarkHeading} onPress={()=>setShowBookmarks(v=>!v)} accessibilityRole="button" accessibilityLabel="しおり一覧" accessibilityState={{expanded:showBookmarks}}><Text style={styles.sectionTitle}>しおり <Text style={styles.count}>{saved.bookmarks.length}</Text></Text><Text style={styles.linkText}>{saved.bookmarks.length>3?(showBookmarks?'3件に戻す':'すべて見る'):''}</Text></Pressable>
         {(saved.bookmarks.length?(showBookmarks?saved.bookmarks:saved.bookmarks.slice(0,3)).map((p,i)=><View key={p.path+p.hash} style={styles.bookmarkRow}><Pressable style={styles.bookmarkOpen} onPress={()=>open(p,false)} accessibilityRole="button"><Text style={styles.introTitle}>{titleFor(p)}</Text><Text style={styles.description}>保存した場所を開く →</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="しおりを削除" style={styles.toolButton} onPress={()=>updateSaved({...savedRef.current,bookmarks:savedRef.current.bookmarks.filter((_,n)=>n!==i)})}><Text style={styles.toolText}>削除</Text></Pressable></View>):<Text style={styles.empty}>教材の☆から場所を保存できます。</Text>)}
       </>}
-      {tab==='materials'&&<><Text style={styles.screenLead}>分類を選び、経験と目的に合う内容から学べます。</Text>{materialGroups.map(g=><View key={g.key} style={styles.materialGroup}><Pressable style={styles.materialGroupHeader} accessibilityRole="button" accessibilityLabel={g.title} accessibilityState={{expanded:materialGroup===g.key}} onPress={()=>setMaterialGroup(materialGroup===g.key?'':g.key)}><View style={styles.lessonCopy}><Text style={styles.sectionTitle}>{g.title}</Text><Text style={styles.description}>{g.description}</Text></View><Text style={styles.arrow}>{materialGroup===g.key?'−':'＋'}</Text></Pressable>{materialGroup===g.key&&<View style={styles.materialGroupBody}>{g.items.map(lesson)}</View>}</View>)}</>}
-      {tab==='analysis'&&<><Text style={styles.screenLead}>モデル・解析条件・Input・実行・出力・検証</Text>{NAVIGATION.analyses.map(lesson)}</>}
+      {tab==='materials'&&<><Text style={styles.screenLead}>分類を選び、経験と目的に合う内容から学べます。</Text>{materialGroups.map(g=><View key={g.key} style={styles.materialGroup}><Pressable style={styles.materialGroupHeader} accessibilityRole="button" accessibilityLabel={g.title} accessibilityState={{expanded:materialGroup===g.key}} onPress={()=>setMaterialGroup(materialGroup===g.key?'':g.key)}><View style={styles.lessonCopy}><Text style={styles.sectionTitle}>{g.title}</Text><Text style={styles.description}>{g.description}</Text></View><Text style={styles.arrow}>{materialGroup===g.key?'−':'＋'}</Text></Pressable>{materialGroup===g.key&&<View style={styles.materialGroupBody}>  {g.key==='theory'?<>
+          <Text accessibilityRole="header" style={styles.menuSection}>共通の解析技術論</Text>
+          {NAVIGATION.common.map(lesson)}
+          <Text accessibilityRole="header" style={styles.menuSection}>解析ごとの理論</Text>
+          {groupedLessons(NAVIGATION.materials,NAVIGATION.common.length)}
+        </>:g.items.map(lesson)}</View>}</View>)}</>}
+      {tab==='analysis'&&<><Text style={styles.screenLead}>モデル・解析条件・Input・実行・出力・検証</Text>{groupedLessons(NAVIGATION.analyses)}</>}
       {tab==='settings'&&<>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>本文の文字サイズ</Text><Text style={styles.description}>説明文のサイズを変更します。入力表は8文字の配置を保ちます。</Text><View style={styles.sizeOptions}>{([{value:1,label:'標準'},{value:1.15,label:'大'},{value:1.3,label:'特大'}]).map(x=><Pressable key={x.value} style={[styles.sizeOption,saved.textScale===x.value&&styles.selectedSize]} onPress={()=>updateSaved({...savedRef.current,textScale:x.value})} accessibilityRole="radio" accessibilityLabel={'文字サイズ '+x.label} accessibilityState={{checked:saved.textScale===x.value}} aria-checked={saved.textScale===x.value}><Text style={[styles.sizeOptionText,saved.textScale===x.value&&styles.selectedSizeText]}>{x.label}</Text></Pressable>)}</View></View>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>保存データ</Text><Text style={styles.body}>学習記録としおりは端末内に保存します。基礎コースの読了は {complete} / 6、しおりは {saved.bookmarks.length} 件です。</Text><Text style={styles.description}>アプリの削除で端末内の記録も削除されます。</Text></View>
