@@ -55,7 +55,7 @@ Web版で使うコピー・Blobダウンロード・内部リンク・学習記�
 
 iOSの識別子は `com.safa.nastran`、App Store ConnectのアプリIDは `6816586481` です。
 
-[GitHub Actions](https://github.com/JinKato2020/nastran/actions/workflows/build-ios.yml)で `Nastran iOS Build` → `Run workflow` を実行すると、GitHubのMacで署名付きIPAを生成します。証明書とAPIキーは同じAppleチームのCAEと共通、プロビジョニングプロファイルはNastran専用です。詳細なSecret名と使い方はGitHubリポジトリのREADMEにあります。既定ではTestFlightへのアップロード成功で作業を完了します。Apple側の処理完了は待ちません（2026-11-10のユーザー指定）。App Storeの審査申請・公開は行いません。
+[GitHub Actions](https://github.com/JinKato2020/nastran/actions/workflows/build-ios.yml)で `Nastran iOS Build` → `Run workflow` を実行すると、GitHubのMacで署名付きIPAを生成します。証明書とAPIキーは同じAppleチームのCAEと共通、プロビジョニングプロファイルはNastran専用です。詳細なSecret名と使い方はGitHubリポジトリのREADMEにあります。TestFlightへのアップロードと署名ファイルの後片付けはワークフローが実行します。CLIからはリポジトリルートで `node mobile/tools/start-ios-build.cjs` を使います。起動時に返された実行URLを共有して終了し、進捗や結果の確認は別途依頼があった場合だけ行います。App Storeの審査申請・公開は行いません。
 
 `eas.json`はEASを使う場合の補助設定です。今回のGitHubビルドはEASを使いません。Androidの基本設定もありますが、Androidビルドは今回の対象外です。
 

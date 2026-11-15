@@ -1,8 +1,8 @@
 # Nastranアプリのビルド・提出ルール
 
-- ユーザー指定（2026-11-10）：iOSの作業は、TestFlightへのアップロードが成功した時点で完了とする。
-- アップロード後にApple側の処理完了、VALID、テスト開始可能状態を待機・ポーリングしない。ユーザーが別途確認を依頼した場合だけ確認する。
-- GitHub ActionsにもAppleの処理完了を待つ工程を入れない。アップロードの成功・失敗の確認と一時署名ファイルの後片付けは行う。
+- ユーザー指定（2026-11-15、最新）：iOSのビルド依頼では、変更を対象ブランチへ反映してから `node mobile/tools/start-ios-build.cjs` で起動し、起動結果と返された実行URLを伝えた時点で作業を終える。従来の「TestFlightアップロード成功まで確認する」方針はこの指定で更新する。
+- 起動後は、ユーザーが別途明示的に依頼した場合に限り、GitHub ActionsやTestFlightの進捗・完了・結果を確認する。通常のビルド依頼に対して `gh run view/list/watch`、ポーリング、Apple側の処理待ちは行わない。起動時にURLが返らなければワークフローのリンクを伝える。
+- GitHub Actionsは起動後に署名付きIPAの作成、TestFlightアップロード、一時署名ファイルの後片付けを実行する。
 - App Storeの審査申請・公開は行わない。TestFlightへの提出とストア申請を区別する。
 - 対象：GitHub `JinKato2020/nastran`、iOSバンドルID `com.safa.nastran`、App Store ConnectアプリID `6816586481`。
 - CAEとは独立したアプリ。CAEのファイル・設定は変更しない。
