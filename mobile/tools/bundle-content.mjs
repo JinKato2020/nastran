@@ -8,7 +8,7 @@ const source=path.resolve(root,'../sites/nastran-learning/dist');
 const catalog=[
  ['comparisons.html','似たカードの使い分け','CBAR／CBEAMなど14テーマの選択基準・結果への影響','共通理論','#beam'],
  ['theory.html','理論教材','15解析と境界条件・減衰の理論','理論','#static'],
- ['elements.html','各要素理論','ばね・梁・シェル・ソリッド・結合・剛体・GENELの理論と公式例題','理論','#scalar'],
+ ['elements.html','各要素理論','ばね・梁・シェル・ソリッド・結合・剛体・GENELの仕組み・モデル化・結果の読み方','理論','#scalar'],
  ['analysis.html','解析別の学習','共通手順と15種類の解析のモデル図・主要カード・結果の読み方','解析','#common'],
  ['index.html','線形静解析の基礎','11章と棒の引張り実験室','基礎','#chapter-1'],
  ['modeling.html','モデル化の考え方','片持ち梁をばね・梁・立体の3モデルで比較','基礎',''],

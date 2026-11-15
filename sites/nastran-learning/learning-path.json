@@ -347,28 +347,28 @@
     "elements": [
       {
         "title": "ばね要素（CELAS・CBUSH）",
-        "description": "要素ファミリーの全体像、形を持たないばね、CBUSHの向きと例題",
+        "description": "節点成分・ばね定数・剛体運動の検算",
         "path": "elements.html",
         "hash": "#scalar",
         "kind": "要素理論"
       },
       {
         "title": "梁要素（CROD・CBAR・CBEAM）",
-        "description": "棒・梁の理論、向きベクトル、断面、ピン、テーパー梁と公式例題",
+        "description": "断面方向・局所軸・荷重と曲げ面",
         "path": "elements.html",
         "hash": "#beam",
         "kind": "要素理論"
       },
       {
         "title": "シェル要素（CQUAD4・CTRIA3ほか）",
-        "description": "膜・曲げ・横せん断、PSHELL、要素と材料の座標、片持ち板の例題",
+        "description": "法線・表裏・単位幅の力と応力",
         "path": "elements.html",
         "hash": "#shell",
         "kind": "要素理論"
       },
       {
         "title": "ソリッド要素（CHEXA・CTETRAほか）",
-        "description": "1次・2次の立体要素、回転自由度がないこと、軸対称・亀裂先端",
+        "description": "節点順・端面の力・厚さ方向の応力",
         "path": "elements.html",
         "hash": "#solid",
         "kind": "要素理論"
