@@ -65,3 +65,13 @@ label.analysis-model-selector select{display:block;flex:1;width:auto;min-width:0
 
 .analysis-tab-panel ul,.analysis-tab-panel .analysis-steps{margin:6px 0 12px;padding-left:1.3em;line-height:1.8}.analysis-tab-panel li{margin:3px 0}.analysis-tab-panel .analysis-card-group{margin-top:16px}
 #analysis-original-input pre a{color:#1f4f9a;text-decoration:underline;text-decoration-color:#9db6dc;text-underline-offset:2px}#analysis-original-input pre a:active{background:#d3e2f5}
+#analysis-common-model-verification details,#analysis-common-restart details,#analysis-common-database details{margin:10px 0;padding:0 12px;border:1px solid #cedbf0;border-radius:8px;background:#fff}
+#analysis-common-model-verification summary,#analysis-common-restart summary,#analysis-common-database summary{padding:12px 0;min-height:44px;box-sizing:border-box;font-weight:650;color:#29466b;cursor:pointer}
+.analysis-section details[open]>summary{border-bottom:1px solid #e5edf8}
+.analysis-section details>.analysis-links{margin-bottom:12px}
+.analysis-table-wrap{max-width:100%;overflow-x:auto;margin:12px 0 18px}
+.analysis-reference-table{width:100%;min-width:440px;border-collapse:collapse;background:#fff;font-size:14px;line-height:1.6}
+.analysis-reference-table caption{text-align:left;font-weight:700;padding:0 0 8px}
+.analysis-reference-table th,.analysis-reference-table td{padding:9px 10px;text-align:left;vertical-align:top;border:1px solid #dce5f1}
+.analysis-reference-table thead th{background:#eaf1fc}
+.analysis-reference-table tbody th{min-width:120px;color:#29466b}

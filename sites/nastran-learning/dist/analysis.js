@@ -76,6 +76,19 @@
   if(official)return `<a class="analysis-example-switch" href="#complex-modes/${model.id}">自作例を見る →</a>`;
   return `<div class="analysis-complex-options">${complexChoices.map(({id,label,options,value})=>select(id,label,options,value(model))).join('')}</div>`;
  }
+ function bucklingSetup(){
+  return ordered([
+    '静解析SUBCASEを先に定義し、SPCとLOAD、TEMP(LOAD)、DEFORMなどの基準条件を指定します。SPCの強制変位だけで載荷する場合も、どの成分が基準になるか確認します。',
+    'その後に座屈SUBCASEを置き、SPCとMETHODを指定します。複数の座屈SUBCASEでは各STATSUBが参照する静解析のIDを明記します。単一の座屈SUBCASEで最初の静解析を使う場合はSTATSUBを省略できます。',
+    'METHODからEIGRLまたはEIGBへ番号をつなげます。例えば静解析SUBCASE 10から座屈SUBCASE 30を計算するなら、30側でSTATSUB=10を指定します。METHODが40なら抽出カード側のSIDも40です。',
+    'モードを見るSUBCASEで変位出力を要求します。F06の符号付き倍率とモードを組みで読み、基準荷重の方向・大きさに戻して臨界荷重を確認します。近い根は形を見分け、荷重条件やメッシュを点検します。'
+   ])+sub('EIGRLでV1・V2・NDを組み合わせる',conditions([
+    ['V1・V2あり','NDなしは区間内の全根、NDありは区間内の低い方から最大ND個。'],
+    ['V1だけあり','下限以上の根を対象にし、NDなしは最小根、NDありは低い方からND個。'],
+    ['V2だけあり','上限以下の根を対象にし、NDなしは全根、NDありは低い方からND個。'],
+    ['上下限なし','NDなしは最小根、NDありは低い方からND個。基準荷重と逆向きの根も候補になり得ます。']
+   ]))+cardLinks([['EXEC_SOL_105','SOL 105'],['CASE_STATSUB','STATSUB'],['CASE_METHOD','METHOD'],['EIGRL','EIGRL'],['EIGB','EIGB'],['PARAM_EXCLUDE','PARAM,EXCLUDE'],['PARAM_K6ROT','PARAM,K6ROT']]);
+ }
  function showScenario(entry,scenario,modelKey,tabKey){
   const reference=explanation.official[entry.key];
   const official=modelKey==='official'&&!!reference;
@@ -86,6 +99,7 @@
   const selection=scenarioControls(scenario,reference,model,official,complex);
   const related=complex&&!official?[['analysis.html#complex-modes/official','公式例題 · '+reference.title],...scenario.links]:[...(scenario.links||[])];
   if(entry.key==='static')related.push(
+   ['analysis.html#common/model-verification','共通 · モデル検証'],
    ['analysis.html#common/material-check','共通 · 材料と断面の照合'],
    ['analysis.html#common/constraint-check','共通 · 支持・強制変位の照合'],
    ['analysis.html#common/load-check','共通 · 荷重・反力の照合'],
@@ -101,6 +115,7 @@
    : tabbed(state.current,{
       model:[['モデル化と境界条件',`<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+conditions(model.conditions)],guide&&['この解析の基礎',guideBasics(guide)]],
       input:[['カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations'],
+       entry.key==='buckling'&&['SOL 105で静解析と座屈を対応させる',bucklingSetup(),'analysis-buckling-setup'],
        guide?.inputReview&&['入力で確認する指定',cardGroups(guide.inputReview)+sources([{url:'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=38',label:'線形静解析ユーザーガイド 2025.1 · 第2章 PDF 38–40ページ'}])],
        ['自作モデルのDAT',deckSection(deck,tabKey==='dat')]],
       results:[['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(guide)],['モデル間の比較',compare(scenario,scenario.models.indexOf(model))],guide&&['よくある失敗と直し方',conditions(guide.pitfalls)]]

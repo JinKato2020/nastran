@@ -14,7 +14,7 @@ for(const topic of context.window.NastranTheory){
   if(url.startsWith('bulk.html#'))assert(keys.has(url.split('#')[1]),topic.key+' -> '+url);
  }
 }
-for(const section of ['material-check','constraint-check','load-check','contact-check','damping-check','restart']){
+for(const section of ['material-check','constraint-check','load-check','contact-check','damping-check','restart','model-verification','database']){
  const common=context.window.AnalysisCommon;
  assert(common.includes('id="analysis-common-'+section+'"'),section);
  assert(common.includes('href="analysis.html#common/'+section+'"'),section);
@@ -24,6 +24,8 @@ for(const section of ['material-check','constraint-check','load-check','contact-
 assert.equal(keys.get('MPCY').lines[1][2].label,'G1');
 assert.equal(keys.get('MAT3').lines[1][3].label,'GZX');
 assert.equal(keys.get('ACCEL1').lines[1][1].label,'GRIDID1');
+assert.equal(keys.get('EIGB').lines[1][1].label,'NORM');
+assert.equal(keys.get('PARAM_EXCLUDE').family,'parameter');
 const comparisons=JSON.parse(fs.readFileSync(path.join(dir,'../card-comparisons.json'),'utf8')).topics;
 for(const topic of comparisons)for(const key of topic.cards)assert(keys.has(key),topic.key+' comparison -> '+key);
 vm.runInContext(fs.readFileSync(path.join(dir,'analysis-relations-data.js'),'utf8'),context);

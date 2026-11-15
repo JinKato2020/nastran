@@ -8,7 +8,7 @@
  const directionComponent=i=>`GAの変位座標系における方向ベクトルvの第${i}成分。第7欄（CBENDでは第6欄）に整数のG0を指定する方式では、ベクトル成分を記入しません。`;
  const field=(label,help)=>({label,help});
  const fixedRow=(key,definitions,continuation)=>{
-  const padded=[[key,key.startsWith('+')?'直前の行の継続記号と対応します。':'要素またはプロパティのカード名です。',key],...definitions];
+  const padded=[[key,key.startsWith('+')?'直前の行の継続記号と対応します。':'この入力を識別するカード名です。',key],...definitions];
   while(padded.length<9)padded.push(['空欄','この書式・行で使わない欄です。後ろの項目を詰めず、空欄にします。','']);
   padded.push(['継続',continuation?'次行の先頭に同じ継続記号を書きます。':'次行に続かないので空欄です。',continuation||'']);
   return padded;
@@ -152,5 +152,21 @@
  caseEntry('FBODYLD','自由体荷重を出力する対象を選ぶ','結果出力','部分モデルに受け渡す自由体荷重を、指定した領域ごとに作ります。',405,'FBODYLD [(LID)] = ALL | name1 [, name2, …]','FBODYLD(90) = PATCHLD',
   [['LID','出力の荷重ID。省略時はSUBCASEの番号。'],['ALL','定義済みの全FBODYLDを対象にします。'],['namei','対象を定義するBulk DataのFBODYLDの名前。']],
   ['複数の領域には個別の荷重が作られます。受け渡し先で座標、切断面、合力・モーメントを確認します。']);
+ add('EIGB','線形座屈の逆反復法','固有値・周波数','INVまたはSINVで求める座屈荷重係数の範囲を指定します。',[1802,1803],[
+  fixedRow('EIGB',[['SID','Case ControlのMETHODで選ぶ、正のセット番号。','43'],['METHOD','INVは逆反復、SINVはSturm列で根の数も確認する改良逆反復。','SINV'],['L1','調べる固有値範囲の下限。倍率の下限です。','0.1'],['L2','固有値範囲の上限。L1より大きい値です。','5.'],['NEP','範囲内の正の根数の見積り。INVで使い、SINVでは使いません。',''],['NDP','計算を求める正の根の数。QRGの既定は3×NEPです。','2'],['NDN','計算を求める負の根の数。QRGの既定は3×NEPです。','1']],'+EB1'),
+  fixedRow('+EB1',[['NORM','MAXは解析集合内の最大成分で正規化し、POINTはGとCの成分を基準にします。既定はMAXです。','POINT'],['G','POINT指定時の節点またはスカラー点のID。','32'],['C','GがGRIDのとき、正規化する成分番号。POINT指定時に使います。','2']])
+ ],{connections:[['METHOD','座屈サブケースでEIGBのSIDを選びます。','CASE_METHOD'],['EIGRL','Lanczosで抽出する場合の設定です。','EIGRL']],notes:['指定した正規化成分がゼロの場合はMAXに戻ります。MAXでは解析集合に含まれない成分が1を超えることがあります。座屈モードの振幅は実変位を表しません。'],reference:'theory.html#buckling'});
+ add('PARAM_EXCLUDE','線形座屈で差分剛性の対象を限定','荷重・拘束','MSCのSOL 105の座屈サブケースで使用します。',[885,886],[
+  fixedRow('PARAM',[['EXCLUDE','差分剛性の局所除外に使うパラメータ名。','EXCLUDE'],['値','0は除外なし。正のnはSET1の節点側を除外し、負の−nは絶対値のSET1の節点側を残します。','30']])
+ ],{notes:['座屈を評価したい場所と除外境界を離し、除外なしの結果とも比較します。同じ名前のBulk Data EXCLUDEとは用途が異なります。'],reference:'theory.html#buckling'});
+ Object.assign(cards.at(-1),{id:'PARAM,EXCLUDE',family:'parameter'});
+ caseEntry('EQUILIBRIUM','外力・拘束反力の釣合いを出力','結果出力','外力・SPC反力・MPCや剛体要素による拘束力と、その合計を出力します。',349,'EQUILIBRIUM [(PRINT,PUNCH,PLOT)] [= YES | gid | NONE]','EQUILIBRIUM = 501',
+  [['PRINT','F06へ印刷します。出力先を省略した場合の既定です。'],['PUNCH','PCHへ出力します。'],['PLOT','設定に応じてOP2・HDF5などへ出力します。'],['YES','基本座標の原点まわりで集計します。値を省いた指定例もQRGにあります。'],['gid','集計するモーメントの基準点になるGRIDの番号です。'],['NONE','この釣合い出力を抑止します。']],
+  ['釣合いの計算に必要なSPC・MPC反力は自動計算されます。個々の反力表も必要ならSPCFORCES・MPCFORCESを要求します。'],[['SPCFORCES','支持点ごとの反力を確認します。','CASE_SPCFORCES'],['MPCFORCES','多点拘束等による力を確認します。','CASE_MPCFORCES']]);
+ cards.at(-1).reference='analysis.html#common/model-verification';
+ caseEntry('GROUNDCHECK','意図しない拘束を検査する','結果出力','剛体運動に対するひずみエネルギーから、不用意に地面へ結合した自由度を調べます。',454,'GROUNDCHECK [(PRINT | NOPRINT | PUNCH, SET=(sets), GRID=gid, THRESH=e, DATAREC=YES|NO, RTHRESH=r)] = YES | NO','GROUNDCHECK(SET=(G,N),DATAREC=YES)=YES',
+  [['PRINT／NOPRINT／PUNCH','F06への出力、F06への出力を抑止、PCHへの出力です。既定はPRINTです。'],['SET','Gは既定。N、AUTOSPCを反映したN、F、A、またはALLから検査する段階を選びます。'],['GRID','剛体運動の基準点。'],['THRESH','合格とするひずみエネルギーの上限。既定は最大剛性項÷10¹⁰です。'],['DATAREC','YESで診断用の力を回復します。既定はNO。'],['RTHRESH','DATARECで回復した力を出力するしきい値。既定0.10。'],['YES／NO','検査を有効化または無効化します。']],
+  ['全SUBCASEより上に指定します。支持を適用した段階では意図した抵抗も現れるため、GやNの結果と比較します。']);
+ cards.at(-1).reference='analysis.html#common/model-verification';
  window.InputCatalog.entries.push(...cards);
 })();
