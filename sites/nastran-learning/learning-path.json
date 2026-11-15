@@ -344,6 +344,57 @@
         "kind": "解析の理論"
       }
     ],
+    "elements": [
+      {
+        "title": "ばね要素（CELAS・CBUSH）",
+        "description": "要素ファミリーの全体像、形を持たないばね、CBUSHの向きと例題",
+        "path": "elements.html",
+        "hash": "#scalar",
+        "kind": "要素理論"
+      },
+      {
+        "title": "梁要素（CROD・CBAR・CBEAM）",
+        "description": "棒・梁の理論、向きベクトル、断面、ピン、テーパー梁と公式例題",
+        "path": "elements.html",
+        "hash": "#beam",
+        "kind": "要素理論"
+      },
+      {
+        "title": "シェル要素（CQUAD4・CTRIA3ほか）",
+        "description": "膜・曲げ・横せん断、PSHELL、要素と材料の座標、片持ち板の例題",
+        "path": "elements.html",
+        "hash": "#shell",
+        "kind": "要素理論"
+      },
+      {
+        "title": "ソリッド要素（CHEXA・CTETRAほか）",
+        "description": "1次・2次の立体要素、回転自由度がないこと、軸対称・亀裂先端",
+        "path": "elements.html",
+        "hash": "#solid",
+        "kind": "要素理論"
+      },
+      {
+        "title": "結合要素（CWELD・CFAST・CSEAM）",
+        "description": "点溶接・締結具・シーム溶接の剛性化、凝着要素",
+        "path": "elements.html",
+        "hash": "#connector",
+        "kind": "要素理論"
+      },
+      {
+        "title": "剛体要素（RBE2・RBE3・RBAR）",
+        "description": "独立・従属自由度、RBE2とRBE3の違いを数値で比較",
+        "path": "elements.html",
+        "hash": "#rigid",
+        "kind": "要素理論"
+      },
+      {
+        "title": "一般要素（GENEL）",
+        "description": "剛性行列・柔性行列を直接与える要素の仕組み",
+        "path": "elements.html",
+        "hash": "#genel",
+        "kind": "要素理論"
+      }
+    ],
     "analyses": [
       {
         "title": "共通",

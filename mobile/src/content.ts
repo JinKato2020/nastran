@@ -12,6 +12,7 @@ export function titleFor(p:Position):string {
   const title=LESSONS.find(l=>l.id===p.path)?.title||'Nastran学習';
   if(p.path==='comparisons.html'){const t=bundle.comparisonTopics.find(t=>t.key===p.hash.slice(1).split('/')[0]);if(t)return t.title;}
   if(p.path==='theory.html'){const t=[...NAVIGATION.common,...NAVIGATION.materials].find(t=>t.path===p.path&&t.hash===p.hash);if(t)return t.title;}
+  if(p.path==='elements.html'){const t=NAVIGATION.elements.find(t=>t.hash===p.hash);if(t)return t.title;}
   if(p.path==='index.html'&&p.hash==='#first-analysis')return '初めての解析';
   if(p.path==='index.html'&&p.hash==='#home')return '教材一覧';
   if(p.path==='analysis.html'){const [hash,view]=p.hash.split('/');const a=NAVIGATION.analyses.find(a=>a.hash===hash);if(a)return a.title+(view==='simcenter'?' · Simcenter Nastran':'');}

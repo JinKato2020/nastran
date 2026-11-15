@@ -1,0 +1,20 @@
+.elements-main .analysis-head>p{max-width:68ch}
+.element-toc{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px;padding:0;list-style:none}
+.element-toc button{min-height:40px;padding:6px 12px;border:1px solid #b4c9e8;border-radius:999px;background:#eef4fc;color:#285698;font-size:14px;cursor:pointer}
+.element-toc button:active{background:#dbe7f8}
+.element-note{margin:14px 0;padding:12px 14px;border-left:4px solid #c48a1c;background:#fff8ea;border-radius:6px;font-size:14px;line-height:1.85;color:#5a4521}
+.element-key{margin:14px 0;padding:12px 14px;border-left:4px solid #3f8f6b;background:#eef8f3;border-radius:6px;font-size:14px;line-height:1.85;color:#24513d}
+.element-table-wrap{overflow-x:auto;margin:12px 0 18px;-webkit-overflow-scrolling:touch}
+.element-table{width:100%;min-width:480px;border-collapse:collapse;font-size:14px;line-height:1.6;background:#fff}
+.element-table.narrow{min-width:0}
+.element-table th,.element-table td{border:1px solid #d4e0ef;padding:7px 8px;text-align:left;vertical-align:top;color:#334e6e}
+.element-table th{background:#eef3fa;color:#29466b;font-weight:700}
+.element-table td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.element-figure{margin:18px 0;padding:12px 14px 14px;border:1px solid #cddbe9;border-radius:10px;background:#fff}
+.element-figure svg{display:block;width:100%;max-width:440px;height:auto;margin:0 auto}
+.element-figure figcaption{margin-top:8px;font-size:13px;line-height:1.7;color:#435c79}
+.element-formula{margin:12px 0;padding:12px 14px;background:#fff;border:1px solid #d4e0ef;border-left:4px solid #4675c0;border-radius:8px;font-family:"Cambria Math","Times New Roman",serif;font-size:16px;line-height:1.9;color:#243e60;white-space:pre-wrap}
+.elements-main .theory-section a[href^="bulk.html"]{font-family:ui-monospace,Consolas,monospace;font-size:.95em}
+.elements-main code{font-family:ui-monospace,Consolas,monospace;font-size:.92em;background:#f1f5fa;padding:1px 4px;border-radius:4px}
+.elements-main ol{padding-left:22px}
+.elements-main .theory-section ol li{font-size:15px;line-height:1.95;color:#435c79;margin:8px 0}

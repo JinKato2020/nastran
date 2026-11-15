@@ -16,19 +16,38 @@
  const sub=(title,body)=>`<h3 class="analysis-card-group">${esc(title)}</h3>${body}`;
  const ordered=items=>`<ol class="analysis-steps">${items.map(item=>`<li>${esc(item)}</li>`).join('')}</ol>`;
  const guideBasics=g=>g.basics.map(([title,items])=>sub(title,list(items))).join('')+sub('用語',conditions(g.terms))+sub('入力を組み立てる順番',ordered(g.steps));
- const guidePitfalls=g=>sub('よくある失敗と直し方',conditions(g.pitfalls))+sub('実行後に確かめる順番',ordered(g.verify));
+ const verifySteps=g=>g?sub('実行後に確かめる順番',ordered(g.verify)):'';
+ // Three tabs grouped by purpose; older tab names in saved links map onto them.
+ const tabLabels=[['model','解説'],['input','入力'],['results','結果']];
+ const tabAlias={basics:'model',map:'input',dat:'input',pitfalls:'results',compare:'results'};
+ const tabOf=key=>{const tab=tabAlias[key]||key;return tabLabels.some(([id])=>id===tab)?tab:'model';};
+ function tabbed(current,blocks){
+  return `<div class="analysis-tabs" role="tablist" aria-label="この解析の説明">${tabLabels.map(([id,label])=>`<button type="button" role="tab" data-analysis-tab="${id}" aria-selected="${id===current}">${label}</button>`).join('')}</div>`+
+   tabLabels.map(([id])=>`<div class="analysis-tab-panel" role="tabpanel" data-analysis-panel="${id}"${id===current?'':' hidden'}>${blocks[id].filter(Boolean).map(([title,body,anchor])=>section(title,body,anchor)).join('')}</div>`).join('');
+ }
+ function bindTabs(state,save){
+  for(const button of detail.querySelectorAll('[data-analysis-tab]'))button.addEventListener('click',()=>{
+   state.current=button.dataset.analysisTab;
+   for(const item of detail.querySelectorAll('[data-analysis-tab]'))item.setAttribute('aria-selected',String(item===button));
+   for(const item of detail.querySelectorAll('[data-analysis-panel]'))item.hidden=item.dataset.analysisPanel!==state.current;
+   const bar=detail.querySelector('.analysis-tabs'),shown=detail.querySelector('[data-analysis-panel]:not([hidden])');
+   const top=shown.getBoundingClientRect().top+scrollY-bar.offsetHeight-6;
+   if(scrollY>top)scrollTo(0,top);
+   save();
+  });
+ }
  const explanation=window.AnalysisScenarioCards;
  const unlinkedCards=new Set(['DMIG','K2PP','SVECT','SDISP','PARAM,FRIC']);
  const displayCard=id=>id.startsWith('EXEC_SOL_')?id.replace('EXEC_SOL_','SOL '):id.replace(/^EXEC_|^CASE_/,'').replace(/^PARAM_/,'PARAM,').replaceAll('_',' ');
  function cardGroups(groups){
   return groups.map(([title,rows])=>`<h3 class="analysis-card-group">${esc(title)}</h3>`+conditions(rows.map(([id,body])=>[!unlinkedCards.has(id)?'<a href="bulk.html#'+id+'" data-analysis-card="'+id+'">'+esc(displayCard(id))+'</a>':esc(displayCard(id)),body]),true)).join('');
  }
- function deckSection(deck){
+ function deckSection(deck,open){
   const count=deck.text.trimEnd().split(/\r?\n/).length;
-  return `<p>Bulk Dataは8文字固定長です。MSC Nastran本体での実行は未確認です。</p>
-   <details id="analysis-original-input"><summary>入力データ全文を開く（${count}行）</summary><div class="analysis-original-tools">
+  return `<p>Bulk Dataは8文字固定長です。カード名をタップすると、そのカードのInputデータの説明へ移ります。MSC Nastran本体での実行は未確認です。</p>
+   <details id="analysis-original-input"${open?' open':''}><summary>入力データ全文を開く（${count}行）</summary><div class="analysis-original-tools">
    <button type="button" id="save-original-dat" class="button secondary">DATを保存</button><span>${esc(deck.name)}</span></div>
-   <pre tabindex="0" aria-label="8文字固定長の入力データ">${esc(deck.text)}</pre></details>`;
+   <pre tabindex="0" aria-label="8文字固定長の入力データ">${window.AnalysisDeckLinks.render(deck.text)}</pre></details>`;
  }
  function saveDeck(deck){
   const url=URL.createObjectURL(new Blob([deck.text],{type:'text/plain'}));
@@ -67,33 +86,26 @@
   const selection=scenarioControls(scenario,reference,model,official,complex);
   const related=complex&&!official?[['analysis.html#complex-modes/official','公式例題 · '+reference.title],...scenario.links]:scenario.links;
   const guide=window.AnalysisScenarioGuides?.[entry.key];
-  const tabs=[['model','条件'],...(guide?[['basics','基礎']]:[]),['map','カード相関図'],['dat','DAT'],['results','結果'],...(guide?[['pitfalls','つまずき']]:[]),['compare','比較']];
-  let current=!official&&tabs.some(([id])=>id===tabKey)?tabKey:'model';
-  const panel=(id,title,body,anchor='')=>`<section class="analysis-section analysis-tab-panel" role="tabpanel" data-analysis-panel="${id}"${anchor?' id="'+anchor+'"':''}${id===current?'':' hidden'}><h2>${title}</h2>${body}</section>`;
-  const tabBar=`<div class="analysis-tabs" role="tablist" aria-label="このモデルの説明">${tabs.map(([id,label])=>`<button type="button" role="tab" data-analysis-tab="${id}" aria-selected="${id===current}">${label}</button>`).join('')}</div>`;
+  const state={current:official?'model':tabOf(tabKey)};
+  // "dat" in the address means the Input tab with the full deck open, so Back from a card returns there.
+  const token=()=>state.current==='input'&&byId('analysis-original-input')?.open?'dat':state.current;
   const place=(id,tab)=>'#'+entry.key+'/'+id+(tab&&tab!=='model'?'/'+tab:'');
   detail.innerHTML=heading(entry,'')+selection+figure+(official
    ? `<p class="analysis-scenario-summary">${esc(reference.intro)}</p>`+
      sources([reference.source])+section('公式例題の主要カード',cardGroups(reference.groups),'analysis-relations')
-   : tabBar+
-     panel('model','モデル化と境界条件',`<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+conditions(model.conditions))+
-     (guide?panel('basics','この解析の基礎',guideBasics(guide)):'')+
-     panel('map','カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations')+
-     panel('dat','自作モデルのDAT',deckSection(deck))+
-     panel('results','結果の読み方',list(model.results)+cardLinks(model.check))+
-     (guide?panel('pitfalls','つまずきやすい点と確認',guidePitfalls(guide)):'')+
-     panel('compare','モデル間の比較',compare(scenario,scenario.models.indexOf(model))))+
+   : tabbed(state.current,{
+      model:[['モデル化と境界条件',`<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+conditions(model.conditions)],guide&&['この解析の基礎',guideBasics(guide)]],
+      input:[['カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations'],['自作モデルのDAT',deckSection(deck,tabKey==='dat')]],
+      results:[['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(guide)],['モデル間の比較',compare(scenario,scenario.models.indexOf(model))],guide&&['よくある失敗と直し方',conditions(guide.pitfalls)]]
+     }))+
    contextLinks(entry,related)+sources(scenario.sources||entry.sources);
-  for(const button of detail.querySelectorAll('[data-analysis-tab]'))button.addEventListener('click',()=>{
-   current=button.dataset.analysisTab;
-   for(const item of detail.querySelectorAll('[data-analysis-tab]'))item.setAttribute('aria-selected',String(item===button));
-   for(const item of detail.querySelectorAll('[data-analysis-panel]'))item.hidden=item.dataset.analysisPanel!==current;
-   history.replaceState(null,'',place(model.id,current));
-  });
+  bindTabs(state,()=>history.replaceState(null,'',place(model.id,token())));
+  byId('analysis-original-input')?.addEventListener('toggle',()=>history.replaceState(null,'',place(model.id,token())));
   byId('save-original-dat')?.addEventListener('click',()=>saveDeck(deck));
   function changeModel(id,controlId){
-   history.replaceState(null,'',place(id,current));
-   showScenario(entry,scenario,id,current);
+   const tab=token();
+   history.replaceState(null,'',place(id,tab));
+   showScenario(entry,scenario,id,tab);
    byId(controlId)?.focus({preventScroll:true});
   }
   if(complex&&!official){
@@ -128,21 +140,14 @@
   const mapBody=window.renderAnalysisRelations(entry.key,model.id);
   const resultBody=list(model.outputs||entry.outputs)+`<h3>確認する条件</h3>`+list(model.checks||entry.checks)+links(entry.resultLinks||[]);
   if(guide){
-   const tabs=[['model','条件'],['basics','基礎'],['map','カード相関図'],['results','結果'],['pitfalls','つまずき']];
-   let current=tabs.some(([id])=>id===tabKey)?tabKey:'model';
-   const panel=(id,title,body,anchor='')=>`<section class="analysis-section analysis-tab-panel" role="tabpanel" data-analysis-panel="${id}"${anchor?' id="'+anchor+'"':''}${id===current?'':' hidden'}><h2>${title}</h2>${body}</section>`;
-   detail.innerHTML=head+diagram+
-    `<div class="analysis-tabs" role="tablist" aria-label="この解析の説明">${tabs.map(([id,label])=>`<button type="button" role="tab" data-analysis-tab="${id}" aria-selected="${id===current}">${label}</button>`).join('')}</div>`+
-    panel('model','モデル化と境界条件',modelBody)+panel('basics','この解析の基礎',guideBasics(guide))+
-    panel('map','主要カードの相関図',mapBody,'analysis-relations')+panel('results','結果の読み方・照合',resultBody)+
-    panel('pitfalls','つまずきやすい点と確認',guidePitfalls(guide))+
+   const state={current:tabOf(tabKey)};
+   detail.innerHTML=head+diagram+tabbed(state.current,{
+     model:[['モデル化と境界条件',modelBody],['この解析の基礎',guideBasics(guide)]],
+     input:[['主要カードの相関図',mapBody,'analysis-relations']],
+     results:[['結果の読み方・照合',resultBody+verifySteps(guide)],['よくある失敗と直し方',conditions(guide.pitfalls)]]
+    })+
     contextLinks(entry,related)+sources(entry.sources);
-   for(const button of detail.querySelectorAll('[data-analysis-tab]'))button.addEventListener('click',()=>{
-    current=button.dataset.analysisTab;
-    for(const item of detail.querySelectorAll('[data-analysis-tab]'))item.setAttribute('aria-selected',String(item===button));
-    for(const item of detail.querySelectorAll('[data-analysis-panel]'))item.hidden=item.dataset.analysisPanel!==current;
-    history.replaceState(null,'','#'+entry.key+'/'+(model.id||'msc')+(current==='model'?'':'/'+current));
-   });
+   bindTabs(state,()=>history.replaceState(null,'','#'+entry.key+'/'+(model.id||'msc')+(state.current==='model'?'':'/'+state.current)));
   }else detail.innerHTML=head+
    section('1 · モデルと境界条件',diagram+modelBody)+
    section('2 · 主要カードの相関図',mapBody,'analysis-relations')+

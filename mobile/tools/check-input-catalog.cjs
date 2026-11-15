@@ -3,11 +3,14 @@ const dir=path.resolve(__dirname,'../../sites/nastran-learning/dist');
 const context={window:{}};vm.createContext(context);
 for(const name of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
 const entries=context.window.InputCatalog.entries,keys=new Map(entries.map(e=>[e.key,e]));
+const elementLinks=[...fs.readFileSync(path.join(dir,'elements.html'),'utf8').matchAll(/href="bulk\.html#([^"]+)"/g)].map(m=>m[1]);
+assert(elementLinks.length>=30,'element theory links');
+for(const key of elementLinks)assert(keys.has(key),'elements.html -> '+key);
 const comparisons=JSON.parse(fs.readFileSync(path.join(dir,'../card-comparisons.json'),'utf8')).topics;
 for(const topic of comparisons)for(const key of topic.cards)assert(keys.has(key),topic.key+' comparison -> '+key);
 vm.runInContext(fs.readFileSync(path.join(dir,'analysis-relations-data.js'),'utf8'),context);
 const maps=context.window.AnalysisRelationMaps;
-for(const name of ['analysis-data','extended-analysis-data','analysis-scenarios','analysis-scenario-cards','analysis-original-decks'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
+for(const name of ['analysis-data','extended-analysis-data','analysis-scenarios','analysis-scenario-cards','analysis-original-decks','analysis-deck-links'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
 const {entries:analyses}=context.window.NastranAnalysis;
 const scenarios=context.window.AnalysisScenarios;
 for(const entry of analyses){
@@ -31,6 +34,9 @@ for(const key of ['static','modes','complex-modes']){
  for(const model of models){
   const described=generated(key,model).flatMap(([,rows])=>rows.map(([id])=>id));
   for(const id of [...described,...model.check.map(([id])=>id)])assert(keys.has(id),model.id+' scenario -> '+id);
+  const datLinks=context.window.AnalysisDeckLinks.keys(decks[model.id].text);
+  assert(datLinks.length>=8,model.id+' DAT links');
+  for(const id of datLinks)assert(keys.has(id),model.id+' DAT link -> '+id);
   const [executive,bulk]=decks[model.id].text.slice(0,-2).split('BEGIN BULK\r\n');
   const sol=/^SOL (\d+)/.exec(executive)[1];
   if(key==='complex-modes'){
