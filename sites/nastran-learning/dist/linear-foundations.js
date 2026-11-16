@@ -62,7 +62,7 @@
   ],
   limits:['材料定数の参照軸、要素の法線と積層順の3つを同時に確認します。','線形弾性の材料定義では、降伏後の変形や層間剥離の進展は別途モデル化します。'],
   links:[card('MAT1'),card('MAT2'),card('MAT3'),card('MAT8'),card('MAT9'),card('PSHELL'),card('PCOMP'),card('PCOMPG'),['elements.html#shell-axes','シェルの節点順・材料方向']],
-  technical:['analysis.html#common/material-check','材料の入力・結果を点検する'],
+  technical:['analysis.html#material-check','材料の入力・結果を点検する'],
   sources:[src(203,'第5章 PDF 203–234'),src(204,'MAT1・MAT2・MAT3 PDF 204–207'),src(207,'MAT8と円筒例 PDF 207–211'),src(211,'MAT9と立方体の検証 PDF 211–218'),src(219,'PSHELLと積層材 PDF 219–230'),src(231,'等価ハニカム断面 PDF 231–234')],
  });
 
@@ -101,7 +101,7 @@
   ],
   limits:['自由度番号はGRIDのCDを基準に読みます。','MPCY・MPCDはSOLごとに対応範囲を確認します。MSC 2025.1 QRGではSOL 400非対応です。'],
   links:[card('SPC'),card('SPC1'),card('SPCADD'),card('SPCD'),card('MPC'),card('MPCY'),card('MPCD'),card('CASE_SPCFORCES','SPCFORCES (Case)'),card('CASE_MPCFORCES','MPCFORCES (Case)'),card('PARAM_AUTOSPC','PARAM,AUTOSPC'),['comparisons.html#rigid-interpolation','SPC・RBE2・RBE3・MPCを比較']],
-  technical:['analysis.html#common/constraint-check','拘束の入力・反力を点検する'],
+  technical:['analysis.html#constraint-check','拘束の入力・反力を点検する'],
   sources:[src(235,'第6章 PDF 235–252'),src(236,'SPC・SPC1・SPCADD PDF 236–238'),src(238,'AUTOSPC PDF 238–242'),src(242,'強制変位 PDF 242–243'),src(243,'MPCの式と例題 PDF 243–245'),src(246,'MPCY・MPCD PDF 246–252')],
  });
 
@@ -174,7 +174,7 @@
   ],
   limits:['荷重を指定した範囲、方向、単位、ケースを図とOLOADで確認し、同じ座標系と基準点で反力と照合します。','荷重ケースで支持や接触状態が変わる場合は、線形の重ね合わせをそのまま使いません。'],
   links:[card('FORCE'),card('SLOAD'),card('PLOAD1'),card('PLOADB3'),card('PLOAD4'),card('GRAV'),card('RFORCE'),card('PARAM_WTMASS','PARAM,WTMASS'),card('ACCEL'),card('ACCEL1'),card('DEFORM'),card('LOAD'),card('CASE_SUBCOM','SUBCOM (Case)'),card('CASE_SUBSEQ','SUBSEQ (Case)'),card('CASE_BENDL','BENDL (Case)'),card('CASE_FBODYLD','FBODYLD (Case)'),card('CASE_TEMPERATURE','TEMPERATURE (Case)'),['theory.html#thermal-stress','熱ひずみ・熱応力'],['theory.html#static-subcases','複数ケースと結果の組合せ']],
-  technical:['analysis.html#common/load-check','静荷重の入力・出力を点検する'],
+  technical:['analysis.html#load-check','静荷重の入力・出力を点検する'],
   sources:[src(253,'第7章 PDF 253–304'),src(254,'節点・スカラー点の荷重 PDF 254–259'),src(259,'線荷重 PDF 259–265'),src(266,'面荷重 PDF 266–271'),src(271,'質量と加速度 PDF 271–283'),src(283,'要素の初期伸び PDF 283–286'),src(287,'温度と荷重合成 PDF 287–296'),src(296,'静荷重の受け渡し PDF 296–298'),src(298,'疲労の手順とカード PDF 298–301'),src(302,'STATSUB・BENDL PDF 302–304'),ref(398,'FATIGUE'),ref(1865,'FBODYLD・FBODYSB (Bulk)'),ref(2131,'MATFTG')],
  });
 
@@ -268,7 +268,7 @@
    ]],
   ],
   limits:['ここではMSCの線形静解析の自動リスタートを扱います。非線形の途中ステップから再開する手順はSOL・ソルバーの仕様を確認します。'],
-  technical:['analysis.html#common/restart','リスタートで指定する項目を確かめる'],
+  technical:['analysis.html#restart','リスタートで指定する項目を確かめる'],
   sources:[src(535,'第14章 PDF 535–546'),src(537,'入力構成と初回実行 PDF 537–538'),src(538,'読み書きリスタートと3回の例題 PDF 538–543'),src(543,'版の確認・読み取り専用・ミニDB PDF 543–545'),src(545,'Bulk Dataの回収とまとめ PDF 545–546')],
  });
 })();

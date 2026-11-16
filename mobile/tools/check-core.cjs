@@ -28,9 +28,11 @@ for(const [oldPath,oldHash,path,hash] of [
 assert.equal(p.restore('{}').textScale,1);
 assert.equal(p.restore('{"textScale":99}').textScale,1);
 assert.equal(p.restore('{"textScale":1.3}').textScale,1.3);
-assert.equal(content.NAVIGATION.analyses.length,16);
-assert.equal(content.NAVIGATION.analyses[0].hash,'#common');
-assert.equal(content.titleFor({path:'analysis.html',hash:'#common/run',y:0}),'共通');
+assert.equal(content.NAVIGATION.analyses.length,18);
+assert.ok(!content.NAVIGATION.analyses.some(e=>e.hash==='#common'));
+assert.deepEqual(content.NAVIGATION.analyses.slice(-3).map(e=>e.hash),['#model-verification','#restart','#database']);
+assert.equal(content.NAVIGATION.analyses[0].hash,'#static');
+assert.equal(content.titleFor({path:'analysis.html',hash:'#restart',y:0}),'リスタート');
 assert.deepEqual(content.NAVIGATION.intro.map(e=>e.title),['初めての解析','入力規則','節点・スカラー点','座標','要素の向き','応力方向']);
 assert.equal(content.NAVIGATION.materials.length,14);
 assert.deepEqual(content.NAVIGATION.elements.map(e=>e.path+e.hash),['elements.html#scalar','elements.html#beam','elements.html#shell','elements.html#solid','elements.html#rigid','elements.html#connector','elements.html#genel']);

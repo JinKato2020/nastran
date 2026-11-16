@@ -13,6 +13,8 @@
   const materialVisuals=e.visual==='materials'?window.MaterialVisuals:null;
   const topicVisuals=window.TheoryTopicVisuals?.[e.key];
   const related=[...(e.related?[e.related]:[]),...(e.links||[])];
+  const checks={contact:['analysis.html#contact-check','接触状態の確認'],damping:['analysis.html#damping-check','減衰設定の照合']};
+  if(checks[e.key])related.push(checks[e.key]);
   const sectionIndex=e.sectionIndex?`<nav class="theory-section-index" aria-label="この教材の目次">${e.sections.map(([title],i)=>`<button type="button" data-theory-target="theory-section-${i}">${esc(title)}</button>`).join('')}</nav>`:'';
   detail.innerHTML=`<div class="analysis-head"><span class="analysis-sol">${window.SolverScope.basic.has(e.key)?'Nastran共通 · 理論':'教材 · 理論'}</span><h1>${esc(e.title)}</h1><p>${esc(e.summary)}</p></div>${sectionIndex}${visual?.growthFigure||''}<div class="theory-formula"><p class="analysis-equation">${esc(e.equation)}</p><p>${esc(e.symbols)}</p></div>`+
    e.sections.map(([title,paragraphs,figure,table],i)=>`<section class="theory-section"><h2 id="theory-section-${i}" tabindex="-1">${esc(title)}</h2>${materialVisuals?.[figure]||topicVisuals?.[i]||''}${paragraphs.map(p=>`<p>${esc(p)}</p>`).join('')}${visual?.[figure]||''}${comparisonTable(table)}</section>`).join('')+

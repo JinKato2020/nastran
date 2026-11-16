@@ -434,14 +434,6 @@
     ],
     "analyses": [
       {
-        "title": "共通",
-        "description": "材料・拘束・荷重・接触・減衰・再実行と結果確認",
-        "path": "analysis.html",
-        "hash": "#common",
-        "kind": "解析手順",
-        "group": "共通"
-      },
-      {
         "title": "静解析",
         "description": "片持ち梁を梁・シェル・ソリッドで比較",
         "path": "analysis.html",
@@ -560,6 +552,30 @@
         "hash": "#fracture",
         "kind": "SOL 400",
         "group": "非線形・破壊"
+      },
+      {
+        "title": "モデル検証",
+        "description": "要素品質・拘束・荷重・釣合い・結果の妥当性を確認",
+        "path": "analysis.html",
+        "hash": "#model-verification",
+        "kind": "確認・運用",
+        "group": "検証・再実行"
+      },
+      {
+        "title": "リスタート",
+        "description": "保存DBからの再開、入力差分とF04・F06の照合",
+        "path": "analysis.html",
+        "hash": "#restart",
+        "kind": "確認・運用",
+        "group": "検証・再実行"
+      },
+      {
+        "title": "データベース管理",
+        "description": "DBの保存・割当・容量・BUFFSIZEを設定",
+        "path": "analysis.html",
+        "hash": "#database",
+        "kind": "確認・運用",
+        "group": "検証・再実行"
       }
     ],
     "operations": [

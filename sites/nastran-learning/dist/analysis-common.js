@@ -1,20 +1,12 @@
-// Shared technical guidance for every analysis. Card definitions live in Input data.
+// Independent technical reference topics. No combined common-procedure page.
 
 const linearStaticGuide2024 = 'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide.pdf';
 const verificationQrg = 'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf';
 const verificationReferences = entries => `<div class="analysis-links">${entries.map(([page,name])=>`<a href="${verificationQrg}#page=${page}" target="_blank" rel="noopener">${name}の書式 ↗</a>`).join('')}</div>`;
 
-window.AnalysisCommon = `
-<div class="analysis-head"><span class="analysis-sol">Nastran共通</span><h1>共通</h1><p>モデル図で条件を確かめ、主要カードの役割と、結果を照合する観点を学びます。</p></div>
-<nav class="analysis-common-index" aria-label="共通の目次"><a href="analysis.html#common/model-verification">モデル検証</a><a href="analysis.html#common/relations">主要カードの読み方</a><a href="analysis.html#common/material-check">材料</a><a href="analysis.html#common/constraint-check">境界条件</a><a href="analysis.html#common/load-check">荷重</a><a href="analysis.html#common/contact-check">接触</a><a href="analysis.html#common/damping-check">減衰</a><a href="analysis.html#common/run">実行・終了確認</a><a href="analysis.html#common/results">結果の照合</a><a href="analysis.html#common/restart">リスタート</a><a href="analysis.html#common/database">データベース管理</a><a href="comparisons.html#beam">似たカード</a></nav>
-<section class="analysis-section" id="analysis-common-relations"><h2>主要カードの読み方</h2><p>各解析の入力では、解法を選び、解析ケースと出力を指定し、その解析に必要な設定やモデルの定義を確認します。</p>
-<dl>
-<dt><strong>Executive Control</strong></dt><dd>実行する解析を選びます。たとえば実固有値解析では <a href="bulk.html#EXEC_SOL_103">SOL 103</a> を指定します。</dd>
-<dt><strong>Case Control</strong></dt><dd>各ケースで使う拘束・荷重・解法設定と、出力する結果を指定します。たとえば <a href="bulk.html#CASE_METHOD">METHOD</a> で固有値抽出条件を選び、<a href="bulk.html#CASE_DISPLACEMENT">DISPLACEMENT</a> で変位ベクトルの出力を要求します。</dd>
-<dt><strong>PARAM</strong></dt><dd>指定によって計算や出力が変わる項目を確認します。たとえば <a href="bulk.html#PARAM_COUPMASS">PARAM,COUPMASS</a> は、対応する要素の質量行列の扱いに関係します。PARAMは通常Bulk Dataに記載します。</dd>
-<dt><strong>Bulk Data</strong></dt><dd>節点・要素・材料・拘束・荷重や解法の設定を定義します。たとえば <code>METHOD = 30</code> は <a href="bulk.html#EIGRL">EIGRL</a> の <code>SID = 30</code> に対応します。</dd>
-</dl><p>カードの参照関係は相関図の矢印で追えます。カード名を押すと、Inputデータで書式・全フィールド・既定値を確認できます。</p></section>
-<section class="analysis-section" id="analysis-common-input"><h2>入力規則とカードの詳細</h2><div class="analysis-links"><a href="input.html#rules">入力規則・固定長・継続行 →</a><a href="bulk.html">カードの用途・全フィールド →</a><a href="include.html">INCLUDEによるファイル分割 →</a></div></section>
+window.AnalysisReferenceHTML = `
+
+
 <section class="analysis-section" id="analysis-common-material-check"><h2>材料・積層の入力と結果</h2>
 <ol class="analysis-steps">
 <li>要素のPIDから物性カードへ、物性のMIDから材料へと番号を追います。<a href="bulk.html#PSHELL">PSHELL</a>の膜・曲げ材、<a href="bulk.html#PSOLID">PSOLID</a>の材料座標CORDM、<a href="bulk.html#PCOMP">PCOMP</a>の各層は、対象に応じて確認します。</li>
@@ -71,7 +63,7 @@ window.AnalysisCommon = `
 <p>F04の版番号と処理、F06のCase ControlエコーとSUBCASE・出力表を対で記録します。版番号が進んでいても、F06に致命的エラーがある版は再開元に選びません。3回目の例は同じMIDの入力による置換です。<code>/DELETE MAT1</code>は対象が広いため、個別の置換と区別します。</p>
 <div class="analysis-links"><a href="${linearStaticGuide2024}#page=539" target="_blank" rel="noopener">Listing 14-1〜14-3 ↗</a><a href="${linearStaticGuide2024}#page=543" target="_blank" rel="noopener">F04・F06と版の確認 ↗</a></div>
 </details>
-<div class="analysis-links"><a href="theory.html#restart">リスタートで再利用できる処理 →</a><a href="analysis.html#common/database">データベース管理 →</a><a href="${linearStaticGuide2024}#page=535" target="_blank" rel="noopener">MSC 2024.1 第14章 · 実行例 ↗</a><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=138" target="_blank" rel="noopener">RESTART文の書式 ↗</a></div></section>
+<div class="analysis-links"><a href="theory.html#restart">リスタートで再利用できる処理 →</a><a href="analysis.html#database">データベース管理 →</a><a href="${linearStaticGuide2024}#page=535" target="_blank" rel="noopener">MSC 2024.1 第14章 · 実行例 ↗</a><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=138" target="_blank" rel="noopener">RESTART文の書式 ↗</a></div></section>
 <section class="analysis-section" id="analysis-common-database"><h2>MSC Nastranのデータベース管理</h2>
 <p>第15章は、後からリスタートするための保存と、大規模モデルのディスク・メモリ割当を扱います。標準の小中規模ジョブは既定割当から始め、保存の要否、容量不足が起きた場所、別ドライブを使う必要があるかで設定を選びます。</p>
 <h3>データブロック、DBset、物理ファイルを区別する</h3>
@@ -82,7 +74,7 @@ window.AnalysisCommon = `
 <dt><strong>INIT</strong></dt><dd>DBsetのメンバーと上限容量を初期化します。単一ファイルの容量調整は実行オプションも比較します。SCRATCHの通常領域とSCR300の指定は分けます。</dd>
 <dt><strong>ASSIGN</strong></dt><dd>論理名をパスに結び付けます。別ドライブへ分けたDBALLのメンバーも割り当てられます。FORTRAN入出力ではOUTPUT2などの入出力先に対してSTATUS・UNIT・FORMを選びます。テキスト形式で転送するファイルとバイナリ形式を区別します。</dd>
 <dt><strong>EXPAND</strong></dt><dd>既存の永続DBsetの容量が足りなかったとき、再開時に新しいメンバーを追加します。ASSIGNで新しいパスを指定し、EXPANDでDBALLへ加えます。章の説明では1実行に1回で、一時ファイルの拡張には使いません。</dd>
-<dt><strong>RESTART</strong></dt><dd>プロジェクトと版を選び、保持方法を指定します。<a href="analysis.html#common/restart">リスタート手順</a>で読み書きと読み取り専用を比較します。</dd>
+<dt><strong>RESTART</strong></dt><dd>プロジェクトと版を選び、保持方法を指定します。<a href="analysis.html#restart">リスタート手順</a>で読み書きと読み取り専用を比較します。</dd>
 <dt><strong>DBCLEAN</strong></dt><dd>不要な版のデータブロックを整理し、DB内部で領域を再利用できるようにします。物理ファイルの長さは縮みません。対象のPROJECT・VERSIONをDBDIRで照合します。ガイドで示す上限は1実行に10文です。</dd>
 <dt><strong>DBDIR</strong></dt><dd>版やデータブロックの目録を表示します。FORMATのビット相当値を加算して項目を選びます。1はプロジェクト版、2はNDDLデータブロック、4はNDDLパラメータ、8は空のデータブロック、16はトレーラ、32はパス値表、64は一時データブロックです。既定の63は最初の6項目の合計です。</dd>
 <dt><strong>INCLUDE</strong></dt><dd>指定位置に別ファイルを読み込みます。FMSのほか、Case ControlやBulk Dataでも使えます。挿入先とパスの扱いは<a href="include.html">INCLUDEとファイル分割</a>を参照します。</dd>
@@ -119,8 +111,8 @@ ${verificationReferences([[87,'ASSIGN']])}
 <p>ブロック容量は <code>ブロック数 × (BUFFSIZE − 1) × 1ワードのバイト数</code> です。初回保存と再開で同じBUFFSIZEを使います。</p>
 <p>第15章の式(15-2)は、既定のSCRATCH(MEM)とBUFFERPOOLを仮定した目安です。全量を同じワード単位にそろえると、<code>User OPENCORE ≈ mem − 150 × BUFFSIZE − 500 KW</code> です。例えばBUFFSIZEを8193から65537へ増やすと、同じmemでも計算モジュールに残る量は約860万ワード減ります。1ワード8バイトなら約68.8 MBです。実際の割当はF04のメモリ要約で確認します。</p>
 </details>
-<div class="analysis-links"><a href="analysis.html#common/restart">保存したDBから再開する →</a><a href="workflow.html#files">入力・出力ファイルの見方 →</a><a href="${linearStaticGuide2024}#page=547" target="_blank" rel="noopener">MSC 2024.1 第15章 · データベース管理 ↗</a><a href="${linearStaticGuide2024}#page=550" target="_blank" rel="noopener">FMSの文と設定例 ↗</a><a href="${linearStaticGuide2024}#page=556" target="_blank" rel="noopener">大規模モデルとBUFFSIZE ↗</a></div></section>
-<section class="analysis-section" id="analysis-common-run"><h2>実行・終了確認</h2><p>手元で実行したら、F06の終了状態、警告、対象のSUBCASE、要求した結果の順に確認します。非線形解析では到達した荷重・増分と収束履歴も読みます。</p><div class="analysis-links"><a href="workflow.html#files">入力・出力ファイルの役割 →</a><a href="batch.html">バッチ・実行オプション・並列計算 →</a><a href="errors.html">エラーメッセージ →</a></div></section>
+<div class="analysis-links"><a href="analysis.html#restart">保存したDBから再開する →</a><a href="workflow.html#files">入力・出力ファイルの見方 →</a><a href="${linearStaticGuide2024}#page=547" target="_blank" rel="noopener">MSC 2024.1 第15章 · データベース管理 ↗</a><a href="${linearStaticGuide2024}#page=550" target="_blank" rel="noopener">FMSの文と設定例 ↗</a><a href="${linearStaticGuide2024}#page=556" target="_blank" rel="noopener">大規模モデルとBUFFSIZE ↗</a></div></section>
+
 <section class="analysis-section" id="analysis-common-model-verification">
 <h2>モデル検証</h2>
 <p>まず、何を評価するか、期待する変形方向、手計算や試験で比較できる量を決めます。以下は線形静解析の確認手順です。評価量は先端の変位、支点の反力、特定断面の応力など、位置と成分まで決めて記録します。</p>
@@ -196,16 +188,29 @@ ${verificationReferences([[490,'MAXMIN（従来形式）'],[492,'MAXMIN（定義
 <p>公式例題1ではモニター点ごとに荷重、個別の要素成分、節点力など異なる量を並べ、どの結果項目が線形に合成できるかを確認します。例題2では同じ片持ち梁で基準点を移し、力の合計を保ったままMONSUMTのモーメントが腕の分だけ変化することを照合します。</p>
 ${verificationReferences([[527,'MONITOR']])}
 </details>
-<div class="analysis-links"><a href="analysis.html#common/load-check">荷重と反力の入力を照合 →</a><a href="analysis.html#common/constraint-check">支持とAUTOSPCを確認 →</a><a href="modeling.html#model-mesh-transition">メッシュ境界と節点応力 →</a><a href="workflow.html#results">F06の結果表を読む →</a></div>
+<div class="analysis-links"><a href="analysis.html#node-element-check">節点・要素の結果の確認 →</a><a href="analysis.html#load-check">荷重と反力の入力を照合 →</a><a href="analysis.html#constraint-check">支持とAUTOSPCを確認 →</a><a href="modeling.html#model-mesh-transition">メッシュ境界と節点応力 →</a><a href="workflow.html#results">F06の結果表を読む →</a></div>
 <div class="analysis-links"><a href="${linearStaticGuide2024}#page=385" target="_blank" rel="noopener">MSC 2024.1 第10章・モデル検証 ↗</a><a href="${linearStaticGuide2024}#page=394" target="_blank" rel="noopener">ひずみエネルギー ↗</a><a href="${linearStaticGuide2024}#page=398" target="_blank" rel="noopener">モデルの診断ツール ↗</a><a href="${linearStaticGuide2024}#page=418" target="_blank" rel="noopener">荷重・反力・釣合い ↗</a><a href="${linearStaticGuide2024}#page=436" target="_blank" rel="noopener">応力誤差の指標 ↗</a><a href="${linearStaticGuide2024}#page=447" target="_blank" rel="noopener">モニター点の例題 ↗</a></div>
 </section>
-<section class="analysis-section" id="analysis-common-results"><h2>結果の照合</h2><ul><li>比較する単位・座標系・成分・位置をそろえます。</li><li>応力の出力位置、表裏、平均化の有無を確認します。</li><li>目当ての結果を出す出力要求、対象のSET・SUBCASE、出力先を確認します。</li></ul><div class="analysis-links"><a href="workflow.html#results">F06の結果表を読む →</a><a href="coordinates.html">座標・応力の符号 →</a></div></section>
+
 <section class="analysis-section" id="analysis-common-node-element-check"><h2>節点・要素の結果が想定と違うとき</h2>
 <dl>
 <dt><strong>拘束したはずの向きに動く</strong></dt><dd>まず結果の節点番号とSUBCASEを確認します。<a href="bulk.html#GRID">GRID</a>のCPは節点位置を決め、CDは変位・拘束の成分方向を決めます。位置が正しければ、CDと<a href="bulk.html#CASE_SPC">Case ControlのSPC</a>で選んだセットを確認します。</dd>
 <dt><strong>ばねの変位・力の符号が合わない</strong></dt><dd><a href="bulk.html#CASE_DISPLACEMENT">DISPLACEMENT</a>の出力対象に点番号を含めます。SPOINTの値は接続カードの点番号から追います。ばね力は接続端の順と、各端の選択成分を照合します。</dd>
 <dt><strong>梁の曲がり方やシェル表裏の応力が合わない</strong></dt><dd>梁は断面の向きに使ったベクトルと、読む断面の位置を確認します。シェルは節点順の法線、出力座標と応力評価位置を確認します。<a href="bulk.html#CASE_STRESS">STRESS</a>の結果は同じ位置・同じ軸で比較します。</dd>
 </dl><div class="analysis-links"><a href="coordinates.html#points">節点・スカラー点の基本 →</a><a href="coordinates.html#elements">梁の方向ベクトル・シェルの法線 →</a><a href="elements.html#scalar-overview">各要素の選び方 →</a></div></section>
-<section class="analysis-section" id="analysis-common-verification"><h2>図と参照資料</h2><p>モデル図は形状・境界条件・観測位置の模式図です。参照資料は各解析の末尾に示します。</p></section>`;
+`;
 // BEGIN THIRD PARTY NOTICES
-window.AnalysisCommon += "<section class=\"analysis-section\" id=\"analysis-common-rights\"><h2>出典・利用条件</h2><p>本教材は非公式です。MSC Nastranの開発元による提供・認定・保証を示すものではありません。記載の製品名・商標は各権利者に帰属します。</p><h3>予荷重固有値モデル：SPAD</h3><p>予荷重固有値の解説が参照するSPADの配布条件は以下のMITライセンスです。</p><p><a href=\"https://github.com/zhaowei0566/SPAD/blob/7a5b6b7cec77511549bfa0bfca434b38b1b9bbec/LICENSE.txt\" target=\"_blank\" rel=\"noopener\">取得時点のライセンス</a></p><pre style=\"white-space:pre-wrap;overflow-wrap:anywhere\">MIT License\n\nCopyright (c) [2018] [Stiffened Plate Anaysis and Design]\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the &quot;Software&quot;), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n</pre><p>この許諾文はSPAD由来の対象データに適用する表示です。他のマニュアル・教材・アプリ全体に同じ許諾を与えるものではありません。</p></section>";
+window.AnalysisReferenceHTML += "<section class=\"analysis-section\" id=\"analysis-common-rights\"><h2>出典・利用条件</h2><p>本教材は非公式です。MSC Nastranの開発元による提供・認定・保証を示すものではありません。記載の製品名・商標は各権利者に帰属します。</p><h3>予荷重固有値モデル：SPAD</h3><p>予荷重固有値の解説が参照するSPADの配布条件は以下のMITライセンスです。</p><p><a href=\"https://github.com/zhaowei0566/SPAD/blob/7a5b6b7cec77511549bfa0bfca434b38b1b9bbec/LICENSE.txt\" target=\"_blank\" rel=\"noopener\">取得時点のライセンス</a></p><pre style=\"white-space:pre-wrap;overflow-wrap:anywhere\">MIT License\n\nCopyright (c) [2018] [Stiffened Plate Anaysis and Design]\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the &quot;Software&quot;), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n</pre><p>この許諾文はSPAD由来の対象データに適用する表示です。他のマニュアル・教材・アプリ全体に同じ許諾を与えるものではありません。</p></section>";
+
+window.AnalysisReferenceTopics = {
+ 'model-verification':'モデル検証',
+ 'restart':'リスタート',
+ 'database':'データベース管理',
+ 'material-check':'材料・積層の入力と結果',
+ 'constraint-check':'拘束の入力と反力',
+ 'load-check':'荷重の設定と確認',
+ 'contact-check':'接触状態の確認',
+ 'damping-check':'減衰設定の照合',
+ 'node-element-check':'節点・要素の結果の確認',
+ 'rights':'出典・利用条件'
+};

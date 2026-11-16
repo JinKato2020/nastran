@@ -15,9 +15,9 @@ for(const topic of context.window.NastranTheory){
  }
 }
 for(const section of ['material-check','constraint-check','load-check','contact-check','damping-check','restart','model-verification','database']){
- const common=context.window.AnalysisCommon;
+ const common=context.window.AnalysisReferenceHTML;
  assert(common.includes('id="analysis-common-'+section+'"'),section);
- assert(common.includes('href="analysis.html#common/'+section+'"'),section);
+ assert(context.window.AnalysisReferenceTopics[section],section);
  const [,body]=common.split('id="analysis-common-'+section+'"');
  for(const [,key] of body.split('</section>')[0].matchAll(/href="bulk\.html#([^"]+)"/g))assert(keys.has(key),section+' -> '+key);
 }

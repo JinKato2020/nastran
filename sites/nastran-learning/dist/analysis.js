@@ -58,7 +58,7 @@
   return `<div class="analysis-head"><div class="analysis-title"><h1>${esc(entry.title)}</h1><span class="analysis-sol">${esc(entry.sol)}</span></div>${summary?`<p>${esc(summary)}</p>`:''}${extra}</div>`;
  }
  function contextLinks(entry,related=[]){
-  return links([['theory.html#'+entry.key,'この解析の理論'],...related,['analysis.html#common','共通の確認手順']]);
+  return links([['theory.html#'+entry.key,'この解析の理論'],...related,['analysis.html#model-verification','モデル検証']]);
  }
  function compare(scenario,selected){
   return `<table class="analysis-scenario-comparison"><caption>${esc(scenario.shared)}</caption><thead><tr>${scenario.columns.map(col=>`<th scope="col">${esc(col)}</th>`).join('')}</tr></thead><tbody>${scenario.rows.map(([name,...cells],index)=>`<tr${index===selected?' aria-current="true"':''}><th scope="row">${esc(name)}</th>${cells.map(cell=>`<td>${esc(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table><p class="analysis-scenario-summary">${esc(scenario.compare)}</p>`;
@@ -99,10 +99,10 @@
   const selection=scenarioControls(scenario,reference,model,official,complex);
   const related=complex&&!official?[['analysis.html#complex-modes/official','公式例題 · '+reference.title],...scenario.links]:[...(scenario.links||[])];
   if(entry.key==='static')related.push(
-   ['analysis.html#common/model-verification','共通 · モデル検証'],
-   ['analysis.html#common/material-check','共通 · 材料と断面の照合'],
-   ['analysis.html#common/constraint-check','共通 · 支持・強制変位の照合'],
-   ['analysis.html#common/load-check','共通 · 荷重・反力の照合'],
+   ['analysis.html#model-verification','モデル検証'],
+   ['analysis.html#material-check','材料と断面の照合'],
+   ['analysis.html#constraint-check','支持・強制変位の照合'],
+   ['analysis.html#load-check','荷重・反力の照合'],
   );
   const guide=window.AnalysisScenarioGuides?.[entry.key];
   const state={current:official?'model':tabOf(tabKey)};
@@ -185,14 +185,36 @@
    });
   }
  }
+ const movedReferences={input:'input.html#rules',relations:'input.html#executive',run:'workflow.html#run',results:'workflow.html#results',verification:'analysis.html#index'};
  function route(){
-  const [key,model,subsection]=location.hash.slice(1).split('/');
-  if(!key||key==='common'){
-   picker.value='common';
-   document.title='共通 — FEM Guide';
-   detail.innerHTML=window.AnalysisCommon;
-   const target=byId('analysis-common-'+model);
-   if(target)requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));
+  let [key,model,subsection]=location.hash.slice(1).split('/');
+  // Saved bookmarks and existing app binaries may still open the previous hashes.
+  if(key==='common'){
+   if(movedReferences[model]){
+    detail.innerHTML=links([[movedReferences[model],'移動先の解説']]);
+    detail.querySelector('a').click();
+    return;
+   }
+   key=Object.hasOwn(window.AnalysisReferenceTopics,model)?model:'index';
+   history.replaceState(null,'','#'+key);
+  }
+  if(!key||key==='index'){
+   picker.value='index';
+   document.title='解析 — FEM Guide';
+   const items=window.NASTRAN_LEARNING.navigation.analyses;
+   const groups=[...new Set(items.map(item=>item.group))];
+   detail.innerHTML='<div class="analysis-head"><h1>解析</h1><p>解析の種類、または確認したい作業を選んでください。</p></div>'+groups.map(group=>section(esc(group),items.filter(item=>item.group===group).map(item=>`<article class="analysis-index-item"><a href="${esc(item.path+item.hash)}"><strong>${esc(item.title)}</strong> · ${esc(item.kind)}</a><p>${esc(item.description)}</p></article>`).join(''))).join('');
+   return;
+  }
+  if(Object.hasOwn(window.AnalysisReferenceTopics,key)){
+   picker.value=['model-verification','restart','database'].includes(key)?key:'index';
+   const title=window.AnalysisReferenceTopics[key];
+   document.title=title+' — FEM Guide';
+   const template=document.createElement('template');
+   template.innerHTML=window.AnalysisReferenceHTML;
+   const selected=template.content.querySelector('#analysis-common-'+key);
+   selected.querySelector('h2')?.remove();
+   detail.innerHTML='<div class="analysis-head"><h1>'+esc(title)+'</h1></div>'+selected.outerHTML+links([['analysis.html#index','解析一覧']]);
    return;
   }
   const entry=catalog.entries.find(item=>item.key===key)||catalog.entries[0];
@@ -215,8 +237,9 @@
   }
   const remaining=catalog.entries.filter(e=>!listed.has(e.key));
   if(remaining.length)groups.set('その他',remaining);
-  picker.innerHTML='<option value="common">共通</option>'+[...groups].map(([group,entries])=>
-   `<optgroup label="${esc(group)}">${entries.map(e=>`<option value="${e.key}">${esc(e.title)}（${esc(e.sol)}）</option>`).join('')}</optgroup>`).join('');
+  picker.innerHTML='<option value="index">解析一覧</option>'+[...groups].map(([group,entries])=>
+   `<optgroup label="${esc(group)}">${entries.map(e=>`<option value="${e.key}">${esc(e.title)}（${esc(e.sol)}）</option>`).join('')}</optgroup>`).join('')+
+   '<optgroup label="検証・再実行">'+['model-verification','restart','database'].map(key=>`<option value="${key}">${esc(window.AnalysisReferenceTopics[key])}</option>`).join('')+'</optgroup>';
   picker.addEventListener('change',()=>{location.hash=picker.value;window.scrollTo(0,0);});
   addEventListener('hashchange',route);
   route();

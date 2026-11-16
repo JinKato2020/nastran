@@ -162,10 +162,10 @@
  caseEntry('EQUILIBRIUM','外力・拘束反力の釣合いを出力','結果出力','外力・SPC反力・MPCや剛体要素による拘束力と、その合計を出力します。',349,'EQUILIBRIUM [(PRINT,PUNCH,PLOT)] [= YES | gid | NONE]','EQUILIBRIUM = 501',
   [['PRINT','F06へ印刷します。出力先を省略した場合の既定です。'],['PUNCH','PCHへ出力します。'],['PLOT','設定に応じてOP2・HDF5などへ出力します。'],['YES','基本座標の原点まわりで集計します。値を省いた指定例もQRGにあります。'],['gid','集計するモーメントの基準点になるGRIDの番号です。'],['NONE','この釣合い出力を抑止します。']],
   ['釣合いの計算に必要なSPC・MPC反力は自動計算されます。個々の反力表も必要ならSPCFORCES・MPCFORCESを要求します。'],[['SPCFORCES','支持点ごとの反力を確認します。','CASE_SPCFORCES'],['MPCFORCES','多点拘束等による力を確認します。','CASE_MPCFORCES']]);
- cards.at(-1).reference='analysis.html#common/model-verification';
+ cards.at(-1).reference='analysis.html#model-verification';
  caseEntry('GROUNDCHECK','意図しない拘束を検査する','結果出力','剛体運動に対するひずみエネルギーから、不用意に地面へ結合した自由度を調べます。',454,'GROUNDCHECK [(PRINT | NOPRINT | PUNCH, SET=(sets), GRID=gid, THRESH=e, DATAREC=YES|NO, RTHRESH=r)] = YES | NO','GROUNDCHECK(SET=(G,N),DATAREC=YES)=YES',
   [['PRINT／NOPRINT／PUNCH','F06への出力、F06への出力を抑止、PCHへの出力です。既定はPRINTです。'],['SET','Gは既定。N、AUTOSPCを反映したN、F、A、またはALLから検査する段階を選びます。'],['GRID','剛体運動の基準点。'],['THRESH','合格とするひずみエネルギーの上限。既定は最大剛性項÷10¹⁰です。'],['DATAREC','YESで診断用の力を回復します。既定はNO。'],['RTHRESH','DATARECで回復した力を出力するしきい値。既定0.10。'],['YES／NO','検査を有効化または無効化します。']],
   ['全SUBCASEより上に指定します。支持を適用した段階では意図した抵抗も現れるため、GやNの結果と比較します。']);
- cards.at(-1).reference='analysis.html#common/model-verification';
+ cards.at(-1).reference='analysis.html#model-verification';
  window.InputCatalog.entries.push(...cards);
 })();
