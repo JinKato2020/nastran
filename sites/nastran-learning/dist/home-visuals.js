@@ -101,7 +101,14 @@
   for(const [id,draw] of Object.entries(pages[document.body.dataset.learningPage]||{})){
    const section=document.getElementById(id);
    const heading=section?.querySelector('h1,h2');
-   if(heading)heading.insertAdjacentHTML('afterend',draw());
+   if(!heading)continue;
+   if(document.body.dataset.learningPage==='elements.html'){
+    // Existing specialist illustrations take precedence over generic sketches.
+    if(section.querySelector('.element-figure,.ev-diagram'))continue;
+    const key=window.ElementSectionVisuals?.[id];
+    if(key){heading.insertAdjacentHTML('afterend',`<figure class="element-figure">${window.ElementVisuals[key]()}</figure>`);continue;}
+   }
+   heading.insertAdjacentHTML('afterend',draw());
   }
  });
 })();
