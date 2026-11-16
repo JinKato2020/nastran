@@ -5,6 +5,10 @@
 (() => {
  'use strict';
  const copy = {
+  shearThroughS:['① せん断中心Sを通す：溝形断面の灰色の形と、図心Gは共通です。赤い荷重Pの作用線（縦の破線）がSを通るのでe=0。この荷重によるねじりはなく、梁は曲げでたわみます。','① Load through shear centre S: the grey channel and centroid G are shared by both cases. The red load P acts along the vertical dashed line through S, so e=0. This load produces bending without torsion.'],
+  shearThroughG:['② 図心Gを通す：作用線がSからeだけ離れるので、曲げに加えてトルクP·eが生じます。赤い円弧はこの荷重による時計回りのねじり作用で、変形後の形ではありません。','② Load through centroid G: the line of action lies distance e from S, producing torque P·e as well as bending. The red curved arrow shows the clockwise torsional action, not a deformed shape.'],
+  warpRotation:['① ねじれ角θだけを見る端面図：灰色の破線は元のI形断面、緑線は軸まわりに回転した断面です。この向きからは、紙面の手前・奥へのずれは読み取れません。','① End view of twist angle θ: the dashed I-section is the original orientation; green is the rotated section. This view alone cannot reveal displacements towards or away from the viewer.'],
+  warpAxial:['② 反りだけを取り出した斜視図：面内の回転を取り除いて比較しています。破線は反りのない平らな断面、緑は反った断面。緑の矢印は各端の軸方向のずれで、全てx軸と平行です。＋uと−uが混在し、断面全体の平行移動ではありません。変形量を強調した模式図です。','② Oblique view isolating warping, with in-plane rotation removed. Dashed lines show the unwarped planar section and green lines the warped section. All green displacement arrows are parallel to x. Both +u and −u occur: this is not a translation of the whole section. Deformation is exaggerated schematically.'],
   beamAxial:['① 軸方向に引く：赤いNで先端がuだけ伸びます。破線の先端位置と緑の先端位置を比較してください。Aは断面積で、EAが大きいほど伸びにくくなります。','① Axial tension: force N extends the tip by u. Compare the dashed original tip with the green displaced tip. A is section area; larger EA gives less extension.'],
   beamBend:['② 曲げ：先端の横荷重Pで中心線が曲がり、青い断面線も回転します。図はせん断変形を除いた曲げ成分δbです。EIが大きいほどたわみは小さくなります。','② Bending: transverse tip force P curves the centreline and rotates the blue section lines. This shows only the bending contribution δb, excluding shear. Larger EI gives less deflection.'],
   beamShear:['③ 横せん断：同じ横荷重Pによるせん断成分δsだけを取り出しています。断面は回転せず、中心線が傾くため直角が崩れます。γは中心線の傾きと断面回転の差です。②と③を足すと全たわみになります。','③ Transverse shear: isolated shear contribution δs under the same P. Sections do not rotate in this separated contribution, but the centreline tilts. γ is the difference between centreline slope and section rotation. Add ② and ③ for total deflection.'],
@@ -86,6 +90,12 @@
   }).join('')}</div><details class="ev-key"><summary>${prose('legend')}</summary><p>${prose('symbols')}</p></details></div>`;
  }
  const drawings={
+  shearCenter:()=>render('shear-center',[false,true].map(offset=>panel(offset?'shearThroughG':'shearThroughS',
+   `${t(22,29,offset?'②  P → G':'①  P → S')}${t(268,29,'⊙ x')}${p('M274 81H156V207H274V194H169V94H274Z','face')}${p('M60 144H298','ghost')}${p(offset?'M205 53V229':'M91 53V229','ghost')}${dot(91,144,'open',6)}${dot(205,144)}${t(72,169,'S')}${t(216,169,'G')}${ar(offset?205:91,47,offset?205:91,123,'load')}${t(offset?218:104,65,'P','loadText')}${offset?`${p('M91 227v12H205v-12','dimension')}${t(143,261,'e')}${arc('M267 110C313 99 329 149 296 176','load')}${t(307,196,'T','loadText')}`:t(119,261,'e = 0')}${t(offset?90:115,294,offset?'|T| = P·e':'T = 0')}`,314))),
+  beamWarping:()=>render('beam-warping',[
+   panel('warpRotation',`${t(22,29,'①  θ')}${t(268,29,'⊙ x')}${p('M99 85H239M169 85V225M99 225H239','ghost')}<g transform="rotate(-18 169 155)">${p('M99 85H239M169 85V225M99 225H239','motion')}</g>${dot(169,155)}${p('M169 155H253','ghost')}${p('M169 155L249 129','motion')}${arc('M224 155Q224 146 221 138')}${t(234,149,'θ','motionText')}`,305),
+   panel('warpAxial',`${t(22,29,'②  uₓ(y,z)')}${p('M80 80H230M155 80V200M80 200H230','ghost')}${p('M55 62L155 80L255 98M155 80V200M105 218L155 200L205 182','motion')}${[[80,80,55,62],[230,80,255,98],[80,200,105,218],[230,200,205,182]].map(([a,b,c,d])=>dot(a,b,'open')+ar(a,b,c,d,'motion')).join('')}${t(32,52,'−u','motionText')}${t(267,103,'+u','motionText')}${t(83,248,'+u','motionText')}${t(243,220,'−u','motionText')}${ar(271,140,315,172)}${t(302,197,'x','axisText')}${t(82,284,'uₓ ≠ const.')}`,305),
+  ]),
   beamFundamentals:()=>render('beam-fundamentals',[
    panel('beamAxial',`${t(22,29,'①  N → u')}${wall(51,72,93)}${p('M51 95H246V143H51Z','ghost')}${p('M51 95H281V143H51Z','motion')}${ar(281,119,337,119,'load')}${t(303,101,'N','loadText')}${p('M246 145V190M281 145V190','ghost')}${ar(246,176,281,176,'motion')}${t(256,205,'u','motionText')}${t(85,239,'u = NL / EA')}`,258),
    panel('beamBend',`${t(22,29,'②  P → δb')}${wall(51,70,105)}${p('M51 105H282','ghost')}${p('M51 105C136 105 220 125 282 164','motion')}${p('M112 89L108 125M196 109L186 142M291 149L273 179','axis')}${ar(282,49,282,96,'load')}${t(296,66,'P','loadText')}${ar(310,107,310,162,'motion')}${t(299,194,'δb','motionText')}${t(83,239,'δb = PL³ / (3EI)')}`,258),
