@@ -42,7 +42,7 @@
   pipe:['数字は接続節点。緑の区間がGENELで表す継手です。各部材の配置と荷重方向を示す模式図で、実際の比率とは異なります。','Numbers identify connected nodes. The green segment is the joint represented by GENEL. This schematic shows connectivity and load direction, not true proportions.'],
   springTwoEnds:['両端が動く場合。緑の矢印はそれぞれの変位です。この例では右端の変位が大きく、両端を保つ赤い力は等大で逆向きです。','Both ends can move. Green arrows show their displacements. The right end moves farther in this example, and the red forces holding the ends are equal and opposite.'],
   springGround:['片端を地面につなぐ場合。左端の変位はゼロです。右端の荷重は、左端の反力とつり合います。','One end is grounded. The left end has zero displacement. The applied force at the right end balances the reaction at the left end.'],
-  series:['直列ばねは同じ軸力Fを伝え、全変位は2本の伸びの和です。','Series springs transmit the same axial force F. Total displacement is the sum of their extensions.'],
+  springPoints:['左のGRID 10では、ばねをつなぐ変位成分を選びます。中央の白丸はSPOINT 20。図上の配置は接続順を示します。解析では左端の変位u₁と中間の変位qを求め、右の接地端の変位は0です。','At GRID 10 on the left, select the displacement component to connect. The open circle is SPOINT 20, placed schematically to show connection order. The solver finds u₁ and q. The grounded end on the right has zero displacement.'],
   rod:['軸方向に引く棒。左端の反力と右端の荷重がつり合います。曲げ変形を表す図とは区別します。','An axially loaded rod. The left reaction balances the right load. Distinguish this axial deformation from bending.'],
   section:['梁の断面と局所y・z。幅b・高さhを、曲げる方向に対応づけます。','Beam cross-section and local y, z axes. Relate width b and height h to the bending direction.'],
   taper:['長手方向の断面変化。途中断面の位置と断面諸量を対応づけます。','Section variation along the beam. Match each station to its cross-sectional properties.'],
@@ -131,7 +131,7 @@
    panel('springTwoEnds',`${spring(92,109,178)}${dot(92,109)}${dot(270,109)}${t(170,84,'K')}${ar(87,109,29,109,'load')}${ar(275,109,333,109,'load')}${t(30,87,'f₂','loadText')}${t(316,87,'f₁','loadText')}${p('M72 109V170M222 109V170','ghost')}${ar(72,154,92,154,'motion')}${ar(222,154,270,154,'motion')}${t(75,185,'u₂','motionText')}${t(242,185,'u₁','motionText')}`,200),
    panel('springGround',`${wall(92,78,62)}${spring(92,109,178)}${dot(92,109)}${dot(270,109)}${t(170,84,'K')}${ar(87,109,29,109,'load')}${ar(275,109,333,109,'load')}${t(24,66,'−30 N','loadText')}${t(278,87,'+30 N','loadText')}${p('M222 109V170','ghost')}${ar(222,154,270,154,'motion')}${t(68,185,'u₂ = 0')}${t(178,185,'u₁ = +0.30 mm','motionText')}`,200),
   ]),
-  series:()=>render('series',[panel('series',`${wall(35,78,80)}${spring(35,120,116)}${dot(151,120)}${spring(151,120,116)}${dot(267,120)}${ar(272,120,329,120,'load')}${t(305,98,'F')}${t(78,85,'k₁')}${t(193,85,'k₂')}${t(61,178,'u = F/k₁ + F/k₂')}`)]),
+  springPoints:()=>render('spring-points',[panel('springPoints',`${p('M16 84H57V132H16Z','face')}${spring(57,108,116)}${spring(173,108,131)}${dot(57,108)}${dot(173,108,'open',6)}${p('M304 85v47m0-37l13-12m-13 24l13-12m-13 24l13-12m-13 24l13-12','hatch')}${t(16,153,'GRID 10')}${t(130,153,'SPOINT 20')}${t(103,84,'K₁')}${t(227,84,'K₂')}${ar(57,72,96,72,'motion')}${t(66,60,'u₁','motionText')}${t(167,181,'q')}${t(276,153,'u = 0')}`,196)]),
   rod:()=>render('rod',[panel('rod',`${wall(62,82,80)}${p('M62 105H262V139H62Z','face')}${p('M262 105H283V139H262','ghost')}${ar(262,122,331,122,'load')}${ar(62,122,11,122,'load')}${t(302,98,'F')}${t(14,98,'−F')}${ar(262,166,284,166,'motion')}${t(270,191,'u')}${t(113,215,'u = FL / EA')}`)]),
   section:()=>render('section',[panel('section',`${p('M118 57H234V186H118Z','face')}${ar(176,121,176,24)}${ar(176,121,305,121)}${t(185,28,'yₑ')}${t(308,127,'zₑ')}${p('M118 196v12H234v-12M101 57H89V186h12','dimension')}${t(173,222,'b')}${t(69,130,'h')}`)]),
   taper:()=>render('taper',[panel('taper',`${p('M48 58L305 102V146L48 190Z','face')}${p('M48 124H305','ghost')}${p('M164 78V170','axis')}${t(29,216,'A')}${t(292,176,'B')}${t(167,63,'A(x)')}${ar(60,34,291,34)}${t(303,39,'x')}`)]),
@@ -145,7 +145,7 @@
  window.ElementVisuals=drawings;
  // These replace geometry sketches previously supplied by generic, text-heavy diagrams.
  window.ElementSectionVisuals={
-  'scalar-spring1':'series','beam-theory':'shearBend',
+  'beam-theory':'shearBend',
   'beam-crod':'rod','beam-cbar':'twist','beam-pbarl':'section','beam-taper':'taper',
   'beam-curved':'curved','shell-crack':'crack','solid-triax':'axisymmetric',
   'solid-psolid':'integration','connector-why':'weldPatch',

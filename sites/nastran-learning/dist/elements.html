@@ -84,7 +84,20 @@
 <tr><td><a href="bulk.html#CELAS3">CELAS3</a></td><td>スカラー点だけ</td><td>物性カード <a href="bulk.html#PELAS">PELAS</a></td><td>EID, PID, S1, S2</td></tr>
 <tr><td><a href="bulk.html#CELAS4">CELAS4</a></td><td>スカラー点だけ</td><td>要素カード自身</td><td>EID, K, S1, S2</td></tr>
 </tbody></table></div>
-<p>G1・G2 はつなぐ節点（またはスカラー点）の番号、C1・C2 はその成分番号（1〜6、スカラー点なら 0 または空欄）です。G2 を空欄にすると、G1 の成分 C1 と地面の間のばねになります。CELAS3・CELAS4 は成分欄がない分だけ短く書けます。スカラー点だけでつながったばねが多いモデルでは、この2種類の方が効率的だとしています。</p>
+<h3>節点・スカラー点・接地の違い</h3>
+<p><strong>節点（GRID）</strong>には空間上の位置があります。構造解析では並進3成分と回転3成分があり、ばね1本でつなぐときは、そのうち1成分を選びます。たとえば成分1なら、節点の変位座標系における第1方向の並進です。</p>
+<p><strong>スカラー点（SPOINT）</strong>には座標も軸もなく、1つの自由度を持ちます。下図のように2本のばねを直列につなぐとき、中間の位置や向きが不要なら、SPOINT で中間の変位 q を表せます。q は両方のばねの力がつり合うように解析で求まります。地面につないだ端の変位は、最初からゼロです。</p>
+<figure class="element-figure" id="scalar-spring-points"><div data-element-sketch="springPoints"></div></figure>
+<p>たとえば <a href="bulk.html#CELAS1">CELAS1</a> の端を入力するときは、点番号 G と成分 C を区別します。下表は第2端の例です。</p>
+<div class="element-table-wrap"><table class="element-table narrow">
+<thead><tr><th scope="col">つなぐ先</th><th scope="col">G2（点番号）</th><th scope="col">C2（成分）</th></tr></thead>
+<tbody>
+<tr><th scope="row">GRID 10 の第1並進</th><td>10</td><td>1</td></tr>
+<tr><th scope="row">SPOINT 20 の変位 q</th><td>20</td><td>0 または空欄</td></tr>
+<tr><th scope="row">地面</th><td>0 または空欄</td><td>0 または空欄</td></tr>
+</tbody></table></div>
+<p><strong>SPOINT の C2 = 0 は、変位ゼロを意味しません。</strong>点番号が入っていれば、その点の1つの自由度を使います。G2 と C2 の両方が 0 または空欄なら接地です。両端がスカラー点または接地だけなら、成分欄のない CELAS3・CELAS4 も使えます。</p>
+<div class="analysis-links"><a href="coordinates.html#points">節点・スカラー点の基礎へ →</a><a href="#scalar-spring1" data-jump="scalar-spring1">2本のばねの変位と力を検算する →</a></div>
 <div class="element-table-wrap"><table class="element-table narrow">
 <thead><tr><th>欄</th><th>意味</th><th>結果への表れ方</th></tr></thead>
 <tbody>
@@ -94,12 +107,17 @@
 </tbody></table></div>
 
 <p><a href="bulk.html#PELAS">PELAS</a> は1枚に2組まで物性（PID, K, GE, S）を書けます。同じばね定数を多数の要素で共有したい時は CELAS1／CELAS3＋PELAS、ばね定数が要素ごとに違う時は CELAS2／CELAS4 が書きやすくなります。</p>
-<h3>仲間：質量・ダンパー・スカラー点</h3>
-<p>同じ「1から4」の番号の付け方で、集中質量 <a href="bulk.html#CMASS1">CMASS1</a>〜<a href="bulk.html#CMASS4">CMASS4</a>（物性は <a href="bulk.html#PMASS">PMASS</a>）と、粘性ダンパー <a href="bulk.html#CDAMP1">CDAMP1</a>、<a href="bulk.html#CDAMP2">CDAMP2</a> などがあります。CMASS は1方向だけの集中質量を置きたい時に便利です（6方向すべてに質量と慣性を持たせるなら <a href="bulk.html#CONM2">CONM2</a> が普通です）。スカラー点 <a href="bulk.html#SPOINT">SPOINT</a> は、座標を持たず自由度を1つだけ持つ点で、スカラー要素どうしをつなぐための「形のない節点」です。</p>
+<h3>仲間：質量・ダンパー</h3>
+<p>同じ「1から4」の番号の付け方で、集中質量 <a href="bulk.html#CMASS1">CMASS1</a>〜<a href="bulk.html#CMASS4">CMASS4</a>（物性は <a href="bulk.html#PMASS">PMASS</a>）と、粘性ダンパー <a href="bulk.html#CDAMP1">CDAMP1</a>、<a href="bulk.html#CDAMP2">CDAMP2</a> などがあります。CMASS は1方向だけの集中質量を置きたい時に便利です（6方向すべてに質量と慣性を持たせるなら <a href="bulk.html#CONM2">CONM2</a> が普通です）。</p>
 </section>
 
 <section class="theory-section" id="scalar-spring1"><h2>4. 検算：直列ばねの変位と力</h2>
-<p>＋X方向だけ動く節点を2本のばねで直列につなぎ、反対端を固定します。剛性を120と80 N/mm、自由端荷重を＋Xへ48 Nとします。中間点に外力がないので、2本は同じ大きさの力を伝えます。</p><div class="element-formula">各ばねの伸び：48/120 = 0.4 mm、48/80 = 0.6 mm<br>自由端の変位：0.4 + 0.6 = 1.0 mm<br>合成剛性：48 N/mm、支持反力：−48 N</div><p>要素力の符号はカードの端1・端2に合わせて確認します。端を入れ替えても、この整合した接続では軸の変位と反力は同じです。</p>
+<p><a href="#scalar-spring-points" data-jump="scalar-spring-points">GRID・SPOINT・接地の図</a>と同じ接続で、GRID 10 側のばねを K₁ = 120 N/mm、地面側を K₂ = 80 N/mm とします。GRID 10 に ＋X 方向へ 48 N を加えます。中間の SPOINT 20 に外力はかからないので、2本のばねは同じ大きさの力を伝えます。</p>
+<div class="element-formula">ばね1 の変形量：u₁ − q = 48/120 = 0.40 mm<br>ばね2 の変形量：q − 0 = 48/80 = 0.60 mm<br>SPOINT 20 の変位：q = ＋0.60 mm<br>GRID 10 の変位：u₁ = q + 0.40 = ＋1.00 mm<br>支持反力：−48 N</div>
+<p><strong>GRID 10 と SPOINT 20 の変位の差 0.40 mm は、2点の間にあるばね1の変形量です。</strong>一般に、中間点で力がつり合うと K₁(u₁ − q) = K₂q です。展開すると K₁u₁ − K₁q = K₂q、q の項をまとめると K₁u₁ = (K₁ + K₂)q なので、q = K₁u₁/(K₁ + K₂) になります。</p>
+<h3>中間に SPOINT を置くとき</h3>
+<p>中間の変位や各ばねの変形を確認したいとき、または中間に別のばね・集中質量・ダンパーをつなぐなど、独立して動く位置をモデルに残したいときに使います。たとえば振動解析で中間の部品に質量がある場合、その部品がどれだけ動くかを1成分で求められます。</p>
+<p>この例のように中間への荷重や分岐がなく、静解析で GRID 10 の変位と支持反力だけが必要なら、合成剛性 K = 48/1.00 = 48 N/mm の接地ばね1本で同じ端の応答が得られます。</p>
 </section>
 
 <section class="theory-section" id="scalar-dof"><h2>5. 自由度の指定と「内部拘束」</h2>
