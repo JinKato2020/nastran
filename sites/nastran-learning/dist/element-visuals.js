@@ -40,7 +40,8 @@
   weighted:['＋Zは手前。参照点99が重心Cから右へずれると、右側の荷重分担が大きくなります。合力と重心まわりのモーメントを照合します。','+Z is out of the screen. Moving reference point 99 to the right of centroid C increases right-side force shares. Check total force and moment about the centroid.'],
   flexibility:['基準側udを固定し、uiの1成分ずつに単位荷重を与えます。その応答ベクトルが柔性行列Zの対応する1列です。','Fix the reference degrees ud and apply a unit force to one ui component at a time. The displacement response is the corresponding column of flexibility matrix Z.'],
   pipe:['数字は接続節点。緑の区間がGENELで表す継手です。各部材の配置と荷重方向を示す模式図で、実際の比率とは異なります。','Numbers identify connected nodes. The green segment is the joint represented by GENEL. This schematic shows connectivity and load direction, not true proportions.'],
-  spring:['変位uの増加に対して、ばねは復元力を生じます。破線は変位前の位置です。','Increasing displacement u generates a restoring force. Dashed lines mark the original position.'],
+  springTwoEnds:['両端が動く場合。緑の矢印はそれぞれの変位です。この例では右端の変位が大きく、両端を保つ赤い力は等大で逆向きです。','Both ends can move. Green arrows show their displacements. The right end moves farther in this example, and the red forces holding the ends are equal and opposite.'],
+  springGround:['片端を地面につなぐ場合。左端の変位はゼロです。右端の荷重は、左端の反力とつり合います。','One end is grounded. The left end has zero displacement. The applied force at the right end balances the reaction at the left end.'],
   series:['直列ばねは同じ軸力Fを伝え、全変位は2本の伸びの和です。','Series springs transmit the same axial force F. Total displacement is the sum of their extensions.'],
   rod:['軸方向に引く棒。左端の反力と右端の荷重がつり合います。曲げ変形を表す図とは区別します。','An axially loaded rod. The left reaction balances the right load. Distinguish this axial deformation from bending.'],
   section:['梁の断面と局所y・z。幅b・高さhを、曲げる方向に対応づけます。','Beam cross-section and local y, z axes. Relate width b and height h to the bending direction.'],
@@ -126,7 +127,10 @@
   weightedPlate:()=>render('weighted',[panel('weighted',`${p('M93 60H259V226H93Z','face')}${wall(86,60,166)}${[[93,226,'1','20 N'],[259,226,'2','30 N'],[259,60,'3','30 N'],[93,60,'4','20 N']].map(([x,y,n,f])=>dot(x,y)+t(x-7,y+(y>150?23:-11),n)+t(x+(x<100?-65:15),y+(y>150?-13:23),f,'loadText')).join('')}${dot(176,143,'open')}${dep(193,143)}${t(153,129,'C')}${t(203,163,'99')}${t(119,29,'⊙ +Z, F = 100 N')}${p('M176 167v10h17v-10','dimension')}${t(153,201,'10 mm')}`,265)]),
   genelFlexibility:()=>render('flexibility',[panel('flexibility',`${wall(51,86,81)}${p('M51 126H105M245 126H285')}${p('M105 76H245V176H105Z','face')}${dot(51,126)}${dot(285,126)}${ar(285,126,334,126,'load')}${t(300,107,'fᵢ')}${t(139,133,'[Z]')}${t(25,193,'ud = 0')}${t(262,193,'ui')}${t(101,221,'ui = [Z] fᵢ')}`)]),
   genelPipe:()=>render('pipe',[panel('pipe',`${wall(45,163,55)}${p('M45 190L118 122M118 78L151 62L300 39','beam')}${p('M118 122V78','motion')}${[[45,190],[118,122],[118,78],[151,62],[300,39]].map(([x,y],i)=>dot(x,y)+t(x-16,y-9,String(i+1))).join('')}${ar(300,46,300,121,'load')}${t(237,146,'25 lbf')}${t(142,109,'GENEL')}${axes(195,207)}`)]),
-  spring:()=>render('spring',[panel('spring',`${wall(44,78,80)}${spring(44,120,155)}${p('M199 94H249V146H199Z','face')}${p('M266 91V151','ghost')}${ar(248,169,280,169,'motion')}${ar(197,120,153,120,'load')}${t(264,196,'u')}${t(120,98,'ku')}${t(104,68,'k')}`)]),
+  spring:()=>render('spring',[
+   panel('springTwoEnds',`${spring(92,109,178)}${dot(92,109)}${dot(270,109)}${t(170,84,'K')}${ar(87,109,29,109,'load')}${ar(275,109,333,109,'load')}${t(30,87,'f₂','loadText')}${t(316,87,'f₁','loadText')}${p('M72 109V170M222 109V170','ghost')}${ar(72,154,92,154,'motion')}${ar(222,154,270,154,'motion')}${t(75,185,'u₂','motionText')}${t(242,185,'u₁','motionText')}`,200),
+   panel('springGround',`${wall(92,78,62)}${spring(92,109,178)}${dot(92,109)}${dot(270,109)}${t(170,84,'K')}${ar(87,109,29,109,'load')}${ar(275,109,333,109,'load')}${t(24,66,'−30 N','loadText')}${t(278,87,'+30 N','loadText')}${p('M222 109V170','ghost')}${ar(222,154,270,154,'motion')}${t(68,185,'u₂ = 0')}${t(178,185,'u₁ = +0.30 mm','motionText')}`,200),
+  ]),
   series:()=>render('series',[panel('series',`${wall(35,78,80)}${spring(35,120,116)}${dot(151,120)}${spring(151,120,116)}${dot(267,120)}${ar(272,120,329,120,'load')}${t(305,98,'F')}${t(78,85,'k₁')}${t(193,85,'k₂')}${t(61,178,'u = F/k₁ + F/k₂')}`)]),
   rod:()=>render('rod',[panel('rod',`${wall(62,82,80)}${p('M62 105H262V139H62Z','face')}${p('M262 105H283V139H262','ghost')}${ar(262,122,331,122,'load')}${ar(62,122,11,122,'load')}${t(302,98,'F')}${t(14,98,'−F')}${ar(262,166,284,166,'motion')}${t(270,191,'u')}${t(113,215,'u = FL / EA')}`)]),
   section:()=>render('section',[panel('section',`${p('M118 57H234V186H118Z','face')}${ar(176,121,176,24)}${ar(176,121,305,121)}${t(185,28,'yₑ')}${t(308,127,'zₑ')}${p('M118 196v12H234v-12M101 57H89V186h12','dimension')}${t(173,222,'b')}${t(69,130,'h')}`)]),
@@ -141,7 +145,7 @@
  window.ElementVisuals=drawings;
  // These replace geometry sketches previously supplied by generic, text-heavy diagrams.
  window.ElementSectionVisuals={
-  'scalar-concept':'spring','scalar-spring1':'series','beam-theory':'shearBend',
+  'scalar-spring1':'series','beam-theory':'shearBend',
   'beam-crod':'rod','beam-cbar':'twist','beam-pbarl':'section','beam-taper':'taper',
   'beam-curved':'curved','shell-crack':'crack','solid-triax':'axisymmetric',
   'solid-psolid':'integration','connector-why':'weldPatch',
