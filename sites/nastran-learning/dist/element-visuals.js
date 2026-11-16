@@ -5,7 +5,6 @@
 (() => {
  'use strict';
  const copy = {
-  enlarge:['図を拡大','Enlarge diagram'], close:['閉じる','Close'],
   legend:['図の記号を確認','Diagram key'],
   symbols:['赤い矢印 F・M：力・モーメント。青い矢印 x・y・z：座標軸。緑のv：向きベクトル。緑のu・θ：変位や回転（説明用に誇張）。破線：基準形状・補助線。丸：節点。菱形：従属自由度を持つ点。矢印の意味は各図の説明でも確認してください。','Red arrows F, M: forces and moments. Blue arrows x, y, z: coordinate axes. Green v: orientation vector. Green u, θ: exaggerated displacement or rotation. Dashed lines: reference geometry or construction lines. Circles: nodes. Diamonds: points with dependent degrees of freedom. Check each caption for the meaning of its arrows.'],
   families:['形状の表し方を比較。ばねは自由度間、棒・梁は線、シェルは基準面、ソリッドは体積で表します。','Compare representations: a spring connects degrees of freedom; a rod or beam uses a line, a shell a reference surface, and a solid a volume.'],
@@ -77,7 +76,7 @@
   return `<div class="ev-diagram" data-ev-diagram="${name}"><div class="ev-panels">${panels.map(({key,body,height},i)=>{
    const sid=`${id}-${i}`;
    return `<div class="ev-panel"><svg class="ev-svg" viewBox="0 0 360 ${height}" role="img" aria-label="${esc(tr(key))}" data-ev-alt="${key}" lang="${locale()}" dir="ltr"><defs>${['axis','load','motion'].map(c=>`<marker id="${sid}-${c}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path class="ev-head-${c}" d="M0 0L10 5L0 10Z"/></marker>`).join('')}</defs>${body.replaceAll('ID-',sid+'-')}</svg><p class="ev-caption">${prose(key)}</p></div>`;
-  }).join('')}</div><div class="ev-controls"><button type="button" data-ev-zoom>${prose('enlarge')}</button><details><summary>${prose('legend')}</summary><p>${prose('symbols')}</p></details></div></div>`;
+  }).join('')}</div><details class="ev-key"><summary>${prose('legend')}</summary><p>${prose('symbols')}</p></details></div>`;
  }
  const drawings={
   families:()=>render('families',[panel('families',`${spring(30,58,94)}${dot(30,58)}${dot(124,58)}${t(65,93,'0D')}${p('M207 58H310','beam')}${dot(207,58)}${dot(310,58)}${t(245,93,'1D')}${p('M35 180L60 132H140L115 180Z','face')}${t(72,210,'2D')}${p('M214 152H284V190H214Z','face')}${p('M214 152L237 130H307L284 152Z','top')}${p('M284 152L307 130V168L284 190Z','side')}${t(249,216,'3D')}`)]),
@@ -161,21 +160,4 @@
   document.querySelectorAll('[data-ev-alt]').forEach(el=>{el.setAttribute('aria-label',tr(el.dataset.evAlt));el.setAttribute('lang',locale());});
  }
  new MutationObserver(refresh).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
- document.addEventListener('DOMContentLoaded',()=>{
-  const dlg=document.createElement('dialog');dlg.className='ev-dialog';
-  dlg.innerHTML=`<button type="button" data-ev-close>${prose('close')}</button><div class="ev-dialog-body"></div>`;
-  dlg.setAttribute('aria-label',tr('enlarge'));document.body.append(dlg);
-  let opener;
-  document.addEventListener('click',event=>{
-   const button=event.target.closest('[data-ev-zoom]');if(!button)return;
-   opener=button;
-   const clone=button.closest('.ev-diagram').querySelector('.ev-panels').cloneNode(true);
-   // Duplicate SVG IDs make marker references ambiguous; namespace the enlarged copy.
-   const suffix=`zoom-${++serial}-`;
-   clone.querySelectorAll('[id]').forEach(el=>{const old=el.id;el.id=suffix+old;clone.querySelectorAll('[marker-end]').forEach(path=>{if(path.getAttribute('marker-end')===`url(#${old})`)path.setAttribute('marker-end',`url(#${suffix+old})`);});});
-   dlg.querySelector('.ev-dialog-body').replaceChildren(clone);dlg.setAttribute('aria-label',tr('enlarge'));dlg.showModal();
-  });
-  dlg.querySelector('[data-ev-close]').addEventListener('click',()=>dlg.close());
-  dlg.addEventListener('close',()=>{dlg.querySelector('.ev-dialog-body').replaceChildren();opener?.focus({preventScroll:true});});
- });
 })();

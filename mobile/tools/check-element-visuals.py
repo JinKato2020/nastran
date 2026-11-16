@@ -1,4 +1,4 @@
-"""Check symbol-only SVG, translated captions, mobile sizing and enlarged-reader behaviour."""
+"""Check symbol-only SVG, translated captions, mobile sizing and diagram keys."""
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -50,20 +50,19 @@ try:
                 name=figure.get_attribute('data-ev-diagram')
                 figure.screenshot(path=str(OUT / f'{name}.png'))
         page.locator('#element-picker').select_option('beam')
-        button=page.locator('[data-ev-diagram="beam-axes"] [data-ev-zoom]').first
-        button.click()
-        assert page.locator('dialog[open]').count()==1
+        assert page.locator('[data-ev-zoom], .ev-dialog').count()==0
+        key=page.locator('[data-ev-diagram="beam-axes"] .ev-key')
+        key.locator('summary').click()
+        assert key.locator('[data-ev-copy=symbols]').is_visible()
+        key.locator('summary').click()
+        assert not key.locator('[data-ev-copy=symbols]').is_visible()
         assert page.evaluate('''() => {
             const all=[...document.querySelectorAll('[id]')].map(e=>e.id);
             return new Set(all).size===all.length;
-        }'''), 'duplicate IDs including enlarged SVG markers'
-        page.locator('dialog').screenshot(path=str(OUT/'zoom.png'))
-        page.locator('[data-ev-close]').click()
-        assert page.locator('dialog[open]').count()==0
-        assert button.evaluate('(e)=>e===document.activeElement')
+        }'''), 'duplicate IDs including SVG markers'
         before = page.locator('.ev-svg').first.inner_html()
         page.evaluate("document.documentElement.lang='en'")
-        page.wait_for_function("document.querySelector('[data-ev-copy=enlarge]').textContent==='Enlarge diagram'")
+        page.wait_for_function("document.querySelector('[data-ev-copy=legend]').textContent==='Diagram key'")
         assert page.locator('.ev-svg').first.inner_html()==before
         assert page.locator('.ev-svg').first.get_attribute('lang')=='en'
         page.locator('[data-ev-diagram="beam-axes"]').screenshot(path=str(OUT/'beam-axes-en.png'))
@@ -72,7 +71,7 @@ try:
         assert page.locator('.ev-svg').first.evaluate("e=>getComputedStyle(e).direction")=='ltr'
         assert not errors, errors
         assert not overflow, overflow
-        report={'diagrams':count,'viewports':[320,390,768],'articles':7,'symbol_only':True,'zoom_focus':True,'locale_geometry_invariant':True}
+        report={'diagrams':count,'viewports':[320,390,768],'articles':7,'symbol_only':True,'diagram_keys':True,'locale_geometry_invariant':True}
         (OUT/'report.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
         print(json.dumps(report))
         browser.close()

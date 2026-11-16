@@ -40,18 +40,10 @@
 .ev-motion{fill:none;stroke:#16704d;stroke-width:3}
 .ev-head-axis{fill:#175e9c}.ev-head-load{fill:#a92b30}.ev-head-motion{fill:#16704d}
 .ev-svg .ev-axisText{fill:#175e9c}.ev-svg .ev-loadText{fill:#a92b30}.ev-svg .ev-motionText{fill:#16704d}
-.elements-main .ev-caption,.ev-dialog .ev-caption{padding:10px 13px;margin:0;border-top:1px solid #e3eaf0;font-size:14px;line-height:1.75;color:#33485e;background:#f7f9fb}
-.ev-controls{display:flex;flex-wrap:wrap;align-items:start;gap:12px;margin-top:12px}
-.ev-controls button,.ev-dialog>button{font:inherit;min-height:44px;padding:8px 16px;background:#fff;color:#175e9c;border:1px solid #92abc0;border-radius:7px;cursor:pointer}
-.ev-controls details{flex:1;min-width:150px;font-size:13px;line-height:1.7}
-.ev-controls summary{cursor:pointer;min-height:44px;padding:9px 0;box-sizing:border-box}
-.ev-dialog{box-sizing:border-box;width:calc(100% - 16px);max-width:1000px;max-height:94dvh;padding:14px;border:1px solid #92abc0;border-radius:12px;overscroll-behavior:contain}
-.ev-dialog::backdrop{background:#182d44b8}
-.ev-dialog>button{position:sticky;top:0;z-index:1;display:block;margin:0 0 12px auto;box-shadow:0 2px 6px #0002}
-.ev-dialog-body{overflow:auto;max-height:76dvh}
-.ev-dialog .ev-panels{grid-template-columns:1fr;min-width:640px}
-.ev-dialog .ev-svg{max-width:760px}
+.elements-main .ev-caption{padding:10px 13px;margin:0;border-top:1px solid #e3eaf0;font-size:14px;line-height:1.75;color:#33485e;background:#f7f9fb}
+.ev-key{margin-top:6px;font-size:13px;line-height:1.7}
+.ev-key summary{cursor:pointer;min-height:44px;padding:9px 0;box-sizing:border-box}
 @media(min-width:760px){.ev-panels{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}
-@media print{.ev-controls,.ev-dialog{display:none}.ev-panel{break-inside:avoid}}
+@media print{.ev-key{display:none}.ev-panel{break-inside:avoid}}
 .elements-main ol{padding-left:22px}
 .elements-main .theory-section ol li{font-size:15px;line-height:1.95;color:#435c79;margin:8px 0}
