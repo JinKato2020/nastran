@@ -138,9 +138,16 @@
 <div class="analysis-links"><a href="#scalar-bushweld" data-jump="scalar-bushweld">数字で確認する →</a><a href="#scalar-cbush" data-jump="scalar-cbush">CBUSH のしくみへ →</a></div>
 </section>
 
-<section class="theory-section" id="scalar-cbush"><h2>6. CBUSH — 形と向きを持つばね</h2>
+<section class="theory-section" id="scalar-cbush"><h2>6. CBUSH — 要素座標を持つばね・ダンパー</h2>
 <p><a href="bulk.html#CBUSH">CBUSH</a> は、ばねとダンパーをまとめた一般化した要素です。CELAS と違い、これを「構造的なスカラー要素」と位置づけています。2つの節点の位置を知っていて、<strong>要素座標系</strong>を持ち、剛体として動いた時に力が出ない（剛体の釣合いを満たす）ように作られています。CELAS の機能をすべて持ちながら、前節の内部拘束の問題を避けられる要素です。</p>
 <p>CBUSH は1枚のカードで6方向（並進3つと回転3つ）のばねを同時に表します。つなぐのは「節点の成分」ではなく「節点そのもの」なので、ばね6本を6行で書く CELAS より入力がずっと短くなります。</p>
+<h3 id="cbush-orientation">断面を入力しないばねに、なぜ向きが必要か</h3>
+<p class="element-key"><strong>CBUSH の向きベクトルは、方向別に与えたばね定数を、実物のどの方向に効かせるかを決める目印です。</strong></p>
+<p>梁では、長方形の断面を縦に置くか横に置くかで、同じ荷重に対する曲がりやすさが変わります。CBUSH と CELAS では、断面寸法を入力せず、ばね定数を直接与えます。実物のゴムブッシュの形や材質による硬さの違いは、試験や部品の詳細解析で求めた剛性値に含めます。CBUSH の場合は <a href="bulk.html#PBUSH">PBUSH</a> の K1・K2・K3 が、それぞれ要素座標の x・y・z 方向の並進剛性です。</p>
+<p>離れた2節点 GA・GB を結ぶ線を局所 x 軸にする指定では、その線だけでは周りにいくらでも軸を回せます。向きベクトル v を与えると x–y 面が決まり、v のうち x に垂直な成分が局所 y の正方向になります。局所 z は右手の法則で決まります。</p>
+<figure class="element-figure"><div data-element-sketch="cbushOrientation"></div></figure>
+<p>例では局所 y の K2 を 100 N/mm、局所 z の K3 を 1,000 N/mm とします。ばね位置で基本座標の ＋Z 方向に 1 mm の相対並進を与え、他の成分はゼロとします。軸を90°回すと ＋Z に対応する剛性が K3 から K2 に変わり、必要な力は 1,000 N から 100 N になります。K2 と K3 が同じなら、この比較では力は変わりません。</p>
+<p>CELAS では接続する各節点で1成分を選びます。たとえば両端で基本 X 方向を選んだ場合は、その X 変位の差から力を求めます。この成分選択で、ばねが受ける動きが決まります。</p>
 <h3>入力するもの</h3>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>欄</th><th>意味</th><th>注意</th></tr></thead>
