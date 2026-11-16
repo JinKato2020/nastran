@@ -4,14 +4,14 @@
   const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const source={guide2024:'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide.pdf',static:'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf',qrg:'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf'};
   $$('[data-source]').forEach(a=>{a.href=source[a.dataset.source]+'#page='+a.dataset.page;a.target='_blank';a.rel='noopener';});
-  const colors={basic:'#4368d6',local:'#2b9383',force:'#c7873e',ink:'#7b8fab'};
+  const colors={basic:'#326599',local:'#28785e',force:'#ad3938',ink:'#7b8fab'};
   const defs=document.createElementNS('http://www.w3.org/2000/svg','svg');
   defs.setAttribute('aria-hidden','true');defs.style.cssText='position:absolute;width:0;height:0;overflow:hidden';
   defs.innerHTML='<defs>'+Object.entries(colors).map(([key,color])=>`<marker id="coord-arrow-${key}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="${color}"/></marker>`).join('')+'</defs>';
   document.body.prepend(defs);
   const arrow=(x1,y1,x2,y2,tone='basic',extra='')=>`<path d="M${x1} ${y1}L${x2} ${y2}" fill="none" stroke="${colors[tone]}" stroke-width="2.5" marker-end="url(#coord-arrow-${tone})" ${extra}/>`;
   const text=(x,y,value,cls='',anchor='start')=>`<text x="${x}" y="${y}" class="${cls}" text-anchor="${anchor}">${esc(value)}</text>`;
-  const svg=(title,body,box='0 0 520 300')=>`<svg class="coordinate-diagram" viewBox="${box}" role="img" aria-label="${esc(title)}">${body}</svg>`;
+  const svg=(title,body,box='0 0 520 300')=>`<svg class="coordinate-diagram lesson-coordinate" viewBox="${box}" role="img" aria-label="${esc(title)}">${body}</svg>`;
   const circle=(x,y,r=6)=>`<circle class="node" cx="${x}" cy="${y}" r="${r}"/>`;
   function route(){
     const id=location.hash.slice(1);if(id==='sources')return;
@@ -22,7 +22,7 @@
     if(id===selected)requestAnimationFrame(()=>document.getElementById(selected).scrollIntoView({block:'start'}));
   }
   addEventListener('hashchange',route);route();
-  $('#grid-diagram').innerHTML=svg('基本座標のXは右、Yは上。局所10のxは上、yは左。節点Pは基本X100、Y0で、物理的な力と変位の方向は上。',`${arrow(120,220,450,220)}${arrow(120,220,120,25)}${arrow(120,220,120,80,'local','stroke-dasharray="6 4"')}${arrow(120,220,25,220,'local')}${text(462,228,'X','basic-text label')}${text(100,25,'Y','basic-text label')}${text(139,86,'x₁₀','local-text label')}${text(22,250,'y₁₀','local-text label')}${circle(120,220,4)}${text(117,247,'O','small')}${circle(360,220,7)}${arrow(360,208,360,112,'force')}${text(360,92,'+Y方向','force-text label','middle')}${text(360,261,'P (100, 0, 0)','', 'middle')}`);
+  $('#grid-diagram').innerHTML=svg('基本座標のXは右、Yは上。局所10のxは上、yは左。節点Pは基本X100、Y0で、物理的な力と変位の方向は上。',`${arrow(120,220,450,220)}${arrow(120,220,120,25)}${arrow(120,220,120,80,'local','stroke-dasharray="6 4"')}${arrow(120,220,25,220,'local')}${text(462,228,'X','basic-text label')}${text(100,25,'Y','basic-text label')}${text(139,86,'x₁₀','local-text label')}${text(22,250,'y₁₀','local-text label')}${circle(120,220,4)}${text(117,247,'O','small')}${circle(360,220,7)}${arrow(349,205,349,106,'force')}${arrow(376,205,376,142)}${text(327,88,'荷重 F','force-text label','middle')}${text(394,132,'変位 u','basic-text label')}${text(360,261,'P (100, 0, 0)','', 'middle')}`);
   function fixed(fields){return Array.from({length:10},(_,i)=>{const value=String(fields[i]??'');if(value.length>8||/[^\x20-\x7e]|,/.test(value))throw new Error('Invalid fixed field');return i===0||i===9?value.padEnd(8):value.padStart(8);}).join('');}
   function updateCoordinates(){
     const cp=$('#choose-cp').value,cd=$('#choose-cd').value,cid=$('#choose-cid').value;
@@ -34,14 +34,14 @@
     NastranFields.render($('#coordinate-fields'),rows.map(value=>({text:value})));
   }
   ['cp','cd','cid'].forEach(key=>$('#choose-'+key).addEventListener('change',updateCoordinates));updateCoordinates();
-  $('#bar-axes').innerHTML=svg('オフセットなしの梁。x軸はAからBへ、方向ベクトルvはx-y平面を定め、yはxに直交し、zは紙面の手前。',`<path d="M145 210L405 125L145 50Z" fill="#eef5f1" stroke="#d1e4dc"/><path class="body" d="M140 201L400 116L410 134L150 219Z"/>${circle(145,210)}${circle(405,125)}${arrow(145,210,365,138,'local')}${arrow(145,210,145,50,'force')}${arrow(145,210,104,85,'local')}${text(415,125,'B')}${text(139,242,'A')}${text(333,170,'xₑ','local-text label')}${text(155,65,'v','force-text label')}${text(73,81,'yₑ','local-text label')}<circle cx="70" cy="210" r="11" fill="none" stroke="#2b9383"/><circle cx="70" cy="210" r="3" fill="#2b9383"/>${text(49,245,'zₑ','local-text label')}${text(260,285,'⊙：紙面の手前','small','middle')}`);
-  $('#quad-axes').innerHTML=svg('長方形CQUAD4の節点順G1、G2、G3、G4。要素xは右、yは上、zは手前。緑の材料x軸は30度回転。',`<rect class="body" x="125" y="60" width="270" height="170"/>${circle(125,230)}${circle(395,230)}${circle(395,60)}${circle(125,60)}${text(99,258,'G1')}${text(384,258,'G2')}${text(384,42,'G3')}${text(98,42,'G4')}${arrow(240,155,365,155)}${arrow(240,155,240,72)}${arrow(240,155,348,93,'local')}${text(365,179,'xₑ','basic-text label')}${text(251,76,'yₑ','basic-text label')}${text(357,95,'xₘ','local-text label')}<circle cx="240" cy="155" r="9" fill="#fff" stroke="#4368d6"/><circle cx="240" cy="155" r="3" fill="#4368d6"/>${text(216,187,'zₑ','basic-text')}`);
+  $('#bar-axes').innerHTML=svg('オフセットなしの梁。x軸はAからBへ、方向ベクトルvはx-y平面を定め、yはxに直交し、zは紙面の手前。',`<path d="M145 210L405 125L145 50Z" fill="#e8f4ed" stroke="#7f9f90"/><path class="body" d="M140 201L400 116L410 134L150 219Z"/>${circle(145,210)}${circle(405,125)}${arrow(145,210,365,138,'local')}${arrow(145,210,145,50,'local')}${arrow(145,210,104,85,'local')}${text(415,125,'B')}${text(139,242,'A')}${text(333,170,'xₑ','local-text label')}${text(155,65,'v','local-text label')}${text(73,81,'yₑ','local-text label')}<circle cx="70" cy="210" r="11" fill="none" stroke="#28785e"/><circle cx="70" cy="210" r="3" fill="#28785e"/>${text(49,245,'zₑ','local-text label')}${text(260,285,'⊙：紙面の手前','small','middle')}`);
+  $('#quad-axes').innerHTML=svg('長方形CQUAD4の節点順G1、G2、G3、G4。要素xは右、yは上、zは手前。緑の材料x軸は30度回転。',`<rect class="body" x="125" y="60" width="270" height="170"/>${circle(125,230)}${circle(395,230)}${circle(395,60)}${circle(125,60)}${text(99,258,'G1')}${text(384,258,'G2')}${text(384,42,'G3')}${text(98,42,'G4')}${arrow(240,155,365,155)}${arrow(240,155,240,72)}${arrow(240,155,348,93,'local')}${text(365,179,'xₑ','basic-text label')}${text(251,76,'yₑ','basic-text label')}${text(357,95,'xₘ','local-text label')}<circle cx="240" cy="155" r="9" fill="#fff" stroke="#326599"/><circle cx="240" cy="155" r="3" fill="#326599"/>${text(216,187,'zₑ','basic-text')}`);
   $('#bending-sign').innerHTML=svg('左端固定の片持ち梁。先端の荷重は下向き。固定端近くの上側は引張り、下側は圧縮。',`
    <rect x="32" y="34" width="18" height="162" fill="#a3b4ce"/>
    <path d="M50 81H330" class="ghost"/>
    <path class="body" d="M50 73C175 73 261 96 330 134L330 154C261 116 175 93 50 93Z"/>
-   <path d="M50 73C102 73 145 77 180 84" fill="none" stroke-width="4" stroke="#c7873e"/>
-   <path d="M50 93C102 93 145 97 180 104" fill="none" stroke-width="4" stroke="#4368d6"/>
+   <path d="M50 73C102 73 145 77 180 84" fill="none" stroke-width="4" stroke="#ad3938"/>
+   <path d="M50 93C102 93 145 97 180 104" fill="none" stroke-width="4" stroke="#326599"/>
    ${arrow(330,62,330,130,'force')}${text(330,49,'荷重','force-text label','middle')}
    ${text(64,59,'上側：引張り ＋','force-text label')}${text(64,138,'下側：圧縮 −','basic-text label')}
    ${text(50,221,'固定端','small','middle')}${text(326,190,'変形を拡大','small','middle')}`,'0 0 390 235');
@@ -74,8 +74,8 @@
     if(state==='tension')loads=arrow(165,165,92,165,'force')+arrow(355,165,428,165,'force');
     else if(state==='compression')loads=arrow(92,165,165,165,'force')+arrow(428,165,355,165,'force');
     else loads=arrow(368,220,368,108,'force')+arrow(210,70,308,70,'force')+arrow(152,110,152,220,'force')+arrow(310,260,210,260,'force');
-    const arc=Math.abs(angle)<0.01?'':`<path d="M325 165A65 65 0 0 ${angle<0?1:0} ${x+65*c} ${y-65*s}" fill="none" stroke="#2b9383" stroke-width="1.5"/>`;
-    return svg(`固定の応力状態に対して、読み取る軸を${angle}度回転した図。`, `<rect x="170" y="85" width="180" height="160" fill="#f1f4fa" stroke="#d4deed"/>${loads}<rect x="200" y="105" width="120" height="120" fill="#e7f4ef" fill-opacity="0.55" stroke="#62a998" stroke-dasharray="5 4" transform="rotate(${-angle} 260 165)"/>${arrow(45,290,118,290)}${arrow(45,290,45,218)}<path d="M260 165H325" fill="none" stroke="#4368d6" stroke-dasharray="3 3"/>${arrow(x,y,x+120*c,y-120*s,'local')}${arrow(x,y,x-100*s,y-100*c,'local')}${arc}${text(129,298,'X','basic-text label')}${text(45,205,'Y','basic-text label','middle')}${text(x+132*c-20*s,y-132*s-20*c,'x','local-text label','middle')}${text(x-120*s+25*c,y-120*c-25*s,'y','local-text label','middle')}${text(260,323,`θ = ${angle>0?'+':''}${angle}°`,'local-text label','middle')}`,'0 0 520 335');
+    const arc=Math.abs(angle)<0.01?'':`<path d="M325 165A65 65 0 0 ${angle<0?1:0} ${x+65*c} ${y-65*s}" fill="none" stroke="#28785e" stroke-width="1.5"/>`;
+    return svg(`固定の応力状態に対して、読み取る軸を${angle}度回転した図。`, `<rect x="170" y="85" width="180" height="160" fill="#f1f4fa" stroke="#d4deed"/>${loads}<rect x="200" y="105" width="120" height="120" fill="#e8f4ed" fill-opacity="0.55" stroke="#28785e" stroke-dasharray="5 4" transform="rotate(${-angle} 260 165)"/>${arrow(45,290,118,290)}${arrow(45,290,45,218)}<path d="M260 165H325" fill="none" stroke="#326599" stroke-dasharray="3 3"/>${arrow(x,y,x+120*c,y-120*s,'local')}${arrow(x,y,x-100*s,y-100*c,'local')}${arc}${text(129,298,'X','basic-text label')}${text(45,205,'Y','basic-text label','middle')}${text(x+132*c-20*s,y-132*s-20*c,'x','local-text label','middle')}${text(x-120*s+25*c,y-120*c-25*s,'y','local-text label','middle')}${text(260,323,`θ = ${angle>0?'+':''}${angle}°`,'local-text label','middle')}`,'0 0 520 335');
   }
   function updateStress(){
     const angle=Number($('#axis-angle').value),state=$('#stress-state').value,s=states[state],r=stressTransform(s.sx,s.sy,s.tau,angle),inv=invariants(r.sx,r.sy,r.tau);
@@ -104,7 +104,7 @@
      ${circle(128,133)}${circle(380,133)}${circle(380,51)}${circle(128,51)}
      ${text(112,153,'1')}${text(386,153,'2')}${text(386,44,'3')}${text(112,44,'4')}
      ${text(254,102,normal===1?'⊙ +zₑ は手前':'⊗ +zₑ は奥','local-text label','middle')}`,'0 0 520 165');
-    $('#shell-diagram').innerHTML=svg(`厚さ2mmの板の断面。物理的な上面は引張り100MPa、下面は圧縮100MPa。要素法線は基本Zの${normal===1?'正':'負'}方向。`,`<rect x="140" y="100" width="240" height="100" fill="#eef2f9" stroke="#c3d0e4"/><path d="M140 100H380" stroke="#c7873e" stroke-width="6"/><path d="M140 200H380" stroke="#4368d6" stroke-width="6"/><path d="M115 150H405" class="ghost"/>${arrow(75,235,75,65)}${text(65,50,'Z','basic-text label')}${arrow(445,150,445,normal===1?65:235,'local')}${text(465,normal===1?65:242,'zₑ','local-text label')}${text(260,80,'+100 MPa · 引張り','force-text label','middle')}${text(260,233,'−100 MPa · 圧縮','basic-text label','middle')}${text(260,175,'基準面 z = 0','small','middle')}${text(260,280,normal===1?'zₑ = +Z':'zₑ = −Z','local-text','middle')}`);
+    $('#shell-diagram').innerHTML=svg(`厚さ2mmの板の断面。物理的な上面は引張り100MPa、下面は圧縮100MPa。要素法線は基本Zの${normal===1?'正':'負'}方向。`,`<rect x="140" y="100" width="240" height="100" fill="#eef2f9" stroke="#c3d0e4"/><path d="M140 100H380" stroke="#ad3938" stroke-width="6"/><path d="M140 200H380" stroke="#326599" stroke-width="6"/><path d="M115 150H405" class="ghost"/>${arrow(75,235,75,65)}${text(65,50,'Z','basic-text label')}${arrow(445,150,445,normal===1?65:235,'local')}${text(465,normal===1?65:242,'zₑ','local-text label')}${text(260,80,'+100 MPa · 引張り','force-text label','middle')}${text(260,233,'−100 MPa · 圧縮','basic-text label','middle')}${text(260,175,'基準面 z = 0','small','middle')}${text(260,280,normal===1?'zₑ = +Z':'zₑ = −Z','local-text','middle')}`);
     $('#fiber-values').innerHTML=[-1,1].map(fiber=>{const globalZ=normal*fiber,stress=100*globalZ;return `<tr data-fiber="${fiber}"><td>${fmt(fiber,0)} mm</td><td>${globalZ>0?'+Z側（物理的な上側）':'−Z側（物理的な下側）'}</td><td class="${stress>0?'tension':'compression'}" data-value="${stress}">${fmt(stress,0)}</td></tr>`;}).join('');
     $('#shell-explanation').textContent=normal===1?'FIBER DISTANCEが+1 mmの行は物理的な上側で、引張り+100 MPaです。':'法線が−Zを向いたため、FIBER DISTANCEが−1 mmの行が物理的な上側です。負の距離の行に、引張り+100 MPaが現れます。';
   }

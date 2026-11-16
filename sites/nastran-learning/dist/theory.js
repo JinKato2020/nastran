@@ -10,10 +10,12 @@
  }
  function render(){const e=entries.find(e=>e.key===location.hash.slice(1))||entries.find(e=>e.key===picker.options[0]?.value)||entries[0];picker.value=e.key;document.title=e.title+' — FEM Guide';
   const visual=e.visual==='eigenvalues'?window.EigenvalueVisuals:null;
+  const materialVisuals=e.visual==='materials'?window.MaterialVisuals:null;
+  const topicVisuals=window.TheoryTopicVisuals?.[e.key];
   const related=[...(e.related?[e.related]:[]),...(e.links||[])];
   const sectionIndex=e.sectionIndex?`<nav class="theory-section-index" aria-label="この教材の目次">${e.sections.map(([title],i)=>`<button type="button" data-theory-target="theory-section-${i}">${esc(title)}</button>`).join('')}</nav>`:'';
   detail.innerHTML=`<div class="analysis-head"><span class="analysis-sol">${window.SolverScope.basic.has(e.key)?'Nastran共通 · 理論':'教材 · 理論'}</span><h1>${esc(e.title)}</h1><p>${esc(e.summary)}</p></div>${sectionIndex}${visual?.growthFigure||''}<div class="theory-formula"><p class="analysis-equation">${esc(e.equation)}</p><p>${esc(e.symbols)}</p></div>`+
-   e.sections.map(([title,paragraphs,figure,table],i)=>`<section class="theory-section"><h2 id="theory-section-${i}" tabindex="-1">${esc(title)}</h2>${paragraphs.map(p=>`<p>${esc(p)}</p>`).join('')}${visual?.[figure]||''}${comparisonTable(table)}</section>`).join('')+
+   e.sections.map(([title,paragraphs,figure,table],i)=>`<section class="theory-section"><h2 id="theory-section-${i}" tabindex="-1">${esc(title)}</h2>${materialVisuals?.[figure]||topicVisuals?.[i]||''}${paragraphs.map(p=>`<p>${esc(p)}</p>`).join('')}${visual?.[figure]||''}${comparisonTable(table)}</section>`).join('')+
    `<section class="theory-section"><h2>適用範囲を判断する</h2><ul>${e.limits.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></section>${related.length?`<div class="analysis-links">${related.map(([url,title])=>`<a href="${esc(url)}">${esc(title)} →</a>`).join('')}</div>`:''}<a class="theory-bridge" href="${e.technical[0]}"><strong>${esc(e.technical[1])} →</strong><span>モデル・境界条件・Input・実行・出力は技術情報へ</span></a><div class="theory-sources">${e.sources.map(([url,title])=>`<a href="${url}" target="_blank" rel="noopener">${esc(title)} ↗</a>`).join('')}</div>`;
   visual?.connect(detail);
  }

@@ -1,0 +1,42 @@
+.lesson-sketch{display:block;width:100%;height:auto;max-width:500px;margin-inline:auto}
+.lesson-sketch text{font:13px system-ui,sans-serif;fill:#253f5a}
+.lesson-sketch .label{font-weight:700}
+.lesson-sketch .small{font-size:12px}
+.lesson-sketch .axis-label{fill:#24578c;font-weight:700}
+.lesson-sketch .load-label{fill:#a83232;font-weight:650}
+.lesson-sketch .outline,.lesson-sketch .ghost,.lesson-sketch .fibers,.lesson-sketch .axis,.lesson-sketch .load,.lesson-sketch .direction{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.lesson-sketch .surface{fill:#eaf2fa;stroke:#819bb2;stroke-width:1.3}
+.lesson-sketch .core{fill:#e8f4ed;stroke:#7f9f90;stroke-width:1.2}
+.lesson-sketch .outline{stroke:#637d94;stroke-width:1.6}
+.lesson-sketch .rigid-link{fill:none;stroke:#637d94;stroke-width:3;stroke-linecap:round}
+.lesson-sketch .ghost{stroke:#819bb2;stroke-width:1.5;stroke-dasharray:4 4}
+.lesson-sketch .fibers{stroke:#6b9a82;stroke-width:1.3}
+.lesson-sketch .axis{stroke:#326599;stroke-width:2}
+.lesson-sketch .load{stroke:#ad3938;stroke-width:2.2}
+.lesson-sketch .direction{stroke:#28785e;stroke-width:2}
+.lesson-sketch .axis-marker{fill:#326599}
+.lesson-sketch .load-marker{fill:#ad3938}
+.lesson-sketch .direction-marker{fill:#28785e}
+.lesson-sketch .node{fill:#326599;stroke:#183f64;stroke-width:1}
+.lesson-sketch .dependent{fill:#ffd49d;stroke:#905317;stroke-width:1.2}
+.lesson-sketch .open-node{fill:#fff;stroke:#326599;stroke-width:1.5}
+.lesson-sketch .unselected-axis .axis{stroke:#819bb2;stroke-dasharray:4 4;marker-end:none}
+.lesson-sketch .unselected-axis text{fill:#637d94}
+.material-figure{margin:14px 0 18px;padding:12px;border:1px solid #cddbe9;border-radius:10px;background:#fff}
+.material-figure figcaption{max-width:500px;margin:8px auto 0;color:#435c79;font-size:13px;line-height:1.65}
+.teaching-flow{margin:14px 0 18px;padding:12px;border:1px solid #cddbe9;border-radius:10px;background:#fff}
+.teaching-flow ol{list-style:none;padding:0;margin:0;display:flex;gap:20px;align-items:stretch}
+.teaching-flow ol li{position:relative;flex:1;min-width:0;margin:0;padding:8px 10px;border:1px solid #cddbe9;border-radius:6px;background:#eaf2fa;color:#29466b;overflow-wrap:anywhere;line-height:1.5}
+.teaching-flow ol li>strong,.teaching-flow ol li>span{display:block}
+.teaching-flow ol li>span{margin-top:3px;font-size:12px}
+.teaching-flow ol li>.teaching-flow-arrow{position:absolute;left:calc(100% + 3px);top:42%;margin-top:0;font-weight:700;color:#326599}
+.teaching-flow figcaption{color:#435c79;font-size:13px;line-height:1.65;margin-top:8px}
+.beam-scene .beam-support{background:repeating-linear-gradient(135deg,#819bb2 0 2px,#eaf2fa 2px 7px)}
+.beam-scene .beam-rod{background:#eaf2fa;border:2px solid #326599}
+.beam-scene .beam-original{border-color:#819bb2}
+.beam-scene .beam-load{color:#ad3938}
+.beam-scene .beam-load span{white-space:nowrap}
+@media(max-width:470px){
+ .teaching-flow ol{display:grid;gap:13px}
+ .teaching-flow ol li>.teaching-flow-arrow{left:50%;top:calc(100% - 1px);transform:rotate(90deg)}
+}

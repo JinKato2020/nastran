@@ -1,0 +1,79 @@
+name: Deploy Nastran Content (R2 / OTA)
+
+on:
+  workflow_dispatch:
+    inputs:
+      restore_release:
+        description: '復旧する配信ID（64桁のSHA-256）。空欄で新版を配信'
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nastran-content-ota
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+        if: inputs.restore_release == ''
+      - run: npm run content:ota
+        if: inputs.restore_release == ''
+      - run: npm run typecheck
+        if: inputs.restore_release == ''
+      - run: npm run test:core
+        if: inputs.restore_release == ''
+      - name: Publish or restore a lesson release in R2
+        env:
+          RESTORE_RELEASE: ${{ inputs.restore_release }}
+          RCLONE_CONFIG_R2_TYPE: s3
+          RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_R2_REGION: auto
+          RCLONE_CONFIG_R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          set -euo pipefail
+          for name in R2_BUCKET RCLONE_CONFIG_R2_ENDPOINT RCLONE_CONFIG_R2_ACCESS_KEY_ID RCLONE_CONFIG_R2_SECRET_ACCESS_KEY; do
+            if [[ -z "${!name}" ]]; then echo "::error::Missing R2 configuration: $name"; exit 1; fi
+          done
+          [[ "$R2_BUCKET" =~ ^[a-z0-9][a-z0-9-]*[a-z0-9]$ ]] || { echo '::error::Invalid R2 bucket name'; exit 1; }
+          export RCLONE_CONFIG_R2_ENDPOINT="$(printf '%s' "$RCLONE_CONFIG_R2_ENDPOINT" | tr -d '[:space:]')"
+          sudo apt-get update -q
+          sudo apt-get install -y rclone
+          source=.build/content-ota
+          destination="r2:${R2_BUCKET}/nastran"
+          flags=(--s3-no-check-bucket --transfers 6)
+          if [[ -n "$RESTORE_RELEASE" ]]; then
+            [[ "$RESTORE_RELEASE" =~ ^[a-f0-9]{64}$ ]] || { echo '::error::Invalid release ID'; exit 1; }
+            mkdir -p "$source/objects"
+            rclone copyto "$destination/releases/$RESTORE_RELEASE.json" "$source/_manifest.json" "${flags[@]}"
+            printf '%s  %s\n' "$RESTORE_RELEASE" "$source/_manifest.json" | sha256sum --check
+            node tools/verify-content-ota.cjs "$source" --list > "$source/object-list.txt"
+            rclone copy "$destination/objects" "$source/objects" "${flags[@]}" --files-from-raw "$source/object-list.txt"
+            node tools/verify-content-ota.cjs "$source"
+            release="$RESTORE_RELEASE"
+          else
+            node tools/verify-content-ota.cjs "$source"
+            release=$(sha256sum "$source/_manifest.json" | cut -d ' ' -f 1)
+            rclone copy "$source/objects" "$destination/objects" "${flags[@]}" --immutable --header-upload 'Content-Type: text/html; charset=utf-8'
+            rclone copyto "$source/_manifest.json" "$destination/releases/$release.json" "${flags[@]}" --immutable --header-upload 'Content-Type: application/json; charset=utf-8'
+          fi
+          rclone copyto "$source/_manifest.json" "$destination/_manifest.json" "${flags[@]}" --ignore-times --header-upload 'Cache-Control: no-store' --header-upload 'Content-Type: application/json; charset=utf-8'
+          echo "::notice::Active Nastran content release: $release"
+          printf 'Active Nastran content release: `%s`\n' "$release" >> "$GITHUB_STEP_SUMMARY"

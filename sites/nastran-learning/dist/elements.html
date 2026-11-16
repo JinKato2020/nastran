@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>各要素理論 — FEM Guide</title><link rel="stylesheet" href="bulk.css"><link rel="stylesheet" href="analysis.css"><link rel="stylesheet" href="theory.css"><link rel="stylesheet" href="elements.css"><link rel="stylesheet" href="learning.css"></head><body data-learning-page="elements.html">
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>各要素理論 — FEM Guide</title><link rel="stylesheet" href="bulk.css"><link rel="stylesheet" href="analysis.css"><link rel="stylesheet" href="theory.css"><link rel="stylesheet" href="elements.css"><link rel="stylesheet" href="lesson-diagrams.css"><link rel="stylesheet" href="learning.css"></head><body data-learning-page="elements.html">
 <header class="topbar"><a class="brand" href="index.html#home">FEM Guide</a><nav><a href="theory.html#static">解析の理論</a></nav></header>
 <main class="analysis-main theory-main elements-main"><label class="analysis-selector" for="element-picker">要素の種類<select id="element-picker" aria-label="要素の種類"></select></label>
 
@@ -23,17 +23,7 @@
 
 <section class="theory-section" id="scalar-overview"><h2>1. MSC Nastran の要素ファミリーの全体像</h2>
 <p>要素は形をどこまでモデルに残すかで選びます。スカラーは自由度の関係、梁は線と断面、シェルは面と厚さ、ソリッドは体積を表します。</p>
-<figure class="element-figure"><svg viewBox="0 0 380 170" role="img" aria-label="左から、点と点をつなぐばね（0次元）、線の梁（1次元）、四角い板（2次元）、立方体のソリッド（3次元）が並ぶ。右へ行くほど形の情報が増える">
-<g fill="#29466b"><circle cx="30" cy="80" r="5"/><circle cx="70" cy="80" r="5"/></g>
-<polyline points="35,80 41,70 47,90 53,70 59,90 65,80" fill="none" stroke="#2f5c9e" stroke-width="2.5"/>
-<line x1="110" y1="80" x2="170" y2="80" stroke="#2f5c9e" stroke-width="5"/>
-<g fill="#29466b"><circle cx="110" cy="80" r="5"/><circle cx="170" cy="80" r="5"/></g>
-<polygon points="200,60 260,60 270,100 210,100" fill="#e8eef6" stroke="#2f5c9e" stroke-width="2.5"/>
-<g fill="#e8eef6" stroke="#2f5c9e" stroke-width="2.5"><polygon points="300,70 345,70 345,115 300,115"/><polygon points="300,70 315,55 360,55 345,70"/><polygon points="345,70 360,55 360,100 345,115"/></g>
-<g font-size="12" fill="#29466b" text-anchor="middle"><text x="50" y="125">スカラー</text><text x="50" y="141">（0次元）</text><text x="140" y="125">1次元</text><text x="140" y="141">梁・棒</text><text x="235" y="125">2次元</text><text x="235" y="141">板・シェル</text><text x="330" y="133">3次元</text><text x="330" y="149">ソリッド</text></g>
-<line x1="20" y1="25" x2="360" y2="25" stroke="#7d93ad" stroke-width="1.5"/><polygon points="360,20 370,25 360,30" fill="#7d93ad"/>
-<text x="190" y="18" font-size="11" fill="#5a6f88" text-anchor="middle">形の情報・1要素の自由度が増える</text>
-</svg><figcaption>要素ファミリーは「何の上で性質を定義するか」で分かれます。スカラー要素は形を持たず、自由度と自由度を直接つなぎます。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="families" data-description="左から、点と点をつなぐばね（0次元）、線の梁（1次元）、四角い板（2次元）、立方体のソリッド（3次元）が並ぶ。右へ行くほど形の情報が増える"></div><figcaption>要素ファミリーは「何の上で性質を定義するか」で分かれます。スカラー要素は形を持たず、自由度と自由度を直接つなぎます。</figcaption></figure>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>ファミリー</th><th>代表的な要素</th><th>性質の決まり方</th><th>典型的な用途</th><th>解説記事</th></tr></thead>
 <tbody>
@@ -107,25 +97,7 @@
 <p>成分1〜3の向きは各節点の変位座標系（GRIDのCD）で決まります。CDが基本座標なら基本X・Y・Zです。節点が離れているときは、成分の向きと力の作用線を両方確認します。</p>
 <p>2つの節点の変位座標系が違う向きなら、「節点Aの成分1」と「節点Bの成分1」は空間で違う方向を指します。それでも CELAS は何も言わずにその2つをつなぎます。形がないので、向きのくい違いを検出できないのです。</p>
 <h3>ずれた節点を CELAS でつなぐと何が起きるか</h3>
-<figure class="element-figure"><svg viewBox="0 0 380 200" role="img" aria-label="上下にずれた節点AとBを、水平方向のばねでつないだ図。2点が一緒に回転すると、ばねが水平に伸び縮みして力が出る。力の対はモーメントを生む">
-<g fill="#29466b"><circle cx="80" cy="60" r="6"/><circle cx="80" cy="140" r="6"/></g>
-<text x="55" y="55" font-size="13" fill="#29466b">A</text><text x="55" y="152" font-size="13" fill="#29466b">B</text>
-<line x1="80" y1="68" x2="80" y2="132" stroke="#7d93ad" stroke-width="1.5" stroke-dasharray="4 3"/>
-<text x="88" y="104" font-size="12" fill="#5a6f88">ずれ d</text>
-<line x1="88" y1="60" x2="140" y2="60" stroke="#c0392b" stroke-width="3"/><polygon points="136,54 150,60 136,66" fill="#c0392b"/>
-<line x1="72" y1="140" x2="22" y2="140" stroke="#c0392b" stroke-width="3"/><polygon points="26,134 12,140 26,146" fill="#c0392b"/>
-<text x="110" y="45" font-size="12" fill="#c0392b">+F</text><text x="20" y="165" font-size="12" fill="#c0392b">−F</text>
-<text x="20" y="190" font-size="12" fill="#29466b">X方向のばね：力の対が F·d のモーメントを生む</text>
-<g transform="translate(200,0)">
-<line x1="80" y1="60" x2="80" y2="140" stroke="#7d93ad" stroke-width="1.5" stroke-dasharray="4 3"/>
-<line x1="102" y1="62" x2="58" y2="138" stroke="#2f5c9e" stroke-width="2"/>
-<g fill="#29466b"><circle cx="102" cy="62" r="6"/><circle cx="58" cy="138" r="6"/></g>
-<path d="M 125 100 A 45 45 0 0 0 110 60" fill="none" stroke="#5a6f88" stroke-width="1.5"/>
-<text x="118" y="92" font-size="12" fill="#5a6f88">θ</text>
-<text x="0" y="175" font-size="12" fill="#29466b">剛体回転でも X 方向の差</text>
-<text x="0" y="190" font-size="12" fill="#29466b">θ·d が生じ、ばねに力が出る</text>
-</g>
-</svg><figcaption>左：ずれた2点を X 方向のばねでつなぐと、力の作用線が一致せずモーメントが残ります。右：2点がそろって剛体回転しただけでも X 方向の変位に差 θ·d が生じ、ばねが抵抗します。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="offsetSpring" data-description="上下にずれた節点AとBを、水平方向のばねでつないだ図。2点が一緒に回転すると、ばねが水平に伸び縮みして力が出る。力の対はモーメントを生む"></div><figcaption>左：ずれた2点を X 方向のばねでつなぐと、力の作用線が一致せずモーメントが残ります。右：2点がそろって剛体回転しただけでも X 方向の変位に差 θ·d が生じ、ばねが抵抗します。</figcaption></figure>
 
 <p>上の図の左のように、Y 方向に d だけずれた2点を X 方向のばねでつなぐと、ばねの力 +F と −F は同じ直線上にありません。2つの力の和はゼロでも、F·d のモーメントが残ります。CELAS はこのモーメントを受け持つ剛さを持っていないので、要素単体としてはモーメントの釣合いが成り立ちません。</p>
 <p>右の図は同じことを変位の側から見たものです。正しい要素は、全体がそろって動く（剛体運動する）だけなら力を出しません。ところが、ずれた2点が一緒に θ だけ回ると、X 方向の変位に θ·d の差が生じるので、CELAS は伸び縮みしたと判断して力を出します。本来は自由に回れるはずの動きを、ばねが勝手に押さえつけてしまうのです。これを<strong>内部拘束</strong>と呼んでいます。</p>
@@ -148,24 +120,7 @@
 <tr><td>OCID, S1, S2, S3</td><td>ばねの位置を座標で与える</td><td>OCID ≥ 0 なら S を無視して S1〜S3 を使う</td></tr>
 </tbody></table></div>
 <h3>要素座標系の決まり方</h3>
-<figure class="element-figure"><svg viewBox="0 0 380 200" role="img" aria-label="節点GAからGBへ要素x軸。GAから距離S·lの位置にばねがあり、両端の節点と剛なリンクで結ばれる。向きベクトルvとx軸の作る面にy軸">
-<line x1="50" y1="130" x2="320" y2="130" stroke="#7d93ad" stroke-width="1.5" stroke-dasharray="5 4"/>
-<line x1="60" y1="130" x2="150" y2="130" stroke="#29466b" stroke-width="5"/>
-<line x1="170" y1="130" x2="300" y2="130" stroke="#29466b" stroke-width="5"/>
-<rect x="148" y="118" width="24" height="24" fill="#f4d9a6" stroke="#b07a1c" stroke-width="2"/>
-<g fill="#29466b"><circle cx="60" cy="130" r="6"/><circle cx="300" cy="130" r="6"/></g>
-<g font-size="13" fill="#29466b"><text x="45" y="155">GA</text><text x="292" y="155">GB</text></g>
-<text x="128" y="112" font-size="12" fill="#b07a1c">ばねの位置</text>
-<line x1="60" y1="170" x2="160" y2="170" stroke="#5a6f88" stroke-width="1.2"/><line x1="160" y1="170" x2="300" y2="170" stroke="#5a6f88" stroke-width="1.2"/>
-<g stroke="#5a6f88" stroke-width="1.2"><line x1="60" y1="164" x2="60" y2="176"/><line x1="160" y1="164" x2="160" y2="176"/><line x1="300" y1="164" x2="300" y2="176"/></g>
-<g font-size="12" fill="#5a6f88"><text x="95" y="190">S·l</text><text x="210" y="190">(1−S)·l</text></g>
-<line x1="60" y1="130" x2="110" y2="60" stroke="#2f5c9e" stroke-width="2"/><polygon points="104,62 114,55 112,67" fill="#2f5c9e"/>
-<text x="112" y="56" font-size="13" fill="#2f5c9e">v</text>
-<line x1="330" y1="130" x2="365" y2="130" stroke="#c0392b" stroke-width="2"/><polygon points="361,125 371,130 361,135" fill="#c0392b"/>
-<line x1="330" y1="130" x2="330" y2="95" stroke="#c0392b" stroke-width="2"/><polygon points="325,99 330,89 335,99" fill="#c0392b"/>
-<g font-size="12" fill="#c0392b"><text x="350" y="148">x</text><text x="338" y="96">y</text></g>
-<text x="20" y="30" font-size="12" fill="#29466b">太線：Nastran が内部で入れる剛なリンク</text>
-</svg><figcaption>GA≠GB で CID を空欄にした場合。GA→GB が要素 x 軸、x 軸と向きベクトル v を含む面に y 軸、z 軸は右手の法則。ばねは GA から S·l の位置にあり、両端の節点とは内部の剛なリンクで結ばれます。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="cbush" data-description="節点GAからGBへ要素x軸。GAから距離S·lの位置にばねがあり、両端の節点と剛なリンクで結ばれる。向きベクトルvとx軸の作る面にy軸"></div><figcaption>GA≠GB で CID を空欄にした場合。GA→GB が要素 x 軸、x 軸と向きベクトル v を含む面に y 軸、z 軸は右手の法則。ばねは GA から S·l の位置にあり、両端の節点とは内部の剛なリンクで結ばれます。</figcaption></figure>
 <p>要素座標系の作り方は、次の3通りです。どれを選ぶかで、PBUSH の K1〜K6 がどの方向の剛さになるかが決まります。</p>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>指定</th><th>要素座標系</th><th>使える条件</th></tr></thead>
@@ -199,7 +154,7 @@
 </section>
 
 <section class="theory-section" id="scalar-bushweld"><h2>8. 検算：離れた節点をつなぐ</h2>
-<figure class="element-figure"><svg viewBox="0 0 355 172" role="img" aria-label="ばねは節点を結ぶ斜線方向ではなく両端の成分1を比較する。青の矢印が各節点の正方向。"><g font-size="13" fill="#29466b"><path d="M58 116L225 57" fill="none" stroke="#9daec0" stroke-dasharray="5 4"/><circle cx="58" cy="116" r="4"/><circle cx="225" cy="57" r="4"/><path d="M58 116L132 116" stroke="#234e91" stroke-width="2.5"/><polygon points="132.0,116.0 123.0,120.0 123.0,112.0" fill="#234e91"/><path d="M225 57L299 57" stroke="#234e91" stroke-width="2.5"/><polygon points="299.0,57.0 290.0,61.0 290.0,53.0" fill="#234e91"/><text x="30" y="141" fill="#29466b">端1</text><text x="203" y="41" fill="#29466b">端2</text><text x="74" y="106" fill="#29466b">正の成分1</text><text x="238" y="83" fill="#29466b">正の成分1</text><text x="83" y="161" fill="#29466b">剛体回転なら、位置のずれが効く</text></g></svg><figcaption>両端の変位座標が基本座標系の場合。破線は位置関係だけを表します。</figcaption></figure><p>端1と端2がY方向へ30 mm離れ、両端のX成分を剛性120 N/mmのばねで接続したとします。両点を一緒にZまわりに微小回転させると、X方向の相対変位が発生します。</p><div class="element-formula">回転量の大きさ：0.01 rad<br>X方向の変位差の大きさ：30 × 0.01 = 0.30 mm<br>ばね力の大きさ：36 N、力の対によるモーメント：1,080 N·mm</div><p>剛体回転だけでこの反力が出るなら、節点の位置とCDを見直します。離れた節点間に並進と回転の伝達を持たせたい場合は、CBUSHの座標とばね位置を決めてからPBUSHの成分を選びます。</p>
+<figure class="element-figure"><div data-element-sketch="springEnds" data-description="ばねは節点を結ぶ斜線方向ではなく両端の成分1を比較する。青の矢印が各節点の正方向。"></div><figcaption>両端の変位座標が基本座標系の場合。破線は位置関係だけを表します。</figcaption></figure><p>端1と端2がY方向へ30 mm離れ、両端のX成分を剛性120 N/mmのばねで接続したとします。両点を一緒にZまわりに微小回転させると、X方向の相対変位が発生します。</p><div class="element-formula">回転量の大きさ：0.01 rad<br>X方向の変位差の大きさ：30 × 0.01 = 0.30 mm<br>ばね力の大きさ：36 N、力の対によるモーメント：1,080 N·mm</div><p>剛体回転だけでこの反力が出るなら、節点の位置とCDを見直します。離れた節点間に並進と回転の伝達を持たせたい場合は、CBUSHの座標とばね位置を決めてからPBUSHの成分を選びます。</p>
 </section>
 
 <section class="theory-section" id="scalar-choose"><h2>9. 選び方と、よくある間違い</h2>
@@ -345,7 +300,7 @@
 <section class="theory-section" id="beam-axes"><h2>5. 要素座標と向きベクトル v</h2>
 <div class="analysis-links"><a href="coordinates.html#elements">最初に学ぶ「要素の向き」へ →</a></div>
 <p>梁要素で初心者が最もつまずくのが「向きベクトル」です。同じ寸法の I形鋼でも、縦に置くか横に置くかで構造の硬さは大きく変わります。両端の節点と断面の値だけでは、断面がどちらを向いているかが決まりません。そこで、断面の向きを決める矢印 v を別に与えます。</p>
-<figure class="element-figure"><svg viewBox="0 0 355 172" role="img" aria-label="梁のAからBへ局所x。斜めの向きベクトルvのうちxに垂直な成分が局所y。局所zは手前。Bに下向き荷重。"><g font-size="13" fill="#29466b"><text x="17" y="22" fill="#29466b">① 軸を決める</text><text x="213" y="22" fill="#29466b">② 荷重を読む</text><path d="M36 112L147 112" stroke="#234e91" stroke-width="2.5"/><polygon points="147.0,112.0 138.0,116.0 138.0,108.0" fill="#234e91"/><path d="M36 112L36 45" stroke="#234e91" stroke-width="2.5"/><polygon points="36.0,45.0 40.0,54.0 32.0,54.0" fill="#234e91"/><path d="M36 112L95 55" stroke="#166548" stroke-width="2.5"/><polygon points="95.0,55.0 91.3,64.1 85.7,58.4" fill="#166548"/><path d="M95 55V112H36" stroke="#a0aab8" stroke-dasharray="4 3" fill="none"/><text x="11" y="130" fill="#29466b">A／GA</text><text x="135" y="130" fill="#29466b">B／GB</text><text x="151" y="108" fill="#234e91">+x</text><text x="13" y="42" fill="#234e91">+y</text><text x="101" y="58" fill="#166548">v</text><text x="28" y="152" fill="#234e91">⊙ +z（手前）</text><path d="M209 105H311 M209 88V121" stroke="#526e8a" stroke-width="3"/><path d="M311 58L311 102" stroke="#ad3928" stroke-width="2.5"/><polygon points="311.0,102.0 307.0,93.0 315.0,93.0" fill="#ad3928"/><path d="M225 92L225 59" stroke="#234e91" stroke-width="2.5"/><polygon points="225.0,59.0 229.0,68.0 221.0,68.0" fill="#234e91"/><text x="233" y="63" fill="#234e91">+y</text><text x="274" y="49" fill="#ad3928">荷重 −y</text><text x="210" y="143" fill="#29466b">面1（x–y面）で曲がる</text></g></svg><figcaption>オフセットなしの例。青は要素の正方向、緑は断面の向きを決める v、赤は外力です。この例は局所 x・y が基本 X・Y と一致しています。v が斜めでも y は x に直角です。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="beamAxes" data-description="梁のAからBへ局所x。斜めの向きベクトルvのうちxに垂直な成分が局所y。局所zは手前。Bに下向き荷重。"></div><figcaption>オフセットなしの例。青は要素の正方向、緑は断面の向きを決める v、赤は外力です。この例は局所 x・y が基本 X・Y と一致しています。v が斜めでも y は x に直角です。</figcaption></figure>
 <h3>座標の決まり方</h3>
 <ol>
 <li>x 軸：端A（GA 側の端）から端B（GB 側の端）へ向かう線。</li>
@@ -375,10 +330,7 @@
 <p>要素の力と応力は要素座標で出力されます。V1 は面1内のせん断、M1 は面1の曲げに対応する面外軸まわりのモーメントです。V2・M2 は面2に対応します、Fx が軸力、T がトルクです。</p>
 </section>
 
-<section class="theory-section" id="beam-cbar-example"><h2>6. 検算：断面を90°回す</h2><figure class="element-figure"><svg viewBox="0 0 360 154" role="img" aria-label="同じ矩形断面を90度回転。荷重はどちらも下向き。高さ10ミリの断面と高さ30ミリの断面。">
-<g fill="#e5eefb" stroke="#234e91" stroke-width="2"><rect x="36" y="70" width="105" height="35"/><rect x="262" y="38" width="35" height="105"/></g>
-<g fill="#ad3928" stroke="#ad3928" stroke-width="2"><path d="M89 40V62 M279 8V30"/><path d="M84 57l5 8 5-8z M274 25l5 8 5-8z"/></g>
-<g font-size="13" fill="#29466b"><text x="42" y="126">高さ10・幅30</text><text x="233" y="151">高さ30・幅10</text><text x="124" y="48">荷重 −Y</text><text x="295" y="17">荷重 −Y</text><text x="151" y="90">断面を90°回す</text></g></svg><figcaption>梁を端B側から見た断面。荷重方向の高さが3倍になると、同じ面積でも曲げ剛性は9倍になります。</figcaption></figure>
+<section class="theory-section" id="beam-cbar-example"><h2>6. 検算：断面を90°回す</h2><figure class="element-figure"><div data-element-sketch="rectangularSection" data-description="同じ矩形断面を90度回転。荷重はどちらも下向き。高さ10ミリの断面と高さ30ミリの断面。"></div><figcaption>梁を端B側から見た断面。荷重方向の高さが3倍になると、同じ面積でも曲げ剛性は9倍になります。</figcaption></figure>
 <p>長さ240 mm、幅30 mm、高さ10 mm、E=70,000 MPaの片持ち梁を用います。端Aを固定し、端Bに−Yへ70 Nを加えます。局所 x が＋X、局所 y が＋Yの場合を基準にします。</p><div class="element-formula">断面高さ10 mm：I = 30 × 10³/12 = 2,500 mm⁴、変位 ≈ −1.843 mm<br>断面高さ30 mm：I = 10 × 30³/12 = 22,500 mm⁴、変位 ≈ −0.205 mm<br>共通の根元曲げモーメントの大きさ：70 × 240 = 16,800 N·mm</div><p>細長い一様梁の曲げのみの近似です。断面を回すときは荷重の基本座標方向を維持します。局所出力では曲げ面の番号が入れ替わるので、基本Y方向の変位と同じ物理断面を比較します。</p>
 </section>
 
@@ -395,15 +347,7 @@
 
 <section class="theory-section" id="beam-pin"><h2>8. 端の結合を外す（ピンフラグ PA・PB）</h2>
 <p>CBAR の継続行の PA（A端）・PB（B端）には、梁端と節点の間で<strong>結合を外す自由度</strong>を書きます。図の <code>PB=456</code> は、CBAR 1 の B端で要素座標の x・y・z 軸まわりの回転を自由にする指定です。面1内だけを曲がり自由にする場合は、局所z軸まわりの <code>PB=6</code> を指定します。</p>
-<figure class="element-figure"><svg viewBox="0 0 360 145" role="img" aria-label="CBAR 1 の B端と CBAR 2 は共通節点で接続する。PB=456 で回転を解放し、並進は一緒に動く">
-<line x1="25" y1="83" x2="180" y2="83" stroke="#2f5c9e" stroke-width="6"/><line x1="180" y1="83" x2="335" y2="54" stroke="#2f5c9e" stroke-width="6"/>
-<circle cx="180" cy="83" r="8" fill="#fff" stroke="#c0392b" stroke-width="3"/>
-<text x="180" y="23" text-anchor="middle" font-size="14" fill="#c0392b">回転 456：解放</text>
-<path d="M159 61 A24 24 0 0 1 200 62 M193 60 L200 62 L201 54" fill="none" stroke="#c0392b" stroke-width="2"/>
-<text x="25" y="106" font-size="13" fill="#2f5c9e">CBAR 1（PB=456）</text><text x="259" y="88" font-size="13" fill="#2f5c9e">CBAR 2</text>
-<line x1="180" y1="94" x2="180" y2="116" stroke="#2f5c9e"/>
-<text x="180" y="136" text-anchor="middle" font-size="14" fill="#2f5c9e">共通節点で並進 123 を共有</text>
-</svg><figcaption>接続点で2本の梁は一緒に移動し、互いに回転できます。この結合では軸力・せん断力を伝え、曲げモーメント・ねじりモーメントは解放します。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="pin" data-description="CBAR 1 の B端と CBAR 2 は共通節点で接続する。PB=456 で回転を解放し、並進は一緒に動く"></div><figcaption>接続点で2本の梁は一緒に移動し、互いに回転できます。この結合では軸力・せん断力を伝え、曲げモーメント・ねじりモーメントは解放します。</figcaption></figure>
 <p>図は梁同士の接続です。共通節点自体を支持点として空間に固定する場合は、別途 <a href="bulk.html#SPC1">SPC1</a> などで節点の並進 <code>123</code> を拘束します。SPC1 の番号は拘束する自由度、PB の番号は解放する自由度です。</p>
 <ul>
 <li>自由度は要素座標で数えます。全体座標ではありません。</li>
@@ -667,21 +611,7 @@ h = 5 × 150 / 50² = 0.3、k ≈ 1.65 / 0.3 ≈ 5.5
 <p>シェルの変形は、厚さ方向の中央の面（基準面）の動きと、法線の傾きだけで表します。基準面から z の位置の面内変位は、中央面の変位に「z × 法線の傾き」を足したものです（式4-5、4-6）。これを微分すると、ひずみは次の形になります。</p>
 <div class="element-formula">ε(z) = ε⁰ + z·κ　（Nastran の出力の符号では ε(z) = ε⁰ − z·κ。下の strain2 の例題で確認）
 ε⁰：中央面のひずみ（膜ひずみ）、κ：曲率</div>
-<figure class="element-figure"><svg viewBox="0 0 520 220" role="img" aria-label="板厚方向の応力分布。膜成分は一定、曲げ成分は直線、合計は一定と直線の和。下面がZ1、上面がZ2">
-<g font-size="12" fill="#29466b">
-<rect x="20" y="70" width="90" height="60" fill="#e8eef6" stroke="#7d93ad" stroke-width="2"/>
-<line x1="20" y1="100" x2="110" y2="100" stroke="#2f5c9e" stroke-dasharray="5 4"/>
-<text x="30" y="60">板の断面</text><text x="114" y="104" fill="#2f5c9e">基準面</text>
-<text x="114" y="74">Z2（上面）</text><text x="114" y="136">Z1（下面）</text>
-<line x1="200" y1="60" x2="200" y2="140" stroke="#7d93ad"/><rect x="200" y="70" width="40" height="60" fill="#2f5c9e" opacity=".35"/>
-<text x="180" y="165">膜（MID1）</text><text x="186" y="182">一定</text>
-<text x="262" y="104" font-size="18">＋</text>
-<line x1="320" y1="60" x2="320" y2="140" stroke="#7d93ad"/><polygon points="320,70 360,70 320,100" fill="#c0392b" opacity=".45"/><polygon points="320,130 280,130 320,100" fill="#c0392b" opacity=".45"/>
-<text x="292" y="165">曲げ（MID2）</text><text x="300" y="182">直線</text>
-<text x="380" y="104" font-size="18">＝</text>
-<line x1="440" y1="60" x2="440" y2="140" stroke="#7d93ad"/><polygon points="440,70 500,70 460,130 440,130" fill="#29466b" opacity=".35"/>
-<text x="432" y="165">合計の応力</text><text x="420" y="182">Z1・Z2で出力</text>
-</g></svg><figcaption>面内の応力は「厚さ方向に一定の膜成分」と「直線で変わる曲げ成分」の和です。Nastran はこの直線上の2点 Z1（既定は −T/2）と Z2（既定は +T/2）で応力を出力します。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="shellStress" data-description="板厚方向の応力分布。膜成分は一定、曲げ成分は直線、合計は一定と直線の和。下面がZ1、上面がZ2"></div><figcaption>面内の応力は「厚さ方向に一定の膜成分」と「直線で変わる曲げ成分」の和です。Nastran はこの直線上の2点 Z1（既定は −T/2）と Z2（既定は +T/2）で応力を出力します。</figcaption></figure>
 <h3>4種類の剛さ</h3>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>成分</th><th>受け持つ力</th><th>PSHELLの材料</th><th>等方性・均質な板の剛さ（一般論）</th></tr></thead>
@@ -743,12 +673,7 @@ Z1 = −6、Z2 = +6（面板の外面で応力を見る）</div>
 
 <section class="theory-section" id="shell-axes"><h2>6. 節点順・法線・材料方向</h2>
 <div class="analysis-links"><a href="coordinates.html#elements">最初に学ぶ「要素の向き」へ →</a></div>
-<figure class="element-figure"><svg viewBox="0 0 355 172" role="img" aria-label="左は反時計回りの節点順で正法線が手前。右は逆順で正法線が奥。物理的に同じ観測面のZの符号が変わる。"><g font-size="13" fill="#29466b"><g fill="#e8f0fb" stroke="#6780a3"><rect x="27" y="36" width="115" height="80"/><rect x="208" y="36" width="115" height="80"/></g><path d="M44 103L124 103" stroke="#234e91" stroke-width="2.5"/><polygon points="124.0,103.0 115.0,107.0 115.0,99.0" fill="#234e91"/><path d="M128 98L128 53" stroke="#234e91" stroke-width="2.5"/><polygon points="128.0,53.0 132.0,62.0 124.0,62.0" fill="#234e91"/><path d="M309 53L309 98" stroke="#234e91" stroke-width="2.5"/><polygon points="309.0,98.0 305.0,89.0 313.0,89.0" fill="#234e91"/><path d="M305 103L225 103" stroke="#234e91" stroke-width="2.5"/><polygon points="225.0,103.0 234.0,99.0 234.0,107.0" fill="#234e91"/><text x="33" y="153" fill="#234e91">⊙ +z：手前</text><text x="217" y="153" fill="#234e91">⊗ +z：奥</text><text x="31" y="130" fill="#29466b">G1</text><text x="122" y="130" fill="#29466b">G2</text><text x="122" y="30" fill="#29466b">G3</text><text x="26" y="30" fill="#29466b">G4</text><text x="210" y="130" fill="#29466b">G1</text><text x="207" y="30" fill="#29466b">G2</text><text x="304" y="30" fill="#29466b">G3</text><text x="303" y="130" fill="#29466b">G4</text></g></svg><figcaption>同じ長方形の節点順だけを反転。表裏と荷重の表示を確認し、実空間で同じ面と方向を比較します。</figcaption></figure><p>右手の指を節点順に回したとき、親指が局所＋zを示します。Z1・Z2は要素基準面からの符号付き距離です。既定の対称断面では−z側と＋z側に対応します。オフセットや出力点を指定した場合は距離を確認します。</p><p>要素xは、四辺形では一般にG1→G2と一致するとは限りません。三角形と四辺形で面内軸の決め方が異なります。一方、THETAで指定する材料方向はG1→G2を基準に法線まわりに回します。MCIDを使う場合は指定座標系のx軸を要素面へ投影します。投影が小さくなる向きは避けます。</p><figure class="element-figure"><svg viewBox="0 0 360 148" role="img" aria-label="長方形シェルを正法線側から見る。G1からG2への基準線から反時計回りの角度で材料1軸を指定。">
-<rect x="42" y="34" width="270" height="77" fill="#e5eefb" stroke="#6780a3"/>
-<path d="M58 99H187 M58 99L141 54 M99 99Q99 90 94 79" fill="none" stroke="#234e91" stroke-width="2"/>
-<path d="M130 53l14-1-7 10z" fill="#234e91"/>
-<g font-size="13" fill="#29466b"><text x="34" y="131">G1</text><text x="293" y="131">G2</text><text x="149" y="57">材料1軸</text><text x="111" y="88">θ</text><text x="192" y="102">G1→G2に平行</text><text x="43" y="24">⊙ ＋z側から見る</text></g>
-</svg><figcaption>THETAの正方向は＋z側から見て反時計回りです。材料方向と、出力を読む座標系の設定を確認します。</figcaption></figure><p>圧力はプリプロセッサの矢印と合反力で実空間の向きを確認します。座標系を変えると、等方材でも出力する応力成分の表示が変わる場合があります。隣接要素のNORMAL-Xを比べる前に、共通の方向へそろえます。</p>
+<figure class="element-figure"><div data-element-sketch="shellOrder" data-description="左は反時計回りの節点順で正法線が手前。右は逆順で正法線が奥。物理的に同じ観測面のZの符号が変わる。"></div><figcaption>同じ長方形の節点順だけを反転。表裏と荷重の表示を確認し、実空間で同じ面と方向を比較します。</figcaption></figure><p>右手の指を節点順に回したとき、親指が局所＋zを示します。Z1・Z2は要素基準面からの符号付き距離です。既定の対称断面では−z側と＋z側に対応します。オフセットや出力点を指定した場合は距離を確認します。</p><p>要素xは、四辺形では一般にG1→G2と一致するとは限りません。三角形と四辺形で面内軸の決め方が異なります。一方、THETAで指定する材料方向はG1→G2を基準に法線まわりに回します。MCIDを使う場合は指定座標系のx軸を要素面へ投影します。投影が小さくなる向きは避けます。</p><figure class="element-figure"><div data-element-sketch="shellAngle" data-description="長方形シェルを正法線側から見る。G1からG2への基準線から反時計回りの角度で材料1軸を指定。"></div><figcaption>THETAの正方向は＋z側から見て反時計回りです。材料方向と、出力を読む座標系の設定を確認します。</figcaption></figure><p>圧力はプリプロセッサの矢印と合反力で実空間の向きを確認します。座標系を変えると、等方材でも出力する応力成分の表示が変わる場合があります。隣接要素のNORMAL-Xを比べる前に、共通の方向へそろえます。</p>
 </section>
 
 <section class="theory-section" id="shell-output"><h2>7. 力と応力の出力の読み方</h2>
@@ -862,18 +787,7 @@ VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</div>
 </section>
 
 <section class="theory-section" id="shell-shear"><h2>15. せん断パネル CSHEAR</h2>
-<figure class="element-figure"><svg viewBox="0 0 400 220" role="img" aria-label="周囲を棒で補強した四角いパネル。パネルの辺に沿ってせん断流qが流れ、棒が軸力を受け持つ">
-<rect x="80" y="40" width="240" height="140" fill="#f5f8fc" stroke="#7d93ad" stroke-width="1.5"/>
-<g stroke="#29466b" stroke-width="7" stroke-linecap="round"><line x1="80" y1="40" x2="320" y2="40"/><line x1="80" y1="180" x2="320" y2="180"/><line x1="80" y1="40" x2="80" y2="180"/><line x1="320" y1="40" x2="320" y2="180"/></g>
-<g stroke="#c0392b" stroke-width="2.5" fill="#c0392b">
-<line x1="130" y1="56" x2="270" y2="56"/><polygon points="270,51 282,56 270,61"/>
-<line x1="270" y1="164" x2="130" y2="164"/><polygon points="130,159 118,164 130,169"/>
-<line x1="304" y1="150" x2="304" y2="75"/><polygon points="299,75 304,63 309,75"/>
-<line x1="96" y1="75" x2="96" y2="150"/><polygon points="91,150 96,162 101,150"/></g>
-<g font-size="12" fill="#c0392b"><text x="190" y="76">q</text><text x="190" y="156">q</text><text x="280" y="114">q</text><text x="108" y="114">q</text></g>
-<g font-size="12" fill="#29466b"><text x="60" y="34">G1</text><text x="324" y="34">G2</text><text x="324" y="196">G3</text><text x="60" y="196">G4</text>
-<text x="128" y="210">周囲の棒（ストリンガー）が軸力</text><text x="146" y="116">パネル：せん断だけ</text></g>
-</svg><figcaption>せん断パネルの考え方。パネルは辺に沿ったせん断流 q（単位長さあたりのせん断力）だけを受け持ち、伸び縮みは周囲の棒が受け持ちます。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="shearPanel" data-description="周囲を棒で補強した四角いパネル。パネルの辺に沿ってせん断流qが流れ、棒が軸力を受け持つ"></div><figcaption>せん断パネルの考え方。パネルは辺に沿ったせん断流 q（単位長さあたりのせん断力）だけを受け持ち、伸び縮みは周囲の棒が受け持ちます。</figcaption></figure>
 <p><a href="bulk.html#CSHEAR">CSHEAR</a> は4節点の四角形の要素で、座屈した薄い板を表します。内部でせん断応力を受け持ち、隣り合う節点の間の伸びの力も受け持てます。板の曲げの剛さと面内の軸方向の剛さが無視できる状況で使うとし、そのような状況で CQUAD4 を使うと硬すぎるモデルになると説明しています。</p>
 <h3>なぜ「座屈した板」なのか</h3>
 <p>航空機の外板のような非常に薄い板は、圧縮やせん断で早くにしわ（座屈）が寄ります。しわが寄った板は、圧縮の方向にはもう力をほとんど支えられませんが、しわに沿った斜めの引張りでせん断を伝え続けます（張力場と呼ばれる考え方。一般論）。CQUAD4 は座屈前の健全な板として面内のあらゆる方向に剛さを持つので、こうした板を表すと剛さを過大に評価します。そこで「せん断だけを受け持つ板＋軸力を受け持つ棒（ロッドや梁）」という組み合わせでモデル化するのが、薄肉補強構造の古典的な方法です。補強材が伸びの荷重を、CSHEAR が面内のせん断を受け持つ使い方を最も重要な用途として挙げ、実際のパネルが座屈しているときや曲がっているときに特に当てはまるとしています。</p>
@@ -996,18 +910,7 @@ F2 も辺 2-3・1-4 について同様</div>
 </section>
 
 <section class="theory-section" id="solid-nodes"><h2>2. 節点の並びと中間節点</h2>
-<figure class="element-figure"><svg viewBox="0 0 380 250" role="img" aria-label="CHEXAの節点番号。下面G1〜G4、上面G5〜G8、辺の中点G9〜G20。G12はG1とG4の間にある">
-<g fill="none" stroke="#2f5c9e" stroke-width="2.5">
-<polygon points="70,190 230,190 300,140 140,140"/>
-<polygon points="70,70 230,70 300,20 140,20"/>
-<line x1="70" y1="190" x2="70" y2="70"/><line x1="230" y1="190" x2="230" y2="70"/><line x1="300" y1="140" x2="300" y2="20"/><line x1="140" y1="140" x2="140" y2="20" stroke-dasharray="5 4"/>
-</g>
-<g fill="#29466b"><circle cx="70" cy="190" r="5"/><circle cx="230" cy="190" r="5"/><circle cx="300" cy="140" r="5"/><circle cx="140" cy="140" r="5"/><circle cx="70" cy="70" r="5"/><circle cx="230" cy="70" r="5"/><circle cx="300" cy="20" r="5"/><circle cx="140" cy="20" r="5"/></g>
-<g fill="#ffffff" stroke="#c0392b" stroke-width="2"><circle cx="150" cy="190" r="4"/><circle cx="265" cy="165" r="4"/><circle cx="220" cy="140" r="4"/><circle cx="105" cy="165" r="4"/><circle cx="70" cy="130" r="4"/></g>
-<g font-size="13" fill="#29466b"><text x="48" y="208">G1</text><text x="224" y="210">G2</text><text x="306" y="150">G3</text><text x="118" y="136">G4</text><text x="48" y="66">G5</text><text x="222" y="62">G6</text><text x="306" y="18">G7</text><text x="118" y="16">G8</text></g>
-<g font-size="12" fill="#c0392b"><text x="142" y="208">G9</text><text x="270" y="180">G10</text><text x="210" y="132">G11</text><text x="72" y="160">G12</text><text x="40" y="134">G13</text></g>
-<text x="190" y="238" font-size="12" fill="#5a6f88">下面 G1→G4、上面 G5→G8、黒＝角、白丸＝辺の中点（一部のみ表示）</text>
-</svg><figcaption>CHEXA の節点の並び。G9〜G12 は下面の辺、G13〜G16 は縦の辺、G17〜G20 は上面の辺の中点です。たとえば G12 は必ず G1 と G4 の間に置きます。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="hexaNodes" data-description="CHEXAの節点番号。下面G1〜G4、上面G5〜G8、辺の中点G9〜G20。G12はG1とG4の間にある"></div><figcaption>CHEXA の節点の並び。G9〜G12 は下面の辺、G13〜G16 は縦の辺、G17〜G20 は上面の辺の中点です。たとえば G12 は必ず G1 と G4 の間に置きます。</figcaption></figure>
 <h3>並び順を守る理由</h3>
 <p>Nastran は、カードに書かれた順番から「どの節点がどの角か」「どの辺の途中か」を決め、要素の内部の形を表す関数（形状関数）を組み立てます。並び順を間違えると、要素が裏返ったりねじれたりした形として計算されます。順番を外れると致命的エラーになるか、<strong>もっと悪い場合はエラーにならずに間違った答えが出る</strong>と警告しています。プリプロセッサの出力をそのまま使う場合でも、手で節点を書き換えたときは特に注意が必要です。</p>
 <h3>中間節点（2次要素）</h3>
@@ -1024,17 +927,7 @@ F2 も辺 2-3・1-4 について同様</div>
 
 <section class="theory-section" id="solid-dof"><h2>3. 回転自由度を持たないことと、その影響</h2>
 <p>ソリッド要素の剛さは、各節点の<strong>並進3方向（T1・T2・T3）だけ</strong>にあります。立体の回転は、隣り合う節点が違う量だけ動くことで自然に表されるので、節点に回転の自由度を持たせる必要がないからです。ところが Nastran の節点（<a href="bulk.html#GRID">GRID</a>）は、もともと6自由度（並進3・回転3）を持っています。ソリッドだけにつながる節点では、回転の3自由度がどの剛性ともつながらず、剛性マトリクスが特異（逆行列が作れない状態）になります。</p>
-<figure class="element-figure"><svg viewBox="0 0 380 200" role="img" aria-label="ソリッドの節点は並進3自由度だけ。そこに梁をつなぐと、梁の曲げモーメントを受け止める剛性がなく、ピンのように回ってしまう">
-<rect x="40" y="60" width="150" height="100" fill="#e8eef6" stroke="#2f5c9e" stroke-width="2.5"/>
-<text x="70" y="115" font-size="13" fill="#2f5c9e">ソリッド</text>
-<circle cx="190" cy="110" r="6" fill="#29466b"/>
-<line x1="190" y1="110" x2="330" y2="80" stroke="#8a6d3b" stroke-width="5"/>
-<text x="250" y="72" font-size="13" fill="#8a6d3b">梁（回転を持つ）</text>
-<line x1="330" y1="88" x2="330" y2="140" stroke="#c0392b" stroke-width="3"/><polygon points="323,136 337,136 330,150" fill="#c0392b"/>
-<path d="M205,140 A30,30 0 0 0 225,105" fill="none" stroke="#c0392b" stroke-width="2"/><polygon points="220,100 232,104 222,112" fill="#c0392b"/>
-<text x="200" y="178" font-size="12" fill="#c0392b">モーメントを受ける剛性がない → ピンのように回る</text>
-<text x="60" y="48" font-size="12" fill="#5a6f88">節点の自由度：T1・T2・T3 のみ</text>
-</svg><figcaption>梁や板（回転を持つ要素）を1点だけでソリッドにつなぐと、その点の回転を止めるものがありません。曲げは伝わらず、ヒンジのような結合になります。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="solidRotation" data-description="ソリッドの節点は並進3自由度だけ。そこに梁をつなぐと、梁の曲げモーメントを受け止める剛性がなく、ピンのように回ってしまう"></div><figcaption>梁や板（回転を持つ要素）を1点だけでソリッドにつなぐと、その点の回転を止めるものがありません。曲げは伝わらず、ヒンジのような結合になります。</figcaption></figure>
 <h3>特異な回転自由度の処理</h3>
 <ul>
 <li>手で拘束する方法：ソリッドだけにつながる節点の 456 を SPC などで止めます（GRID の永久拘束欄に 456 を書くのが手軽です）。</li>
@@ -1073,20 +966,7 @@ F2 も辺 2-3・1-4 について同様</div>
 </section>
 
 <section class="theory-section" id="solid-axes"><h2>5. 要素座標系 ― ゆがみに強い決め方</h2>
-<figure class="element-figure"><svg viewBox="0 0 380 230" role="img" aria-label="ゆがんだCHEXAの向かい合う面の中心どうしを結んでR・S・Tの3本のベクトルを作る">
-<g fill="none" stroke="#7d93ad" stroke-width="2">
-<polygon points="60,180 220,195 300,140 130,130"/>
-<polygon points="80,70 230,80 320,30 150,20"/>
-<line x1="60" y1="180" x2="80" y2="70"/><line x1="220" y1="195" x2="230" y2="80"/><line x1="300" y1="140" x2="320" y2="30"/><line x1="130" y1="130" x2="150" y2="20" stroke-dasharray="5 4"/>
-</g>
-<g stroke-width="3">
-<line x1="105" y1="115" x2="270" y2="110" stroke="#2f5c9e"/><polygon points="268,104 280,110 268,116" fill="#2f5c9e"/>
-<line x1="190" y1="160" x2="200" y2="75" stroke="#c0392b"/><polygon points="194,78 201,66 207,79" fill="#c0392b"/>
-<line x1="150" y1="135" x2="235" y2="78" stroke="#8a6d3b"/><polygon points="229,76 242,73 236,85" fill="#8a6d3b"/>
-</g>
-<g font-size="13"><text x="284" y="114" fill="#2f5c9e">R</text><text x="196" y="60" fill="#c0392b">T</text><text x="246" y="74" fill="#8a6d3b">S</text></g>
-<text x="40" y="220" font-size="12" fill="#5a6f88">R・S・T は向かい合う面の中心どうしを結ぶ（直交していない）</text>
-</svg><figcaption>R は面 G4-G1-G5-G8 と面 G3-G2-G6-G7 の中心、S は面 G1-G2-G6-G5 と面 G4-G3-G7-G8 の中心、T は下面 G1〜G4 と上面 G5〜G8 の中心を結びます。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="distortedHexa" data-description="ゆがんだCHEXAの向かい合う面の中心どうしを結んでR・S・Tの3本のベクトルを作る"></div><figcaption>R は面 G4-G1-G5-G8 と面 G3-G2-G6-G7 の中心、S は面 G1-G2-G6-G5 と面 G4-G3-G7-G8 の中心、T は下面 G1〜G4 と上面 G5〜G8 の中心を結びます。</figcaption></figure>
 <p>CHEXA の要素座標系は、まず向かい合う面の中心を結ぶ3本のベクトル R・S・T を作ります。原点は3本の交点です。ゆがんだ要素では R・S・T は互いに直角ではないので、固有値解析によって直交する3本 R′・S′・T′ を作り、要素の x・y・z 軸はそれぞれ R′・S′・T′ と同じ面の組に向けられます。</p>
 <p>軸はG1→G2の一辺だけで決まるわけではありません。節点順が面の組を決めるため、対応する面と節点順を確認します。そのため後処理で一貫したデータが得られます。一方で、実際の軸の向きは出力されません。</p>
 <p class="element-key">要点：要素座標系の向きは利用者には見えにくいので、応力を要素座標系で出さないよう勧めています。PSOLID の第4欄（CORDM）に基本座標系か自分で定義した座標系の番号を書けば、その向きで応力が出ます。既定は基本座標系です。</p>
@@ -1094,7 +974,7 @@ F2 も辺 2-3・1-4 について同様</div>
 </section>
 
 <section class="theory-section" id="solid-taper"><h2>6. 検算：厚さ方向の分割と曲げ</h2>
-<figure class="element-figure"><svg viewBox="0 0 355 172" role="img" aria-label="梁の曲げモーメントを立体端面の上下の反対向きの軸力に置き換える。"><g font-size="13" fill="#29466b"><path d="M87 50H273V119H87Z M87 50l18-14h185v68l-17 15 M273 50l17-14" stroke="#6780a3" fill="#e8f0fb"/><path d="M273 62L327 62" stroke="#ad3928" stroke-width="2.5"/><polygon points="327.0,62.0 318.0,66.0 318.0,58.0" fill="#ad3928"/><path d="M273 106L219 106" stroke="#ad3928" stroke-width="2.5"/><polygon points="219.0,106.0 228.0,102.0 228.0,110.0" fill="#ad3928"/><path d="M65 144L113 144" stroke="#234e91" stroke-width="2.5"/><polygon points="113.0,144.0 104.0,148.0 104.0,140.0" fill="#234e91"/><text x="115" y="147" fill="#234e91">+X</text><text x="292" y="52" fill="#ad3928">+F</text><text x="225" y="97" fill="#ad3928">−F</text><text x="107" y="82" fill="#29466b">端面内の距離 d</text><text x="174" y="150" fill="#29466b">合力 0、偶力 Fd</text></g></svg><figcaption>曲げモーメントは離れた位置で逆向きに働く力の組で伝えられます。赤が作用力、青が比較に使う基本軸です。</figcaption></figure><p>端面で240 N·mmの純曲げを与えるなら、上下の荷重群の作用線を12 mm離し、各群に20 Nずつ逆向きの力を分配します。合力は0です。単一節点の回転成分にモーメントを与えると、並進を持つソリッドの応答として適切に伝わりません。</p><div class="element-formula">曲げモーメント：20 × 12 = 240 N·mm<br>幅20 mm・厚さ12 mmの矩形断面：I = 20 × 12³/12 = 2,880 mm⁴<br>荷重点・固定端から離れた断面の表面公称応力：240 × 6/2,880 = 0.50 MPa</div><p>厚さ方向1、2、4層で、同一断面の軸方向応力と先端変位を照合します。層数を増やしても角の最大値だけが変わり続ける場合は、荷重点・拘束端の特異性と、メッシュによる全体応答の収束を分けて判断します。積分点・角・節点平均を混ぜて比べないようにします。</p>
+<figure class="element-figure"><div data-element-sketch="couple" data-description="梁の曲げモーメントを立体端面の上下の反対向きの軸力に置き換える。"></div><figcaption>曲げモーメントは離れた位置で逆向きに働く力の組で伝えられます。赤が作用力、青が比較に使う基本軸です。</figcaption></figure><p>端面で240 N·mmの純曲げを与えるなら、上下の荷重群の作用線を12 mm離し、各群に20 Nずつ逆向きの力を分配します。合力は0です。単一節点の回転成分にモーメントを与えると、並進を持つソリッドの応答として適切に伝わりません。</p><div class="element-formula">曲げモーメント：20 × 12 = 240 N·mm<br>幅20 mm・厚さ12 mmの矩形断面：I = 20 × 12³/12 = 2,880 mm⁴<br>荷重点・固定端から離れた断面の表面公称応力：240 × 6/2,880 = 0.50 MPa</div><p>厚さ方向1、2、4層で、同一断面の軸方向応力と先端変位を照合します。層数を増やしても角の最大値だけが変わり続ける場合は、荷重点・拘束端の特異性と、メッシュによる全体応答の収束を分けて判断します。積分点・角・節点平均を混ぜて比べないようにします。</p>
 </section>
 
 <section class="theory-section" id="solid-triax"><h2>7. CTRIAX6 ― 軸対称の回転体</h2>
@@ -1211,19 +1091,7 @@ F2 も辺 2-3・1-4 について同様</div>
 </section>
 
 <section class="theory-section" id="connector-patch"><h2>3. パッチ結合の仕組み ― 補助点と投影</h2>
-<figure class="element-figure"><svg viewBox="0 0 380 250" role="img" aria-label="直径Dの円と同じ面積の正方形の4つの角を補助点とし、上下のシェルに投影する。投影点GA・GBはその場所の要素の節点から補間され、GAとGBの間を溶接の梁がつなぐ">
-<polygon points="40,70 300,70 340,30 80,30" fill="#e8eef6" stroke="#7d93ad" stroke-width="2"/>
-<polygon points="40,200 300,200 340,160 80,160" fill="#e8eef6" stroke="#7d93ad" stroke-width="2"/>
-<g stroke="#b6c4d6" stroke-width="1"><line x1="127" y1="70" x2="167" y2="30"/><line x1="213" y1="70" x2="253" y2="30"/><line x1="53" y1="57" x2="313" y2="57"/><line x1="67" y1="43" x2="327" y2="43"/>
-<line x1="127" y1="200" x2="167" y2="160"/><line x1="213" y1="200" x2="253" y2="160"/><line x1="53" y1="187" x2="313" y2="187"/><line x1="67" y1="173" x2="327" y2="173"/></g>
-<text x="300" y="24" font-size="12" fill="#5a6f88">シェル A</text><text x="300" y="218" font-size="12" fill="#5a6f88">シェル B</text>
-<g fill="none" stroke="#8a6d3b" stroke-width="1.5" stroke-dasharray="4 3"><line x1="140" y1="62" x2="140" y2="192"/><line x1="226" y1="62" x2="226" y2="192"/><line x1="154" y1="38" x2="154" y2="168"/><line x1="240" y1="38" x2="240" y2="168"/></g>
-<g fill="#8a6d3b"><circle cx="140" cy="62" r="4"/><circle cx="226" cy="62" r="4"/><circle cx="154" cy="38" r="4"/><circle cx="240" cy="38" r="4"/><circle cx="140" cy="192" r="4"/><circle cx="226" cy="192" r="4"/><circle cx="154" cy="168" r="4"/><circle cx="240" cy="168" r="4"/></g>
-<line x1="190" y1="50" x2="190" y2="180" stroke="#c0392b" stroke-width="6"/>
-<circle cx="190" cy="50" r="5" fill="#29466b"/><circle cx="190" cy="180" r="5" fill="#29466b"/><circle cx="190" cy="115" r="5" fill="#ffffff" stroke="#29466b" stroke-width="2"/>
-<g font-size="13" fill="#29466b"><text x="198" y="48">GA</text><text x="198" y="196">GB</text><text x="198" y="120">GS</text></g>
-<text x="20" y="242" font-size="12" fill="#8a6d3b">補助点：直径 D の円と同じ面積の正方形の角（茶）を両面に投影</text>
-</svg><figcaption>パッチ結合では、溶接の断面を「同じ面積の正方形」で表し、その4つの角（補助点）を上下の面に投影します。補助点が落ちた要素の節点の動きが、溶接の端点 GA・GB に伝わります。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="weldPatch" data-description="直径Dの円と同じ面積の正方形の4つの角を補助点とし、上下のシェルに投影する。投影点GA・GBはその場所の要素の節点から補間され、GAとGBの間を溶接の梁がつなぐ"></div><figcaption>パッチ結合では、溶接の断面を「同じ面積の正方形」で表し、その4つの角（補助点）を上下の面に投影します。補助点が落ちた要素の節点の動きが、溶接の端点 GA・GB に伝わります。</figcaption></figure>
 <p>点と点の結合では、溶接の力は1つの節点だけに集中します。パッチ結合では、溶接の断面の範囲に広がる複数の節点で力を受けるので、実際の溶接の太さに近い剛さになります。CFAST の例題（5節）の出力から、仕組みを数値で確かめられます。</p>
 <ol>
 <li>基準点 GS を両方の面に投影して、溶接の端点 GA・GB を決めます（指定しなければ内部で節点が作られます）。</li>
@@ -1359,21 +1227,7 @@ F2 も辺 2-3・1-4 について同様</div>
 <tr><td>CIFQUAD</td><td>四角形の形（2次元）</td><td>線形・SOL 400</td></tr>
 <tr><td>CIFQDX</td><td>軸対称の四角形</td><td>SOL 400 だけ</td></tr>
 </tbody></table></div>
-<figure class="element-figure"><svg viewBox="0 0 380 210" role="img" aria-label="左：凝着要素の上面と下面の相対変位、法線方向とせん断2方向。右：線形解析ではトラクションが相対変位に比例する直線">
-<rect x="30" y="60" width="140" height="22" fill="#dfe8f5" stroke="#2f5c9e" stroke-width="2"/>
-<rect x="30" y="110" width="140" height="22" fill="#dfe8f5" stroke="#2f5c9e" stroke-width="2"/>
-<rect x="30" y="82" width="140" height="28" fill="#f6e7d0" stroke="#8a6d3b" stroke-width="1.5" stroke-dasharray="4 3"/>
-<text x="62" y="100" font-size="12" fill="#8a6d3b">凝着要素（厚さ0も可）</text>
-<text x="176" y="76" font-size="12" fill="#2f5c9e">上の面</text><text x="176" y="126" font-size="12" fill="#2f5c9e">下の面</text>
-<line x1="100" y1="60" x2="100" y2="30" stroke="#c0392b" stroke-width="2.5"/><polygon points="94,34 106,34 100,22" fill="#c0392b"/><text x="106" y="34" font-size="12" fill="#c0392b">δn（開く）</text>
-<line x1="40" y1="45" x2="80" y2="45" stroke="#c0392b" stroke-width="2.5"/><polygon points="76,39 88,45 76,51" fill="#c0392b"/><text x="34" y="40" font-size="12" fill="#c0392b">δs・δt（ずれる）</text>
-<line x1="240" y1="180" x2="360" y2="180" stroke="#29466b" stroke-width="1.5"/><line x1="240" y1="180" x2="240" y2="40" stroke="#29466b" stroke-width="1.5"/>
-<text x="300" y="198" font-size="12" fill="#29466b">相対変位 δ</text><text x="200" y="36" font-size="12" fill="#29466b">トラクション t</text>
-<line x1="240" y1="180" x2="290" y2="70" stroke="#7d93ad" stroke-width="2" stroke-dasharray="5 4"/><line x1="290" y1="70" x2="350" y2="180" stroke="#7d93ad" stroke-width="2" stroke-dasharray="5 4"/>
-<line x1="240" y1="180" x2="275" y2="103" stroke="#c0392b" stroke-width="3.5"/>
-<text x="296" y="66" font-size="11" fill="#7d93ad">SOL 400 の2直線（破壊まで）</text>
-<text x="244" y="124" font-size="11" fill="#c0392b">線形：傾き ET・EN</text>
-</svg><figcaption>凝着要素は、上下の面の相対変位（開き δn と2方向のずれ）に応じてトラクションを生じます。線形解析では傾き一定の直線だけを使い、損傷は起きません。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="cohesive" data-description="左：凝着要素の上面と下面の相対変位、法線方向とせん断2方向。右：線形解析ではトラクションが相対変位に比例する直線"></div><figcaption>凝着要素は、上下の面の相対変位（開き δn と2方向のずれ）に応じてトラクションを生じます。線形解析では傾き一定の直線だけを使い、損傷は起きません。</figcaption></figure>
 <h3>理論：相対変位とトラクション</h3>
 <p>3次元の凝着要素では、要素の座標で、上の面と下の面の変位の差を1つの法線成分と2つのせん断成分に分けます。</p>
 <div class="element-formula">δn = u₁(上) − u₁(下)　　δs = u₂(上) − u₂(下)　　δt = u₃(上) − u₃(下)
@@ -1506,20 +1360,7 @@ F2 も辺 2-3・1-4 について同様</div>
 <section class="theory-section" id="rigid-mset"><h2>2. 独立自由度・従属自由度と m-set</h2>
 <h3>どちらが「決める側」か</h3>
 <p>R型要素を使うときは、<strong>どの自由度を従属にし、どれを独立にするかを自分で決める責任がある</strong>、とマニュアルは強調しています。従属自由度はすべて <strong>m-set</strong>（従属の集合）に入り、それぞれに1本ずつ内部の拘束式が作られます。独立自由度は、ひとまず n-set（MPC や R型要素で従属にされていない集合）に入ります。m-set の自由度は解く前に消去され、残った独立自由度だけで連立方程式を解いた後、拘束式から従属自由度の値が復元されます。</p>
-<figure class="element-figure"><svg viewBox="0 0 380 200" role="img" aria-label="左はRBE2。中心の独立点から周りの従属点へ矢印。右はRBE3。周りの独立点から中心の従属の参照点へ矢印">
-<text x="95" y="18" font-size="13" fill="#29466b" text-anchor="middle">RBE2（剛体）</text>
-<text x="285" y="18" font-size="13" fill="#29466b" text-anchor="middle">RBE3（平均）</text>
-<g stroke="#2f5c9e" stroke-width="2.5"><line x1="95" y1="105" x2="40" y2="55"/><line x1="95" y1="105" x2="150" y2="55"/><line x1="95" y1="105" x2="40" y2="155"/><line x1="95" y1="105" x2="150" y2="155"/></g>
-<g fill="#2f5c9e"><polygon points="40,55 52,58 46,65"/><polygon points="150,55 138,58 144,65"/><polygon points="40,155 46,145 52,152"/><polygon points="150,155 144,145 138,152"/></g>
-<circle cx="95" cy="105" r="8" fill="#2f5c9e"/>
-<g fill="#d9822b"><circle cx="40" cy="55" r="6"/><circle cx="150" cy="55" r="6"/><circle cx="40" cy="155" r="6"/><circle cx="150" cy="155" r="6"/></g>
-<text x="95" y="190" font-size="11" fill="#5a6f88" text-anchor="middle">中心 GN が独立、足先 GMi が従属</text>
-<g stroke="#7d93ad" stroke-width="2.5" stroke-dasharray="6 4"><line x1="230" y1="55" x2="285" y2="105"/><line x1="340" y1="55" x2="285" y2="105"/><line x1="230" y1="155" x2="285" y2="105"/><line x1="340" y1="155" x2="285" y2="105"/></g>
-<g fill="#7d93ad"><polygon points="285,105 273,102 279,95"/><polygon points="285,105 291,95 297,102"/><polygon points="285,105 279,115 273,108"/><polygon points="285,105 297,108 291,115"/></g>
-<circle cx="285" cy="105" r="8" fill="#d9822b"/>
-<g fill="#2f5c9e"><circle cx="230" cy="55" r="6"/><circle cx="340" cy="55" r="6"/><circle cx="230" cy="155" r="6"/><circle cx="340" cy="155" r="6"/></g>
-<text x="285" y="190" font-size="11" fill="#5a6f88" text-anchor="middle">足先 Gi,j が独立、参照点が従属</text>
-</svg><figcaption>青＝独立自由度、橙＝従属自由度（m-set）。矢印は「動きを決める向き」です。RBE2 は中心の動きで足先を決め、RBE3 は足先の動きの平均で中心（参照点）を決めます。向きが正反対です。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="rigidDirection" data-description="左はRBE2。中心の独立点から周りの従属点へ矢印。右はRBE3。周りの独立点から中心の従属の参照点へ矢印"></div><figcaption>青＝独立自由度、橙＝従属自由度（m-set）。矢印は「動きを決める向き」です。RBE2 は中心の動きで足先を決め、RBE3 は足先の動きの平均で中心（参照点）を決めます。向きが正反対です。</figcaption></figure>
 <h3>剛体の運動学（一般的な理論の補足）</h3>
 <p>剛な要素が作る拘束式は、剛体の小さな運動の式そのものです。独立点 A の並進 u<sub>A</sub>・回転 θ<sub>A</sub> と、A から従属点 B へのベクトル r から、B の動きが決まります。</p>
 <div class="element-formula">u_B = u_A + θ_A × r　　θ_B = θ_A
@@ -1600,18 +1441,7 @@ F2 も辺 2-3・1-4 について同様</div>
 </tbody></table></div>
 <h3>独立自由度の選び方の試験</h3>
 <p>いちばん多い使い方は GA を全部独立、GB を従属にする形（RBAR1 の形）ですが、必須ではありません。独立自由度を分けるときは、マニュアルが示す簡単な試験で確かめます：<strong>独立にした6成分をすべて固定したとき、要素が剛体として少しでも動けるか？</strong> 動けるなら失格です。</p>
-<figure class="element-figure"><svg viewBox="0 0 380 190" role="img" aria-label="X方向の剛な棒が3通り。aはGAで1から6を独立。bはGAで12346とGBで2を独立にしていてY軸まわりに回れる。cはGAで12346とGBで3を独立で回れない">
-<g font-size="12" fill="#29466b">
-<text x="10" y="20">(a) GA: 1〜6</text><text x="10" y="80">(b) GA: 1,2,3,4,6 ＋ GB: 2</text><text x="10" y="140">(c) GA: 1,2,3,4,6 ＋ GB: 3</text></g>
-<g stroke="#2f5c9e" stroke-width="4"><line x1="40" y1="40" x2="220" y2="40"/><line x1="40" y1="100" x2="220" y2="100"/><line x1="40" y1="160" x2="220" y2="160"/></g>
-<g fill="#29466b"><circle cx="40" cy="40" r="5"/><circle cx="220" cy="40" r="5"/><circle cx="40" cy="100" r="5"/><circle cx="220" cy="100" r="5"/><circle cx="40" cy="160" r="5"/><circle cx="220" cy="160" r="5"/></g>
-<line x1="40" y1="100" x2="215" y2="75" stroke="#c0392b" stroke-width="2" stroke-dasharray="5 4"/>
-<path d="M232 92 Q240 80 232 70" fill="none" stroke="#c0392b" stroke-width="2"/><polygon points="229,72 236,66 236,75" fill="#c0392b"/>
-<text x="245" y="85" font-size="11" fill="#c0392b">Y軸まわりに回れる</text>
-<line x1="220" y1="148" x2="220" y2="172" stroke="#2f5c9e" stroke-width="2"/><text x="230" y="165" font-size="11" fill="#2f5c9e">Z を押さえる</text>
-<g font-size="12"><text x="300" y="45" fill="#2f5c9e">○ 可</text><text x="300" y="105" fill="#c0392b">× 不可</text><text x="300" y="165" fill="#2f5c9e">○ 可</text></g>
-<text x="40" y="60" font-size="10" fill="#5a6f88">GA</text><text x="212" y="60" font-size="10" fill="#5a6f88">GB</text>
-</svg><figcaption>棒は X 方向、Z が上（マニュアルの図8-2を描き直したもの）。GA の成分5（Y軸まわりの回転）を独立にしていないので、Y軸まわりの回転を何かで止める必要があります。Y軸まわりに回ると GB は Z 方向に動くので、GB の Z（成分3）を独立にすれば止まりますが、Y（成分2）では止まりません。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="rbar" data-description="X方向の剛な棒が3通り。aはGAで1から6を独立。bはGAで12346とGBで2を独立にしていてY軸まわりに回れる。cはGAで12346とGBで3を独立で回れない"></div><figcaption>棒は X 方向、Z が上（マニュアルの図8-2を描き直したもの）。GA の成分5（Y軸まわりの回転）を独立にしていないので、Y軸まわりの回転を何かで止める必要があります。Y軸まわりに回ると GB は Z 方向に動くので、GB の Z（成分3）を独立にすれば止まりますが、Y（成分2）では止まりません。</figcaption></figure>
 <h3>2本の RBAR をつなぐ（rbar1）</h3>
 <p>初心者が迷いやすいのが、R型要素どうしを続けてつなぐときです。節点1・2・3（X 方向に10ずつ）を RBAR 1（1→2）と RBAR 2（2→3）でつなぎ、1本の剛な部材として働かせます。その先の節点3から節点4（固定）までは CBAR 3（長さ10、E = 20.4、A = I1 = I2 = J = 1）です。節点1に、サブケース1で X 方向の力1、サブケース2で Y 方向の力1をかけます。</p>
 <div class="element-table-wrap"><table class="element-table narrow">
@@ -1728,18 +1558,7 @@ F2 も辺 2-3・1-4 について同様</div>
 </section>
 
 <section class="theory-section" id="rigid-rbe3-plate"><h2>8. RBE3 の例題：片持ち板に偏った荷重をかける（rbe3）</h2>
-<figure class="element-figure"><svg viewBox="0 0 360 220" role="img" aria-label="100mm四方の板。左辺の節点1と4を固定。参照点99は中心から右へ10mmの位置。四隅へ20・30・30・20Nが配られる">
-<rect x="80" y="40" width="160" height="160" fill="#e8eef6" stroke="#7d93ad" stroke-width="2"/>
-<g stroke="#5a6f88" stroke-width="1.5"><line x1="80" y1="40" x2="80" y2="200" stroke-width="3"/><line x1="80" y1="60" x2="68" y2="70"/><line x1="80" y1="90" x2="68" y2="100"/><line x1="80" y1="120" x2="68" y2="130"/><line x1="80" y1="150" x2="68" y2="160"/><line x1="80" y1="180" x2="68" y2="190"/></g>
-<g stroke="#7d93ad" stroke-width="1.5" stroke-dasharray="5 4"><line x1="176" y1="120" x2="80" y2="200"/><line x1="176" y1="120" x2="240" y2="200"/><line x1="176" y1="120" x2="240" y2="40"/><line x1="176" y1="120" x2="80" y2="40"/></g>
-<g fill="#2f5c9e"><circle cx="80" cy="200" r="5"/><circle cx="240" cy="200" r="5"/><circle cx="240" cy="40" r="5"/><circle cx="80" cy="40" r="5"/></g>
-<circle cx="160" cy="120" r="3" fill="#5a6f88"/><text x="130" y="138" font-size="10" fill="#5a6f88">重心</text>
-<circle cx="176" cy="120" r="6" fill="#d9822b"/><text x="184" y="116" font-size="12" fill="#29466b">99</text>
-<g font-size="12" fill="#29466b"><text x="62" y="214">1</text><text x="246" y="214">2</text><text x="246" y="36">3</text><text x="62" y="36">4</text></g>
-<g font-size="12" fill="#c0392b"><text x="86" y="192">20 N</text><text x="200" y="192">30 N</text><text x="200" y="58">30 N</text><text x="86" y="58">20 N</text></g>
-<text x="250" y="124" font-size="11" fill="#c0392b">99 に 100 N（+Z）</text>
-<text x="140" y="16" font-size="11" fill="#5a6f88">100 × 100 mm、厚さ 10 mm</text>
-</svg><figcaption>CQUAD4 1枚の片持ち板。左辺の節点1・4は全固定（SPC1 123456）。参照点99は (60, 50) で、四隅の重心 (50, 50) から10 mm右にずれています。赤字は RBE3 が四隅へ配る力（Z 方向）です。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="weightedPlate" data-description="100mm四方の板。左辺の節点1と4を固定。参照点99は中心から右へ10mmの位置。四隅へ20・30・30・20Nが配られる"></div><figcaption>CQUAD4 1枚の片持ち板。左辺の節点1・4は全固定（SPC1 123456）。参照点99は (60, 50) で、四隅の重心 (50, 50) から10 mm右にずれています。赤字は RBE3 が四隅へ配る力（Z 方向）です。</figcaption></figure>
 <p>不均一な圧力を、合力1つで表す例です。RBE3 の入力は REFGRID = 99、REFC = 3、WT1 = 1.0、C1 = 123、つなぐ点は四隅1〜4。材料は E = 4.0×10⁶ MPa、ν = 0、板厚10 mm です。</p>
 <h3>力の配分を手計算で確かめる</h3>
 <div class="element-formula">重みは全点 1.0 → 重み付き重心 = 四隅の重心 (50, 50)
@@ -1902,19 +1721,7 @@ b = Σ (x − 50)·w / Σ (x − 50)² = (2 × 50 × 6×10⁻⁴) / (4 × 50²) 
 <tr><td>[S]</td><td>m×n の行列</td><td>{ud} を単位量だけ動かした時に {ui} が剛体として動く量</td></tr>
 <tr><td>[K]、[Z]</td><td>m×m の行列（Z = K⁻¹）</td><td>{ud} を固定した状態での {ui} の剛性、または柔性</td></tr>
 </tbody></table></div>
-<figure class="element-figure"><svg viewBox="0 0 380 190" role="img" aria-label="左端の点udが固定され、部品の右端の点uiに荷重fiをかけると、uiが変位する。柔性行列Zは荷重と変位の関係">
-<rect x="20" y="55" width="16" height="80" fill="#7d93ad"/>
-<path d="M 36 75 C 110 60, 200 60, 270 80 L 270 110 C 200 130, 110 130, 36 115 Z" fill="#e8eef6" stroke="#2f5c9e" stroke-width="2"/>
-<text x="120" y="100" font-size="13" fill="#29466b">中身は不明な部品</text>
-<circle cx="36" cy="95" r="6" fill="#29466b"/><circle cx="270" cy="95" r="6" fill="#29466b"/>
-<g font-size="13" fill="#29466b"><text x="24" y="160">{ud}：固定</text><text x="240" y="160">{ui}</text></g>
-<line x1="278" y1="95" x2="335" y2="95" stroke="#c0392b" stroke-width="3"/><polygon points="331,89 345,95 331,101" fill="#c0392b"/>
-<text x="300" y="82" font-size="13" fill="#c0392b">{fi}</text>
-<path d="M 270 95 C 285 110, 295 120, 300 130" fill="none" stroke="#b07a1c" stroke-width="2" stroke-dasharray="4 3"/>
-<circle cx="300" cy="130" r="5" fill="#b07a1c"/>
-<text x="305" y="150" font-size="12" fill="#b07a1c">変位 {ui} = [Z]{fi}</text>
-<text x="20" y="30" font-size="12" fill="#5a6f88">柔性 Z の各列 ＝ 1つの荷重成分を単位量かけた時の {ui} の変位</text>
-</svg><figcaption>{ud} を固定し、{ui} に単位荷重を1成分ずつかけて変位を測れば、それがそのまま柔性行列 [Z] の各列になります。後の例題の継ぎ手の試験は、まさにこの手順です。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="genelFlexibility" data-description="左端の点udが固定され、部品の右端の点uiに荷重fiをかけると、uiが変位する。柔性行列Zは荷重と変位の関係"></div><figcaption>{ud} を固定し、{ui} に単位荷重を1成分ずつかけて変位を測れば、それがそのまま柔性行列 [Z] の各列になります。後の例題の継ぎ手の試験は、まさにこの手順です。</figcaption></figure>
 <h3>剛性形式（K を与える）</h3>
 <div class="element-formula">{fi}   [  K       −K·S    ] {ui}
 {fd} = [ −Sᵀ·K   Sᵀ·K·S  ] {ud}</div>
@@ -1958,19 +1765,7 @@ b = Σ (x − 50)·w / Σ (x − 50)² = (2 × 50 × 6×10⁻⁴) / (4 × 50²) 
 
 <section class="theory-section" id="genel-example"><h2>5. 例題：継ぎ手を試験データで表す（genel1）</h2>
 <p>3本の管でできたロボットアームの、1本目と2本目をつなぐ複雑な継ぎ手を GENEL で表す例です。目的は継ぎ手の応力ではなく、荷重がかかる先端のたわみを求めることです。マニュアルは、継ぎ手を詳しくモデル化するのは手間がかかるうえ結果も疑わしいので、継ぎ手を試験室で静的に荷重試験して、その結果を直接使うのが理想だとしています。</p>
-<figure class="element-figure"><svg viewBox="0 0 360 230" role="img" aria-label="原点の節点1から節点2へ斜めの管、節点2と3の間が柔らかい継ぎ手、3から4へ短い管、4から5へ右上へ管。節点5に下向き25 lbの荷重">
-<g stroke="#2f5c9e" stroke-width="4"><line x1="40" y1="205" x2="95" y2="95"/><line x1="95" y1="84" x2="95" y2="73"/><line x1="95" y1="73" x2="215" y2="49"/></g>
-<rect x="88" y="84" width="14" height="11" fill="#f4d9a6" stroke="#b07a1c" stroke-width="2"/>
-<g fill="#29466b"><circle cx="40" cy="205" r="5"/><circle cx="95" cy="95" r="4"/><circle cx="95" cy="84" r="4"/><circle cx="95" cy="73" r="4"/><circle cx="215" cy="49" r="5"/></g>
-<g stroke="#29466b" stroke-width="1.5"><line x1="25" y1="215" x2="55" y2="215"/><line x1="30" y1="215" x2="24" y2="223"/><line x1="40" y1="215" x2="34" y2="223"/><line x1="50" y1="215" x2="44" y2="223"/></g>
-<g font-size="12" fill="#29466b"><text x="50" y="200">1 (0,0)</text><text x="103" y="100">2 (5,10)</text><text x="103" y="88">3 (5,11)</text><text x="40" y="70">4 (5,12)</text><text x="222" y="45">5 (15,14)</text></g>
-<text x="120" y="125" font-size="12" fill="#b07a1c">継ぎ手（GENEL）</text>
-<line x1="118" y1="121" x2="104" y2="91" stroke="#b07a1c" stroke-width="1"/>
-<line x1="215" y1="56" x2="215" y2="100" stroke="#c0392b" stroke-width="3"/><polygon points="209,96 215,110 221,96" fill="#c0392b"/>
-<text x="225" y="100" font-size="12" fill="#c0392b">25 lb（−Y）</text>
-<g stroke="#7d93ad" stroke-width="1.5"><line x1="290" y1="205" x2="330" y2="205"/><line x1="290" y1="205" x2="290" y2="165"/></g>
-<g font-size="12" fill="#5a6f88"><text x="333" y="209">X</text><text x="286" y="160">Y</text></g>
-</svg><figcaption>座標は基本座標系（インチ）。管は外径 1 in・板厚 0.075 in。節点1は完全固定、管はすべて CBAR、継ぎ手は節点2と3の間の GENEL です（縦横の比率は正確ではありません）。</figcaption></figure>
+<figure class="element-figure"><div data-element-sketch="genelPipe" data-description="原点の節点1から節点2へ斜めの管、節点2と3の間が柔らかい継ぎ手、3から4へ短い管、4から5へ右上へ管。節点5に下向き25 lbの荷重"></div><figcaption>座標は基本座標系（インチ）。管は外径 1 in・板厚 0.075 in。節点1は完全固定、管はすべて CBAR、継ぎ手は節点2と3の間の GENEL です（縦横の比率は正確ではありません）。</figcaption></figure>
 <h3>試験の方法と結果</h3>
 <p>継ぎ手の片端を固定し、もう片端に6種類の荷重（3方向の力と3軸まわりのモーメント）を1つずつかけて、変位と回転を測ります。これは第2節の図の「{ud} を固定して {ui} に単位荷重をかける」手順そのものなので、測った値はそのまま柔性行列 [Z] になります（剛体運動はすでに取り除かれています）。</p>
 <div class="element-table-wrap"><table class="element-table">
@@ -2064,4 +1859,4 @@ J = 2I ≈ 0.04692 in⁴</div>
 </section>
 </article>
 </main>
-<script src="elements.js"></script><script src="learning-data.js"></script><script src="learning.js"></script></body></html>
+<script src="lesson-diagrams.js"></script><script src="element-visuals.js"></script><script src="elements.js"></script><script src="learning-data.js"></script><script src="teaching-diagrams.js"></script><script src="home-visuals.js"></script><script src="learning.js"></script></body></html>

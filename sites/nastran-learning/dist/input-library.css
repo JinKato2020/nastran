@@ -8,3 +8,13 @@
 @media(max-width:680px){.library-main{padding:6px 12px 40px}.library-heading h1{font-size:18px}.library-selectors{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 8px}.library-selectors label:last-child{grid-column:1/-1}.library-selectors select{font-size:16px}.library-main .card-title h2{font-size:24px}.sol-index{grid-template-columns:1fr}.library-terms{font-size:14px}.library-terms th{width:28%;overflow-wrap:anywhere}.reference-connections dt{font-size:14px}}
 
 .comparison-backlinks>div{display:flex;flex-wrap:wrap;gap:8px}.comparison-backlinks a{display:block;padding:10px 12px;border:1px solid #c6d4e7;border-radius:6px;background:white;font-size:13px;min-height:44px;line-height:1.7}
+
+.constraint-roles{margin:10px 0 12px;padding:10px 12px;border:1px solid #d6e1ef;border-radius:8px;background:#f6f9fe}
+.constraint-roles h3{margin:0 0 7px;color:#193f70;font-size:16px}
+.constraint-roles dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:7px 14px;margin:0}
+.constraint-roles dt{font-size:13px;font-weight:700;color:#244d83}
+.constraint-roles dd{margin:2px 0 0;font-size:14px;line-height:1.6}
+.constraint-roles details{margin-top:4px}
+.constraint-roles summary{min-height:44px;box-sizing:border-box;padding:10px 0;color:#244d83;font-size:14px;cursor:pointer}
+.constraint-roles ol{margin:0 0 5px;padding-left:1.6em;font-size:14px;line-height:1.7}
+.constraint-roles p{margin:7px 0 0;font-size:13px;line-height:1.65}

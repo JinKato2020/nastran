@@ -16,6 +16,30 @@ MSC Nastranの日本語学習アプリです。初学者向けの6ステップ�
 - 教材の元データ: `sites/nastran-learning/dist/`
 - 共通の学習順序: `sites/nastran-learning/learning-path.json`
 
+## 教材・図をiOSへOTA配信
+
+教材は `sites/nastran-learning/dist/` を更新し、対象ブランチから [Deploy Nastran Content (R2 / OTA)](https://github.com/JinKato2020/nastran/actions/workflows/deploy-content-nastran.yml) を手動実行します。教材の生成、型検査、教材の検証を通過したページを `https://content.safa-lang.com/nastran/` に掲載します。
+
+- GitHub Repository Secrets に `R2_ENDPOINT`、`R2_ACCESS_KEY_ID`、`R2_SECRET_ACCESS_KEY`、`R2_BUCKET`（`safa-content`）を設定します。配信対象は `nastran/` 配下です。
+- R2では `nastran/objects/` に内容のSHA-256で教材ファイルを保存し、`nastran/releases/<配信ID>.json` に各版の配信一覧を保持します。同じファイルは再利用し、過去版も復旧できるよう保持します。現在配信中の版は `nastran/_manifest.json` です。
+- 復旧時は、対象版のActionsの実行概要に表示された配信IDを `restore_release` に指定します。保存済みの一覧と参照先のファイルをSHA-256で検証し、現在の配信一覧を切り替えます。R2のライフサイクル設定で `nastran/objects/` と `nastran/releases/` が期限切れ削除の対象に入っていないことを確認してください。
+- 端末は起動後に変更ページだけを取得し、SHA-256と全ページの準備を確認してから同じ起動中に切り替えます。切り替え後に不要なダウンロードを削除し、通信や検証に失敗した場合は取得済みの有効な教材か同梱教材を読みます。
+- OTAの対象は既存の教材ページ内の本文・図です。アプリ本体、ネイティブのタブ・目次、共有用の同梱ZIPなどを変更する場合は別途ビルドします。
+
+ローカルで配信データを生成・検証できます。
+
+```sh
+cd mobile
+npm ci
+npm run content:ota
+npm run typecheck
+npm run test:core
+```
+
+OTA配信ではバージョン・ビルド番号を据え置きます。
+
+1.2.10（1001）にはOTA受信機能が入っていません。最初のOTA対応版のインストール後にOTA配信を開始します。
+
 ## GitHubでiOSをビルド
 
 1. [Actions → Nastran iOS Build](https://github.com/JinKato2020/nastran/actions/workflows/build-ios.yml)を開きます。
@@ -55,7 +79,7 @@ npm run test:core
 npm start
 ```
 
-教材を編集した後は`npm run content`で同梱データを再生成します。`src/generated/lessons.json`を直接編集しないでください。`main`へのpushとPRでは型・教材データの検証が動きます。iOSの署名ビルドは手動実行です。
+教材を編集した後は`npm run content`で同梱データを再生成します。`src/generated/lessons.json`を直接編集しないでください。`main`へのpushとPRでは型・教材データの検証が動きます。署名ビルドとOTA配信は手動実行です。
 
 原典PDF・抽出全文・秘密鍵は収録していません。詳しい教材一覧とアプリの仕様は[mobile/README.md](mobile/README.md)を参照してください。
 

@@ -20,6 +20,12 @@
 
 このアプリは入力を学ぶ教材で、Nastranソルバーを実行するものではありません。Windows用BATをiPhone上で実行する機能もありません。
 
+## 教材のOTA配信
+
+受信対応版は起動時に Cloudflare R2 の教材一覧を確認し、本文・図は変更されたページだけを取得します。すべて揃った時点で新版を反映し、不要になった旧版のダウンロードを削除します。オフライン時は取得済みの教材か、同梱教材を利用できます。
+
+配信は GitHub Actions の `Deploy Nastran Content (R2 / OTA)` を手動実行します。ローカルでは `npm run content:ota` で `.build/content-ota/` に配信用ファイルを出力できます。
+
 ## 起動
 
 Node.js 24で確認しています。

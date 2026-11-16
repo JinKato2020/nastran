@@ -8,8 +8,18 @@
  const groups=[...new Set(topics.map(t=>t.category))];
  $('comparison-picker').innerHTML=groups.map(g=>'<optgroup label="'+esc(g)+'">'+topics.filter(t=>t.category===g).map(t=>'<option value="'+t.key+'">'+esc(t.title)+'</option>').join('')+'</optgroup>').join('');
  $('comparison-count').textContent=topics.length+'テーマ';
- function flow(t){return '<figure class="comparison-flow"><figcaption>'+esc(t.diagram.caption)+'</figcaption>'+t.diagram.lanes.map(([label,...nodes])=>'<div class="comparison-lane"><h4>'+esc(label)+'</h4><ol>'+nodes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ol></div>').join('')+'</figure>';}
+ function flow(t){
+  return '<div class="comparison-flow"><p>'+esc(t.diagram.caption)+'</p>'+t.diagram.lanes.map(([label,...nodes])=>
+   '<h4>'+esc(label)+'</h4>'+window.TeachingDiagrams.flow('',...nodes.map(node=>[node]))).join('')+'</div>';
+ }
  function section(id,title,body){return '<section class="comparison-section" id="comparison-'+id+'"><h3>'+title+'</h3>'+body+'</section>';}
+ function recommendations(topic){
+  return '<div class="comparison-recommendations">'+topic.recommendations.map(([name,pros,cons,use])=>{
+   const card=topic.cards.find(key=>name===key||name.startsWith(key+'（'));
+   return '<article><h4><a href="bulk.html#'+encodeURIComponent(card)+'">'+esc(name)+' ↗</a></h4><dl>'+
+    [['使う場面',use],['長所',pros],['短所・制約',cons]].map(([label,text])=>'<div><dt>'+label+'</dt><dd>'+esc(text)+'</dd></div>').join('')+'</dl></article>';
+  }).join('')+'</div>';
+ }
  let current='';
  function render(){
   const [key,sectionId]=location.hash.slice(1).split('/');
@@ -18,13 +28,13 @@
   if(current!==t.key){
    current=t.key;
    const example=$('worked-'+t.key);
-   const jumps=[['compare','相違点'],['choose','選び方'],...(t.details?[['details','詳しい違い']]:[]),['results','結果'],...(example?[['worked','検算']]:[]),['pitfalls','注意点'],['cards','Inputデータ']];
+   const jumps=[['choose','選び方'],['tradeoffs','長所・短所'],['compare','相違点'],...(t.details?[['details','詳しい違い']]:[]),['results','結果'],...(example?[['worked','検算']]:[]),['pitfalls','注意点'],['cards','Inputデータ']];
    const table='<table class="comparison-table"><caption>'+esc(t.title)+'の比較</caption><thead><tr><th scope="col">観点</th>'+t.columns.map(c=>'<th scope="col">'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+t.differences.map(([label,...cells])=>'<tr><th scope="row">'+esc(label)+'</th>'+cells.map((s,i)=>'<td data-column="'+esc(t.columns[i])+'">'+esc(s)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
    const choices='<dl class="comparison-choices">'+t.choose.map(([a,b])=>'<div><dt>'+esc(a)+'</dt><dd>'+esc(b)+'</dd></div>').join('')+'</dl>';
    const links=t.cards.map(c=>'<a href="bulk.html#'+encodeURIComponent(c)+'">'+esc(c.startsWith('CASE_')?c.slice(5)+' (Case)':c.startsWith('PARAM_')?'PARAM '+c.slice(6):c)+' ↗</a>').join('');
    $('comparison-detail').innerHTML='<header><span class="comparison-eyebrow">'+esc(t.category)+' · '+(topics.indexOf(t)+1)+' / '+topics.length+'</span><h2 class="comparison-topic-title">'+esc(t.title)+'</h2><p class="comparison-question">'+esc(t.question)+'</p><p>'+esc(t.summary)+'</p></header>'+
     '<nav class="comparison-jumps" aria-label="この比較の目次">'+jumps.map(([id,name])=>'<a href="#'+t.key+'/'+id+'">'+name+'</a>').join('')+'</nav>'+
-    section('compare','相違点',table)+section('choose','選択基準',choices)+flow(t)+section('common','共通する前提',list(t.common))+
+    section('choose','状況から選ぶ',choices)+section('tradeoffs','カードごとの長所・短所',recommendations(t))+section('compare','相違点',table)+flow(t)+section('common','共通する前提',list(t.common))+
     (t.details?section('details','詳しい違い','<div class="comparison-details">'+t.details.map(([title,items])=>'<details><summary>'+esc(title)+'</summary>'+list(items)+'</details>').join('')+'</div>'):'')+
     section('results','結果に出る違い・確認する量',list(t.results))+
     (example?section('worked',esc(example.dataset.title),example.innerHTML):'')+
@@ -32,8 +42,11 @@
     section('cards','Inputデータで書式・全フィールドを確認する','<p class="comparison-note">カード名から該当する入力解説へ移動します。戻る操作でこの比較に戻れます。</p><div class="comparison-card-links">'+links+'</div>')+
     section('related','関連する比較・理論','<div class="comparison-related">'+t.related.map(k=>{const r=topics.find(x=>x.key===k);return '<a href="#'+r.key+'">'+esc(r.title)+' →</a>';}).join('')+(t.links||[]).map(([url,title])=>'<a href="'+esc(url)+'">'+esc(title)+' →</a>').join('')+'</div>')+
     '<details class="comparison-sources"><summary>参照資料と適用範囲</summary><p>'+esc(data.scope)+'</p><p>'+esc(t.sourceVersion?'MSC Nastran '+t.sourceVersion+' Quick Reference Guide':data.source)+' / PDF通しページ。カードの仕様を参照し、用途と選択の観点から説明を構成しています。</p>'+t.pages.map(([c,p])=>'<a href="'+qrgFor(t.sourceVersion)+p+'" target="_blank" rel="noopener">'+esc(c)+' · p.'+p+' ↗</a>').join('')+'</details><footer class="comparison-footer"><a href="index.html#home">教材一覧へ →</a></footer>';
+   for(const placeholder of $('comparison-detail').querySelectorAll('[data-worked-diagram]')){
+    placeholder.outerHTML=window.TeachingDiagrams.sketches[placeholder.dataset.workedDiagram]();
+   }
   }
-  if(['common','compare','choose','details','results','worked','pitfalls','cards','related'].includes(sectionId))requestAnimationFrame(()=>$('comparison-'+sectionId)?.scrollIntoView({block:'start'}));
+  if(['common','compare','choose','tradeoffs','details','results','worked','pitfalls','cards','related'].includes(sectionId))requestAnimationFrame(()=>$('comparison-'+sectionId)?.scrollIntoView({block:'start'}));
  }
  $('comparison-picker').addEventListener('change',()=>{location.hash=$('comparison-picker').value;window.scrollTo(0,0);});
  document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(a&&a.getAttribute('href').slice(1).split('/')[0]!==current)window.scrollTo(0,0);});

@@ -9,6 +9,8 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { NAVIGATION, DOWNLOADS, readerHTML, titleFor } from './src/content';
+import { updateLessons } from './src/content-ota';
+import type { UpdatedPages } from './src/content-ota-core';
 import { ROOT_TABS, type TabKey } from './src/navigation';
 import { EMPTY_STATE, externalURL, filePayload, position, progress, courseProgress, restore, samePlace, type Position, type SavedState } from './src/protocol';
 
@@ -17,9 +19,9 @@ type Entry=Position&{key:string};
 let entryNumber=0;
 const newEntry=(p:Position):Entry=>({...p,key:String(++entryNumber)});
 
-function Reader({entry,saved,onMessage,onExternal,onNavigate,onRestart,webRef}:{entry:Entry;saved:SavedState;onMessage:(event:WebViewMessageEvent)=>void;onExternal:(url:string)=>void;onNavigate:(p:Position)=>void;onRestart:()=>void;webRef:React.RefObject<WebView<object>|null>}){
+function Reader({entry,saved,updatedHTML,onMessage,onExternal,onNavigate,onRestart,webRef}:{entry:Entry;saved:SavedState;updatedHTML?:string;onMessage:(event:WebViewMessageEvent)=>void;onExternal:(url:string)=>void;onNavigate:(p:Position)=>void;onRestart:()=>void;webRef:React.RefObject<WebView<object>|null>}){
   // Freeze the initial HTML: progress and scroll messages must not reload the reader.
-  const [source]=useState(()=>({html:readerHTML(entry,saved.progress,entry.key,saved.courseProgress,saved.textScale),baseUrl:'https://nastran.invalid/'+entry.path}));
+  const [source]=useState(()=>({html:readerHTML(entry,saved.progress,entry.key,saved.courseProgress,saved.textScale,updatedHTML),baseUrl:'https://nastran.invalid/'+entry.path}));
   const [error,setError]=useState(false);
   return <View style={styles.reader}>
     <WebView<object> ref={webRef} source={source} originWhitelist={['*']} style={styles.reader} javaScriptEnabled domStorageEnabled
@@ -59,6 +61,23 @@ function LearningApp(){
   const readyToSave=useRef(false);
   const writeQueue=useRef<Promise<void>>(Promise.resolve());
   const [locationTitle,setLocationTitle]=useState('');
+  const updatedPages=useRef<UpdatedPages>({});
+  const otaStarted=useRef(false);
+  useEffect(()=>{
+    if(otaStarted.current)return;
+    otaStarted.current=true;
+    void updateLessons(pages=>{
+      const place=current.current;
+      const changed=place && pages[place.path]!==updatedPages.current[place.path];
+      updatedPages.current=pages;
+      if(changed && place){
+        const refreshed=newEntry(place);
+        readerReported.current=false;
+        entryRef.current=refreshed;
+        setEntry(refreshed);
+      }
+    });
+  },[]);
   function persist(){
     if(!readyToSave.current)return Promise.resolve();
     if(timer.current)clearTimeout(timer.current);
@@ -176,7 +195,7 @@ function LearningApp(){
     <StatusBar style="dark"/>
     {entry?<>
       <View style={styles.toolbar}><Pressable accessibilityRole="button" onPress={back} style={styles.toolButton}><Text style={styles.toolText}>‹ 戻る</Text></Pressable><Text style={styles.readerTitle} numberOfLines={2}>{locationTitle}</Text><Pressable onPress={bookmark} accessibilityRole="button" accessibilityLabel={marked?'しおりを外す':'しおりを付ける'} accessibilityState={{selected:marked}} style={styles.starButton}><Text style={[styles.star,marked&&styles.marked]}>{marked?'★':'☆'}</Text></Pressable><Pressable onPress={()=>setMenu(true)} accessibilityRole="button" style={styles.toolButton}><Text style={styles.toolText}>目次</Text></Pressable></View>
-      <Reader key={entry.key} entry={entry} saved={saved} onMessage={message} onExternal={external} onNavigate={open} onRestart={()=>{if(current.current)open(current.current,false);}} webRef={webRef}/>
+      <Reader key={entry.key} entry={entry} saved={saved} updatedHTML={updatedPages.current[entry.path]} onMessage={message} onExternal={external} onNavigate={open} onRestart={()=>{if(current.current)open(current.current,false);}} webRef={webRef}/>
       {sharing&&<View style={styles.shareStatus} accessibilityLiveRegion="polite"><Text style={styles.shareText}>共有メニューで「ファイルに保存」を選べます</Text></View>}
     </>:<ScrollView key={tab} style={styles.screen} contentContainerStyle={styles.home}>
       <View style={styles.brandRow}><Image style={styles.logo} source={require('./assets/icon-fem-guide-for-nas.png')} accessibilityLabel="FEM Guide for nas" resizeMode="contain" /><Text style={styles.screenTitle}>{ROOT_TABS.find(t=>t.id===tab)?.title}</Text><View style={styles.brandMark}><Text style={styles.brand}>FEM Guide for nas</Text><Text style={styles.brandSub}>非公式学習教材</Text></View></View>

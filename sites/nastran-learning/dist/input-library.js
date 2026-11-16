@@ -31,6 +31,13 @@
  }
  function tools(){return '<div class="library-controls"><button class="button secondary" id="copy-card">コピー</button><button class="button primary" id="save-card">入力例を保存</button></div>';}
  function termTable(terms){return '<table class="library-terms"><tbody>'+terms.map(([term,definition])=>'<tr><th scope="row">'+esc(term)+'</th><td>'+esc(definition)+'</td></tr>').join('')+'</tbody></table>';}
+ function constraintRoles(key){
+  const item=window.ConstraintRoles[key];
+  if(!item)return '';
+  const steps=item.steps?'<details><summary>式と数値を順に確認する</summary><ol>'+item.steps.map(step=>'<li>'+esc(step)+'</li>').join('')+'</ol></details>':'';
+  const note=item.note?'<p>'+esc(item.note)+'</p>':'';
+  return '<section class="constraint-roles"><h3>'+esc(item.title)+'</h3><dl>'+item.roles.map(([label,meaning])=>'<div><dt>'+esc(label)+'</dt><dd>'+esc(meaning)+'</dd></div>').join('')+'</dl>'+steps+note+'</section>';
+ }
  function optionReference(e){
   if(!e.optionGroups?.length)return termTable(e.terms);
   const meanings=new Map(e.terms);
@@ -80,6 +87,8 @@
     $('card-detail').querySelectorAll('[data-entry-field]').forEach(b=>b.addEventListener('click',()=>{field=b.dataset.entryField;inspect(e,field);setHash();}));
    }
   }
+  const roles=constraintRoles(e.key);
+  if(roles)$('card-detail').querySelector('.card-summary').insertAdjacentHTML('afterend',roles);
   if(e.family==='parameter')$('card-detail').querySelector('.card-heading').insertAdjacentHTML('afterend','<p class="entry-position">Bulk Data区画に記述するパラメータです。</p>');
   const scope=window.SolverScope;
   const note=scope.cardNote(e.key);

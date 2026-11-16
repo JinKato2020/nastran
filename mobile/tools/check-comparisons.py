@@ -41,12 +41,19 @@ try:
                 assert page.locator('.comparison-card-links a').count() == len(topic['cards'])
                 for key in topic['cards']:
                     assert page.locator(f'.comparison-card-links a[href="bulk.html#{key}"]').count() == 1
+                recommendations = page.locator('.comparison-recommendations article')
+                assert recommendations.count() == len(topic['recommendations'])
+                for index, (name, _, _, _) in enumerate(topic['recommendations']):
+                    row = recommendations.nth(index)
+                    assert row.locator('dt').all_text_contents() == ['使う場面', '長所', '短所・制約']
+                    assert row.locator('h4 a').get_attribute('href') == 'bulk.html#' + name.split('（', 1)[0]
         page.set_viewport_size({'width': 390, 'height': 844})
         page.locator('#comparison-picker').select_option('beam')
         page.screenshot(path=str(OUT / 'beam-top.png'))
         page.locator('.comparison-jumps a[href="#beam/compare"]').click()
         page.screenshot(path=str(OUT / 'beam-comparison.png'))
-        page.locator('.comparison-card-links a[href="bulk.html#CBAR"]').click()
+        page.locator('.comparison-jumps a[href="#beam/tradeoffs"]').click()
+        page.locator('.comparison-recommendations a[href="bulk.html#CBAR"]').click()
         page.wait_for_function('document.querySelector("#card-picker")?.value==="CBAR"')
         assert page.locator('#card-picker').input_value() == 'CBAR', (page.url, page.locator('#card-picker').input_value())
         page.locator('.comparison-backlinks a[href="comparisons.html#beam"]').click()

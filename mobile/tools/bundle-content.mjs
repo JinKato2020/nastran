@@ -51,7 +51,19 @@ const downloads={};for(const name of fs.readdirSync(path.join(source,'downloads'
 }
 const bridge=fs.readFileSync(path.join(root,'tools/reader-bridge.js'),'utf8');
 createRequire(import.meta.url)('./check-content-rights.cjs').checkRights(pages);
+const sha256=text=>crypto.createHash('sha256').update(text,'utf8').digest('hex');
+const pageHashes=Object.fromEntries(Object.entries(pages).map(([name,html])=>[name,sha256(html)]));
 fs.mkdirSync(path.join(root,'src/generated'),{recursive:true});
 fs.writeFileSync(path.join(root,'src/generated/lessons.json'),JSON.stringify({catalog,course,comparisonTopics,pages,downloads,bridge}));
 fs.writeFileSync(path.join(root,'src/generated/provenance.json'),JSON.stringify({source:'sites/nastran-learning/dist',sha256:hashes},null,2)+'\n');
+fs.writeFileSync(path.join(root,'src/generated/page-hashes.json'),JSON.stringify(pageHashes)+'\n');
+if(process.argv.includes('--ota')){
+ const output=path.join(root,'.build/content-ota');
+ fs.rmSync(output,{recursive:true,force:true});
+ fs.mkdirSync(path.join(output,'objects'),{recursive:true});
+ for(const [name,html] of Object.entries(pages)){
+  fs.writeFileSync(path.join(output,'objects',pageHashes[name]+'.html'),html);
+ }
+ fs.writeFileSync(path.join(output,'_manifest.json'),JSON.stringify({schema:1,pages:pageHashes})+'\n');
+}
 console.log(`Bundled ${catalog.length} offline pages and ${Object.keys(downloads).length} downloads.`);

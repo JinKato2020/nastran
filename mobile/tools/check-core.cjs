@@ -73,3 +73,44 @@ require('./check-input-catalog.cjs');
 require('./check-content-rights.cjs').checkRights(require('../src/generated/lessons.json').pages);
 require('./check-release-preflight.cjs');
 console.log('PASS: routes, progress restore, outbound URLs, filename/base64 checks, all offline documents, script-safe bootstrap, exact ZIP/BAT bytes.');
+
+async function checkLessonOTA(){
+ const {createHash}=require('node:crypto');
+ const {loadRelease,objectName,parseManifest,refreshRelease}=require('../src/content-ota-core.ts');
+ const embedded=require('../src/generated/page-hashes.json');
+ const html=require('../src/generated/lessons.json').pages;
+ for(const id of p.PAGE_IDS)assert.equal(embedded[id],createHash('sha256').update(html[id],'utf8').digest('hex'));
+ const manifest=pages=>parseManifest(JSON.stringify({schema:1,pages:{...embedded,...pages}}));
+ const oldHash='1'.repeat(64), nextHash='2'.repeat(64), otherHash='3'.repeat(64);
+ assert.equal(parseManifest(JSON.stringify({schema:1,pages:{...embedded,'index.html':'../unsafe'}})),null);
+ assert.equal(objectName(nextHash),`${nextHash}.html`);
+ let active=manifest({'index.html':oldHash});
+ const next=manifest({'index.html':nextHash,'theory.html':otherHash});
+ const cache=new Map([[oldHash,'以前の教材']]);
+ const transfers=[];
+ let failDownload=true;
+ const store={
+  read:async hash=>cache.get(hash)??null,
+  fetch:async hash=>{transfers.push(hash);if(failDownload&&hash===otherHash)throw Error('offline');return hash;},
+  write:async (hash,text)=>{cache.set(hash,text);},
+  commit:async release=>{active=release;},
+  prune:async used=>{for(const hash of cache.keys())if(!used.has(hash))cache.delete(hash);},
+ };
+ assert.deepEqual(await loadRelease(active,embedded,store.read),{'index.html':'以前の教材'});
+ await assert.rejects(refreshRelease(active,next,embedded,store));
+ assert.equal(active.pages['index.html'],oldHash);
+ assert.deepEqual([...cache.keys()],[oldHash]);
+ failDownload=false;
+ assert.deepEqual(await refreshRelease(active,next,embedded,store),{'index.html':nextHash,'theory.html':otherHash});
+ assert.equal(active,next);
+ assert.deepEqual([...cache.keys()],[nextHash,otherHash]);
+ transfers.length=0;
+ assert.deepEqual(await refreshRelease(active,manifest({'theory.html':otherHash}),embedded,store),{'theory.html':otherHash});
+ assert.deepEqual([...cache.keys()],[otherHash]);
+ assert.deepEqual(transfers,[]);
+ assert.deepEqual(await loadRelease(active,embedded,async()=>null),{});
+ const updated=content.readerHTML({path:'theory.html',hash:'#materials',y:900},'[]','test','[]',1,html['theory.html'].replace('</body>','<p>OTA version</p></body>'));
+ assert(updated.includes('<p>OTA version</p>') && updated.includes('"y":900'));
+ console.log('PASS: teaching-page hashes, offline fallback, interrupted OTA, delta reuse, old-file cleanup, and reader position.');
+}
+checkLessonOTA().catch(error=>{console.error(error);process.exitCode=1;});

@@ -22,7 +22,7 @@
 @media(max-width:680px){.nf-view{padding:14px 12px}.nf-view.nf-lab,.nf-view.nf-example{padding:0}.nf-guide{font-size:10px}.nf-guide strong{font-size:11px}.nf-commands h4,.nf-bulk-title{font-size:13px}.nf-commands h4 small,.nf-bulk-title small{display:block;margin-left:0;font-size:9px}.nf-caption{font-size:10px}.nf-caption strong{font-size:14px}.nf-end{display:block}.nf-end span{display:block;margin-top:5px}.nf-example .nf-guide{font-size:10px}.nf-source>summary{font-size:11px}.nf-static{padding:12px}.nf-card{margin-bottom:18px}}
 @media print{.nf-view .nf-table{min-width:0;font-size:9px}.nf-view .nf-table th,.nf-view .nf-table td{padding:3px 1px}.nf-view .nf-table td code{font-size:8px}.nf-table th b{font-size:8px}.nf-table th span,.nf-table th small{font-size:7px}.nf-scroll{overflow:visible}.nf-card{break-inside:avoid}.nf-view .nf-table th:first-child,.nf-view .nf-table td:first-child{position:static}.nf-source{display:none}}
 </style>
-<link rel="stylesheet" href="learning.css"></head>
+<link rel="stylesheet" href="learning.css"><link rel="stylesheet" href="lesson-diagrams.css"></head>
 <body data-learning-page="index.html">
 <a class="skip" href="#main">本文へ移動</a>
 <div class="shell">
@@ -602,7 +602,7 @@ ENDDATA
             <div class="experiment-title"><span class="diagram-tag">一様断面・線形弾性</span><span class="subtle">N / mm / MPa</span></div>
             <div class="beam-scene" role="img" id="beam-scene" aria-label="左端を固定した棒の引張り。伸びは見やすく1000倍に拡大。">
               <div class="beam-labels"><span>節点1 / 固定</span><span>節点2 / X方向に自由</span></div>
-              <div class="beam-support"></div><div class="beam-track"><div class="beam-original"></div><div class="beam-rod" id="beam-rod"></div><div class="beam-load" id="beam-load"><span>F</span>→</div></div>
+              <div class="beam-support"></div><div class="beam-track"><div class="beam-original"></div><div class="beam-rod" id="beam-rod"></div><div class="beam-load" id="beam-load"><span>引張力 F</span>⟶</div></div>
               <div class="beam-caption"><span id="length-label">L = 1000 mm</span><span>伸びを1000倍で表示</span></div>
             </div>
             <div class="results" aria-live="polite" aria-atomic="true"><div class="result"><span>変位 δ</span><strong id="value-displacement">0.047619</strong><small>mm</small></div><div class="result"><span>軸応力 σ</span><strong id="value-stress">10.00</strong><small>MPa</small></div><div class="result"><span>左端反力 Rₓ</span><strong id="value-reaction">−1000</strong><small>N</small></div></div>
@@ -772,5 +772,5 @@ ENDDATA
   syncProgress();updateLab();navigate();
 })();
 </script>
-<script src="learning-data.js"></script><script src="learning.js"></script></body>
+<script src="learning-data.js"></script><script src="lesson-diagrams.js"></script><script src="teaching-diagrams.js"></script><script src="home-visuals.js"></script><script src="learning.js"></script></body>
 </html>

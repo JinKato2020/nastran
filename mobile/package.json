@@ -1,6 +1,6 @@
 {
   "name": "nastran-learning",
-  "version": "1.2.10",
+  "version": "1.2.11",
   "private": true,
   "main": "index.ts",
   "scripts": {
@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "export:ios": "npm run content && expo export --platform ios --output-dir .build/ios",
     "export:ios:js": "npm run content && expo export --platform ios --no-bytecode --output-dir .build/ios-js",
+    "content:ota": "node tools/bundle-content.mjs --ota",
     "test:core": "node tools/check-core.cjs",
     "test:reader": "python tools/check-reader.py"
   },
@@ -18,6 +19,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~58.0.23",
     "expo-clipboard": "~58.0.4",
+    "expo-crypto": "~58.0.8",
     "expo-file-system": "~58.0.13",
     "expo-sharing": "~58.0.22",
     "expo-status-bar": "~58.0.4",

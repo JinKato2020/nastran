@@ -21,6 +21,10 @@
  });
  addEventListener('hashchange',render);
  document.addEventListener('DOMContentLoaded',()=>{
+  for(const placeholder of document.querySelectorAll('[data-element-sketch]')){
+   const draw=window.ElementVisuals[placeholder.dataset.elementSketch];
+   placeholder.innerHTML=draw(esc(placeholder.dataset.description));
+  }
   const order=window.NASTRAN_LEARNING.navigation.elements.map(item=>item.hash.slice(1));
   const listed=order.map(key=>articles.find(article=>article.dataset.element===key)).filter(Boolean);
   picker.innerHTML=[...listed,...articles.filter(article=>!listed.includes(article))]

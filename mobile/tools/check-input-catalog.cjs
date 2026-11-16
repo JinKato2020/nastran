@@ -21,7 +21,7 @@ for(const section of ['material-check','constraint-check','load-check','contact-
  const [,body]=common.split('id="analysis-common-'+section+'"');
  for(const [,key] of body.split('</section>')[0].matchAll(/href="bulk\.html#([^"]+)"/g))assert(keys.has(key),section+' -> '+key);
 }
-assert.equal(keys.get('MPCY').lines[1][2].label,'G1');
+assert.deepEqual(Array.from(keys.get('MPCY').lines[0].slice(6,9),f=>f.label),['G1','C1','A1']);
 assert.equal(keys.get('MAT3').lines[1][3].label,'GZX');
 assert.equal(keys.get('ACCEL1').lines[1][1].label,'GRIDID1');
 assert.equal(keys.get('EIGB').lines[1][1].label,'NORM');

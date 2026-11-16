@@ -35,11 +35,11 @@ export function titleFor(p:Position):string {
   }catch{return title;}}
   return p.hash==='#lab'?'棒の引張り実験室':title;
 }
-export function readerHTML(p:Position, progress:string, session:string, courseProgress='[]', textScale=1):string {
+export function readerHTML(p:Position, progress:string, session:string, courseProgress='[]', textScale=1, updatedHTML?:string):string {
   if(!pages[p.path])throw new Error('教材が見つかりません。');
   const boot=JSON.stringify({...p,progress,courseProgress,session,downloads:Object.keys(DOWNLOADS)}).replace(/</g,'\\u003c');
   const script=bundle.bridge.replace('/*__BOOT__*/',()=>boot).replace(/<\/script/gi,'<\\/script');
   const scale=[1,1.15,1.3].includes(textScale)?textScale:1;
   const css=scale===1?'':`<style>p,li,dd,.field-meaning,.field-explanation,.card-summary{font-size:${15*scale}px!important;line-height:1.9!important}</style>`;
-  return pages[p.path].replace('<!--NATIVE_BOOTSTRAP-->',()=>'<script>'+script+'</script>').replace('</head>',css+'</head>');
+  return (updatedHTML??pages[p.path]).replace('<!--NATIVE_BOOTSTRAP-->',()=>'<script>'+script+'</script>').replace('</head>',css+'</head>');
 }
