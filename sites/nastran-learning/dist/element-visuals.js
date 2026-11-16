@@ -5,6 +5,15 @@
 (() => {
  'use strict';
  const copy = {
+  beamAxial:['① 軸方向に引く：赤いNで先端がuだけ伸びます。破線の先端位置と緑の先端位置を比較してください。Aは断面積で、EAが大きいほど伸びにくくなります。','① Axial tension: force N extends the tip by u. Compare the dashed original tip with the green displaced tip. A is section area; larger EA gives less extension.'],
+  beamBend:['② 曲げ：先端の横荷重Pで中心線が曲がり、青い断面線も回転します。図はせん断変形を除いた曲げ成分δbです。EIが大きいほどたわみは小さくなります。','② Bending: transverse tip force P curves the centreline and rotates the blue section lines. This shows only the bending contribution δb, excluding shear. Larger EI gives less deflection.'],
+  beamShear:['③ 横せん断：同じ横荷重Pによるせん断成分δsだけを取り出しています。断面は回転せず、中心線が傾くため直角が崩れます。γは中心線の傾きと断面回転の差です。②と③を足すと全たわみになります。','③ Transverse shear: isolated shear contribution δs under the same P. Sections do not rotate in this separated contribution, but the centreline tilts. γ is the difference between centreline slope and section rotation. Add ② and ③ for total deflection.'],
+  beamTorsion:['④ ねじり：固定端Aから自由端Bを見た円形断面。外周の円は変わらず、目印の線が破線から緑線へθだけ回ります。赤いTは軸まわりのトルクです。GJが大きいほどねじれにくくなります。','④ Torsion: circular section at free end B viewed from fixed end A. The circular outline stays unchanged; a marked radius rotates from dashed to green by θ under torque T. Larger GJ gives less twist.'],
+  cbarSection:['① 一定断面：端A・途中・端Bで同じ形と寸法を使います。薄い断面枠は確認用で、途中節点ではありません。下の2節点の線が解析上のCBARです。長さ方向に荷重や曲げモーメントまで一定という意味ではありません。','① Uniform section: the shape and dimensions are the same at A, along the span and at B. Section outlines are visual aids, not intermediate nodes. The two-node line below is the CBAR representation. Loads and bending moments need not be constant.'],
+  cbarBending:['② 曲げを伝える：端Aを固定し、端Bに横荷重Pを加えます。CBARは曲げ剛性EIによって荷重を支え、先端はδだけたわみます。固定端には荷重と逆向きの反力RAと反時計回りの反モーメントMAが生じます。端部解放なしの例です。','② Transmitting bending: clamp A and apply transverse force P at B. Flexural stiffness EI supports the load while the tip deflects by δ. The clamp develops an opposing reaction RA and counterclockwise reaction moment MA. No end releases are used.'],
+  inertiaSection:['① 共通の断面：端Bから端Aを見ています。xは手前、yは上、zは左です。y方向の寸法h=30 mm、z方向の寸法b=10 mm。荷重方向を変えても断面と軸は固定したままです。','① Shared section, viewed from B towards A: x points towards you, y up, z left. Dimension h=30 mm is along y and b=10 mm along z. Keep this section and these axes fixed when changing the load direction.'],
+  inertiaY:['② y方向へ曲げる側面図：x-y面を見ています。z軸は紙面の手前向きです。断面はz軸まわりに回転するのでIzz、NastranではI1を使います。y方向に高さがあるこの断面は、この向きには曲がりにくくなります。','② Bending towards y, viewed in the x-y plane: z points out of the page. Sections rotate about z, so use Izz, called I1 in Nastran. The large dimension along y makes this the stiff bending direction.'],
+  inertiaZ:['③ z方向へ曲げる側面図：見る方向を変えてx-z面を表示しています。y軸は紙面の奥向きです。断面はy軸まわりに回転するのでIyy、NastranではI2を使います。同じ荷重では②より大きくたわみます（模式図、縮尺は共通ではありません）。','③ Bending towards z, viewed in the x-z plane: y points into the page. Sections rotate about y, so use Iyy, called I2 in Nastran. The same load gives more deflection than ②. Deflections are schematic and not drawn to a shared scale.'],
   legend:['図の記号を確認','Diagram key'],
   symbols:['赤い矢印 F・M：力・モーメント。青い矢印 x・y・z：座標軸。緑のv：向きベクトル。緑のu・θ：変位や回転（説明用に誇張）。破線：基準形状・補助線。丸：節点。菱形：従属自由度を持つ点。矢印の意味は各図の説明でも確認してください。','Red arrows F, M: forces and moments. Blue arrows x, y, z: coordinate axes. Green v: orientation vector. Green u, θ: exaggerated displacement or rotation. Dashed lines: reference geometry or construction lines. Circles: nodes. Diamonds: points with dependent degrees of freedom. Check each caption for the meaning of its arrows.'],
   families:['形状の表し方を比較。ばねは自由度間、棒・梁は線、シェルは基準面、ソリッドは体積で表します。','Compare representations: a spring connects degrees of freedom; a rod or beam uses a line, a shell a reference surface, and a solid a volume.'],
@@ -50,9 +59,7 @@
   curved:['曲がった部材の中心線と、両端を結ぶ直線の弦は異なります。','The curved centreline differs from the straight chord joining its endpoints.'],
   crack:['模式的な開口。き裂面の開きと、先端からの距離rを分けて読みます。実要素の節点配置ではありません。','Schematic opening: distinguish crack-face separation from distance r ahead of the tip. This is not an element node layout.'],
   axisymmetric:['左はr–z断面、右はその断面を軸の周りに回して得る回転体です。軸対称では周方向に同じ状態を仮定します。','Left: r–z section. Right: the body formed by revolving it about the axis. Axisymmetry assumes the same state around the circumference.'],
-  shearBend:['A：曲げでは断面が回転します。B：横せん断では、中心線の接線と断面法線の間に角度差γが生じます。模式的に分離して示しています。','A: Cross-sections rotate in bending. B: Transverse shear introduces angle γ between the centreline tangent and section normal. The contributions are separated schematically.'],
   integration:['丸は節点、×は要素内部の積分点。応力の計算点と出力・平均化する点を混同しないようにします。位置は説明用です。','Circles are nodes; crosses are internal integration points. Distinguish stress evaluation points from extrapolated or averaged output locations. Positions are schematic.'],
-  twist:['断面の回転角は長手方向で変化します。式は一定断面・一定トルクで反り拘束の影響を含めない場合です。曲げは軸のたわみ、ねじりは軸まわりの回転として区別します。','Section rotation changes along the length. The equation assumes a uniform section and torque without restrained-warping effects. Bending deflects the axis; torsion rotates around it.'],
  };
  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const locale=()=>document.documentElement.lang.toLowerCase().startsWith('ja')?'ja':'en';
@@ -79,6 +86,21 @@
   }).join('')}</div><details class="ev-key"><summary>${prose('legend')}</summary><p>${prose('symbols')}</p></details></div>`;
  }
  const drawings={
+  beamFundamentals:()=>render('beam-fundamentals',[
+   panel('beamAxial',`${t(22,29,'①  N → u')}${wall(51,72,93)}${p('M51 95H246V143H51Z','ghost')}${p('M51 95H281V143H51Z','motion')}${ar(281,119,337,119,'load')}${t(303,101,'N','loadText')}${p('M246 145V190M281 145V190','ghost')}${ar(246,176,281,176,'motion')}${t(256,205,'u','motionText')}${t(85,239,'u = NL / EA')}`,258),
+   panel('beamBend',`${t(22,29,'②  P → δb')}${wall(51,70,105)}${p('M51 105H282','ghost')}${p('M51 105C136 105 220 125 282 164','motion')}${p('M112 89L108 125M196 109L186 142M291 149L273 179','axis')}${ar(282,49,282,96,'load')}${t(296,66,'P','loadText')}${ar(310,107,310,162,'motion')}${t(299,194,'δb','motionText')}${t(83,239,'δb = PL³ / (3EI)')}`,258),
+   panel('beamShear',`${t(22,29,'③  P → δs')}${wall(51,70,105)}${p('M51 105H282','ghost')}${p('M51 105L282 161','motion')}${p('M112 102V138M194 122V158M282 143V179','axis')}${ar(282,49,282,96,'load')}${t(296,66,'P','loadText')}${ar(310,107,310,160,'motion')}${t(299,194,'δs','motionText')}${arc('M103 105Q103 111 101 117')}${t(115,93,'γ','motionText')}${t(81,218,'γ = P / (KAG)')}${t(81,244,'δs = PL / (KAG)')}`,264),
+   panel('beamTorsion',`${t(22,29,'④  T → θ')}${t(235,53,'⊗ x')}${dot(169,130,'open',62)}${p('M169 130H231','ghost')}${p('M169 130L213 174','motion')}${dot(169,130)}${arc('M207 130Q207 148 196 157')}${t(211,151,'θ','motionText')}${arc('M122 63C216 10 298 121 231 189','load')}${t(271,115,'T','loadText')}${t(84,239,'θ = TL / (GJ)')}`,258),
+  ]),
+  cbarMeaning:()=>render('cbar-meaning',[
+   panel('cbarSection',`${t(22,29,'①  A, I1, I2, J = const.')}${p('M62 91H265V153H62Z','face')}${p('M62 91L92 66H295L265 91Z','top')}${p('M265 91L295 66V128L265 153Z','side')}${p('M162 91L192 66V128L162 153Z','axis')}${p('M62 153L92 128V66','ghost')}${p('M77 111H281','ghost')}${t(47,180,'A')}${t(266,180,'B')}${p('M62 222H280','beam')}${dot(62,222)}${dot(280,222)}${t(46,247,'GA')}${t(265,247,'GB')}${t(130,208,'CBAR')}`,266),
+   panel('cbarBending',`${t(22,29,'②  P → V, M, δ')}${wall(84,83,100)}${p('M84 117H285','ghost')}${p('M84 117C164 117 234 139 285 174','motion')}${ar(285,57,285,107,'load')}${t(300,71,'P','loadText')}${ar(84,77,84,42,'load')}${t(100,60,'RA','loadText')}${arc('M53 99C13 107 13 155 53 161','load')}${t(16,187,'MA','loadText')}${ar(310,119,310,172,'motion')}${t(309,199,'δ','motionText')}${t(91,210,'|RA| = P')}${t(91,238,'|MA| = PL')}${t(77,282,'A')}${t(275,282,'B')}${p('M84 251v11H285v-11','dimension')}${t(180,283,'L')}`,302),
+  ]),
+  beamInertia:()=>render('beam-inertia',[
+   panel('inertiaSection',`${t(22,29,'①  y–z')}${t(242,29,'⊙ x')}${p('M150 70H200V220H150Z','face')}${ar(175,145,175,45)}${ar(175,145,73,145)}${t(186,51,'y','axisText')}${t(59,150,'z','axisText')}${dot(175,145)}${p('M215 70h12V220h-12M150 232v11H200v-11','dimension')}${t(237,153,'h = 30')}${t(141,269,'b = 10')}${t(89,303,'A = bh = 300 mm²')}`,325),
+   panel('inertiaY',`${t(22,29,'②  x–y → I1')}${t(241,29,'⊙ z')}${wall(55,93,118)}${p('M55 171H280','ghost')}${p('M55 171C146 171 224 159 280 138','motion')}${ar(280,131,280,75,'load')}${t(297,91,'Fy','loadText')}${ar(55,65,120,65)}${ar(55,65,55,35)}${t(127,71,'x','axisText')}${t(35,39,'y','axisText')}${p('M273 118L287 157','axis')}${ar(310,170,310,140,'motion')}${t(289,198,'δy','motionText')}${t(48,238,'I1 = Izz = bh³ / 12')}${t(73,266,'= 22,500 mm⁴')}${t(53,303,'δy = PL³ / (3E·I1)')}`,325),
+   panel('inertiaZ',`${t(22,29,'③  x–z → I2')}${t(241,29,'⊗ y')}${wall(55,93,118)}${p('M55 171H280','ghost')}${p('M55 171C146 171 224 143 280 105','motion')}${ar(280,98,280,42,'load')}${t(297,59,'Fz','loadText')}${ar(55,65,120,65)}${ar(55,65,55,35)}${t(127,71,'x','axisText')}${t(35,39,'z','axisText')}${p('M268 88L292 122','axis')}${ar(310,170,310,107,'motion')}${t(289,198,'δz','motionText')}${t(48,238,'I2 = Iyy = hb³ / 12')}${t(83,266,'= 2,500 mm⁴')}${t(53,303,'δz = 9δy  (|Fy| = |Fz|)')}`,325),
+  ]),
   families:()=>render('families',[panel('families',`${spring(30,58,94)}${dot(30,58)}${dot(124,58)}${t(65,93,'0D')}${p('M207 58H310','beam')}${dot(207,58)}${dot(310,58)}${t(245,93,'1D')}${p('M35 180L60 132H140L115 180Z','face')}${t(72,210,'2D')}${p('M214 152H284V190H214Z','face')}${p('M214 152L237 130H307L284 152Z','top')}${p('M284 152L307 130V168L284 190Z','side')}${t(249,216,'3D')}`)]),
   offsetSpring:()=>render('offset',[
    panel('offsetTranslation',`${t(24,32,'①')}${p('M104 66V157','ghost')}${p('M174 66V157','edge')}${dot(104,66,'open')}${dot(104,157,'open')}${dot(174,66)}${dot(174,157)}${ar(111,66,166,66,'motion')}${ar(111,157,166,157,'motion')}${t(189,72,'B')}${t(189,163,'A')}${ar(249,103,313,103)}${t(319,110,'X','axisText')}${t(89,206,'uA = uB   →   F = 0')}`),
@@ -142,15 +164,12 @@
   curved:()=>render('curved',[panel('curved',`${p('M43 175Q180 -65 316 175','beam')}${p('M43 175H316','ghost')}${dot(43,175)}${dot(316,175)}${dot(180,55,'open')}${t(30,203,'A')}${t(306,203,'B')}${t(190,50,'C')}`)]),
   crack:()=>render('crack',[panel('crack',`${p('M52 61H309V181H52Z','face')}${p('M52 121Q110 99 175 121Q110 143 52 121Z','gap')}${dot(175,121)}${ar(175,121,279,121)}${t(232,109,'r')}${ar(115,61,115,24,'load')}${ar(254,61,254,24,'load')}${ar(115,181,115,219,'load')}${ar(254,181,254,219,'load')}`)]),
   axisymmetric:()=>render('axisymmetric',[panel('axisymmetric',`${ar(36,195,36,29)}${ar(36,195,145,195)}${t(18,29,'z')}${t(147,214,'r')}${p('M69 68H113V167H69Z','face')}${p('M218 75V172C218 196 320 196 320 172V75','face')}${p('M218 75C218 49 320 49 320 75C320 101 218 101 218 75Z','top')}${p('M243 75C243 65 295 65 295 75C295 85 243 85 243 75Z','gap')}${p('M269 25V212','ghost')}${ar(156,123,199,123,'motion')}`)]),
-  shearBend:()=>render('shear-bend',[panel('shearBend',`${t(24,33,'A')}${p('M50 78Q165 37 306 78','motion')}${p('M50 78L42 48M176 58V28M306 78L314 48','axis')}${p('M50 103H306','ghost')}${t(24,150,'B')}${p('M50 206L304 150','motion')}${p('M50 206V174M176 178V145M304 150V117','axis')}${p('M176 178L170 149','ghost')}${t(187,160,'γ')}`)]),
   integration:()=>render('integration',[panel('integration',`${cube()}${[[70,83],[220,83],[70,188],[220,188],[123,43],[273,43],[273,148],[123,148]].map(([x,y])=>dot(x,y)).join('')}${[[116,106],[186,106],[116,162],[186,162]].map(([x,y])=>p(`M${x-5} ${y-5}l10 10m-10 0l10 -10`,'load')).join('')}`)]),
-  twist:()=>render('twist',[panel('twist',`${p('M52 77L117 53L117 145L52 169Z','face')}${p('M245 76L302 94L283 177L226 159Z','face')}${p('M85 111L264 126','ghost')}${p('M52 77L245 76M117 53L302 94M117 145L283 177M52 169L226 159','edge')}${arc('M313 72Q345 127 305 182','load')}${t(321,150,'Mₓ')}${t(142,215,'θ = MₓL / GJ')}`)]),
  };
  window.ElementVisuals=drawings;
  // These replace geometry sketches previously supplied by generic, text-heavy diagrams.
  window.ElementSectionVisuals={
-  'beam-theory':'shearBend',
-  'beam-crod':'rod','beam-cbar':'twist','beam-pbarl':'section','beam-taper':'taper',
+  'beam-crod':'rod','beam-pbarl':'section','beam-taper':'taper',
   'beam-curved':'curved','shell-crack':'crack','solid-triax':'axisymmetric',
   'solid-psolid':'integration','connector-why':'weldPatch',
  };
