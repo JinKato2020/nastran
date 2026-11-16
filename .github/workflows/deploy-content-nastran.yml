@@ -59,6 +59,8 @@ jobs:
           source=.build/content-ota
           destination="r2:${R2_BUCKET}/nastran"
           flags=(--s3-no-check-bucket --transfers 6)
+          # Avoid the version-specific HEAD request after PUT, which R2 can reject with 501.
+          upload_flags=("${flags[@]}" --s3-no-head)
           if [[ -n "$RESTORE_RELEASE" ]]; then
             [[ "$RESTORE_RELEASE" =~ ^[a-f0-9]{64}$ ]] || { echo '::error::Invalid release ID'; exit 1; }
             mkdir -p "$source/objects"
@@ -71,9 +73,9 @@ jobs:
           else
             node tools/verify-content-ota.cjs "$source"
             release=$(sha256sum "$source/_manifest.json" | cut -d ' ' -f 1)
-            rclone copy "$source/objects" "$destination/objects" "${flags[@]}" --immutable --header-upload 'Content-Type: text/html; charset=utf-8'
-            rclone copyto "$source/_manifest.json" "$destination/releases/$release.json" "${flags[@]}" --immutable --header-upload 'Content-Type: application/json; charset=utf-8'
+            rclone copy "$source/objects" "$destination/objects" "${upload_flags[@]}" --checksum --immutable --header-upload 'Content-Type: text/html; charset=utf-8'
+            rclone copyto "$source/_manifest.json" "$destination/releases/$release.json" "${upload_flags[@]}" --checksum --immutable --header-upload 'Content-Type: application/json; charset=utf-8'
           fi
-          rclone copyto "$source/_manifest.json" "$destination/_manifest.json" "${flags[@]}" --ignore-times --header-upload 'Cache-Control: no-store' --header-upload 'Content-Type: application/json; charset=utf-8'
+          rclone copyto "$source/_manifest.json" "$destination/_manifest.json" "${upload_flags[@]}" --ignore-times --header-upload 'Cache-Control: no-store' --header-upload 'Content-Type: application/json; charset=utf-8'
           echo "::notice::Active Nastran content release: $release"
           printf 'Active Nastran content release: `%s`\n' "$release" >> "$GITHUB_STEP_SUMMARY"
