@@ -28,6 +28,9 @@
   cbushOrientationZ:['① ＋Zと局所zをそろえた場合。緑の矢印は、ばね位置に与える同じ1 mmの相対変位です。この向きにはK3が効きます。','1. Global +Z aligns with local z. The green arrow shows the imposed 1 mm relative displacement at the spring location. Stiffness K3 acts in this direction.'],
   cbushOrientationY:['② 向きベクトルvをx軸まわりに90°回した場合。同じ＋Zが局所yに変わり、今度はK2が効きます。','2. Rotate orientation vector v by 90° about x. The same global +Z now aligns with local y, so K2 acts in this direction.'],
   axes:['A：xに垂直なvの成分がyを決めます。vそのものがyとは限りません。zはx×y、⊙は画面の手前です。','A: The part of v perpendicular to x defines y. v itself need not align with y. z = x × y; ⊙ points out of the screen.'],
+  orientationComponents:['① 実数方式：第6〜8欄にX1=0.、X2=1.、X3=0.を入れます。GAから＋Yを指す緑の矢印がvです。オフセットなしなのでGAと端Aは重なります。','1. Real components: fields 6–8 contain X1=0., X2=1., X3=0. The green arrow from GA points along +Y. Without an offset, GA and End A coincide.'],
+  orientationG0:['② G0方式：梁1–2と梁2–3が、同じGRID 90を向きの目印として参照します。緑の矢印はそれぞれのGAからG0への方向で、梁の形状を結ぶ部材ではありません。両方の局所yは＋Yです。','2. G0 method: beams 1–2 and 2–3 refer to the same GRID 90 as an orientation marker. Green arrows run from each GA to G0; they are not structural members. Both local y axes point along +Y.'],
+  orientationOffset:['③ オフセットあり：GAとGBは接続節点、AとBはずれた梁端です。破線WA・WBだけ離れ、GA→G0の緑の向きをAへ平行移動して使います。','3. With offsets: GA and GB are connection grids; A and B are shifted beam ends. Dashed WA and WB separate them. Translate the green GA→G0 direction to A without rotating it.'],
   bending:['B：下向きの先端荷重に対する片持ち梁。破線は変形前、緑は曲げ変形です。局所軸と外力の符号を別々に読みます。','B: A cantilever under a downward tip force. Dashed lines show the original shape; green shows bending. Read the local axes and load signs separately.'],
   sectionA:['A：荷重方向の高さhが小さい断面。曲げに対する断面二次モーメントはbh³/12です。','A: A section with small height h in the load direction. Its second moment of area for this bending direction is bh³/12.'],
   sectionB:['B：同じ断面を90°回転。高さが3倍、幅が1/3なら、断面二次モーメントは9倍です。','B: Rotate the same section by 90°. Tripling the height and reducing the width to one third increases the second moment of area ninefold.'],
@@ -128,6 +131,11 @@
   beamAxes:()=>render('beam-axes',[
    panel('axes',`${p('M62 171H304','beam')}${dot(62,171)}${dot(304,171)}${ar(62,169,62,40)}${ar(62,169,326,169)}${ar(62,169,202,63,'motion')}${p('M202 63H62','ghost')}${p('M62 150h19v20','dimension')}${t(70,38,'yₑ')}${t(321,154,'xₑ')}${t(213,63,'v','motionText')}${t(37,195,'GA')}${t(289,195,'GB')}${t(90,218,'⊙ zₑ = xₑ × yₑ')}`),
    panel('bending',`${wall(52,90,110)}${p('M52 127H292','ghost')}${p('M52 127C135 127 213 148 292 189','motion')}${ar(292,69,292,121,'load')}${t(303,84,'F','loadText')}${ar(292,133,292,182,'motion')}${t(306,175,'uᵧ','motionText')}${axes(72,72)}${t(73,220,'Fᵧ < 0, uᵧ < 0')}`)]),
+  beamOrientation:()=>render('beam-orientation',[
+   panel('orientationComponents',`${p('M60 155H300','beam')}${dot(60,155)}${dot(300,155)}${ar(60,153,316,153)}${ar(60,155,60,61,'motion')}${t(39,181,'GA = A')}${t(280,181,'GB = B')}${t(37,52,'v')}${t(319,150,'x')}${t(69,75,'y')}${t(94,217,'X = (0., 1., 0.)')}`),
+   panel('orientationG0',`${p('M40 166H320','beam')}${dot(40,166)}${dot(180,166)}${dot(320,166)}${dot(40,66,'open',6)}${ar(40,165,40,71,'motion')}${ar(180,165,46,71,'motion')}${t(26,53,'G0 = 90')}${t(31,191,'1')}${t(169,191,'2')}${t(309,191,'3')}${t(75,216,'CBAR 1–2 / 2–3')}`),
+   panel('orientationOffset',`${p('M64 114H300','beam')}${p('M64 176V114M300 176V114','ghost')}${dot(64,176)}${dot(300,176)}${dot(64,114,'open',5)}${dot(300,114,'open',5)}${dot(132,80,'open',6)}${ar(64,175,130,83,'motion')}${ar(64,113,130,21,'motion')}${t(22,201,'GA')}${t(287,201,'GB')}${t(46,105,'A')}${t(302,106,'B')}${t(144,83,'G0')}${t(20,145,'WA')}${t(304,145,'WB')}`,240),
+  ]),
   rectangularSection:()=>render('section-turn',[
    panel('sectionA',`${p('M97 105H247V155H97Z','face')}${ar(172,40,172,98,'load')}${t(184,54,'F','loadText')}${p('M97 167v12H247v-12M260 105h12v50h-12','dimension')}${t(137,202,'b = 30')}${t(279,136,'10')}${t(50,72,'h = 10')}`),
    panel('sectionB',`${p('M138 54H188V204H138Z','face')}${ar(163,12,163,48,'load')}${t(175,26,'F','loadText')}${p('M202 54h12V204h-12','dimension')}${t(224,136,'h = 30')}${t(116,222,'b = 10')}${t(29,127,'90°')}`)]),

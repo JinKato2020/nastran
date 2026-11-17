@@ -383,13 +383,17 @@
 </ol>
 <p>GA・GB と v を与えれば、要素座標は Nastran が自動で計算します。v の長さは関係なく、向きだけが意味を持ちます。v が x 軸と平行だと面1 が決まらず、エラーになります。</p>
 <h3>v の2つの与え方</h3>
+<p><a href="bulk.html#CBAR">CBAR</a> と <a href="bulk.html#CBEAM">CBEAM</a> は、どちらも<strong>第6欄で方式を切り替え</strong>ます。実数なら第6〜8欄に X1・X2・X3、整数なら第6欄に G0 の GRID 番号を入れ、第7・8欄を空けます。<code>1.</code> は実数の成分、<code>1</code> は GRID 1 の番号です。</p>
 <div class="element-table-wrap"><table class="element-table narrow">
-<thead><tr><th>方法</th><th>CBAR 第6〜8欄</th><th>v の始まり</th><th>注意</th></tr></thead>
+<thead><tr><th>方式</th><th>第1欄<br>カード名</th><th>第2欄<br>EID</th><th>第3欄<br>PID</th><th>第4欄<br>GA</th><th>第5欄<br>GB</th><th>第6欄<br>X1 / G0</th><th>第7欄<br>X2</th><th>第8欄<br>X3</th><th>第9欄<br>OFFT</th></tr></thead>
 <tbody>
-<tr><td>成分で与える</td><td>X1, X2, X3（小数点付きの実数）</td><td>端A</td><td>GA の変位座標系（GRID 第7欄）に平行な座標で測る</td></tr>
-<tr><td>節点 G0 で与える</td><td>G0（整数）</td><td>節点GA</td><td>GA から G0 へ向かう線。面1 はこの線に平行で端A を通る</td></tr>
+<tr><th scope="row">実数</th><td>CBAR</td><td>10</td><td>20</td><td>1</td><td>2</td><td>0.</td><td>1.</td><td>0.</td><td>GGG</td></tr>
+<tr><th scope="row">G0</th><td>CBAR</td><td>10</td><td>20</td><td>1</td><td>2</td><td>90</td><td>空欄</td><td>空欄</td><td>GGG</td></tr>
 </tbody></table></div>
-<p>第6欄に小数点があるかないかで、Nastran はどちらの方法かを見分けます。G0 にはモデルのどの節点も使えますが、「構造につながっていない専用の節点を使う」ことを勧めています。構造の節点を G0 にすると、後でモデルを修正したときに断面の向きが気付かないうちに変わり、見つけにくい誤りになるからです。</p>
+<p>表の2行は<strong>同じ梁に対する代替入力</strong>で、同時には使いません。8文字固定長の各欄と入力例の詳細は <a href="bulk.html#CBAR">CBAR のInputデータ</a>、CBEAM の欄は <a href="bulk.html#CBEAM">CBEAM のInputデータ</a>で確認できます。この例の基本座標で GA=GRID 1 は (0, 0, 0)、GB=GRID 2 は (100, 0, 0)、G0=GRID 90 は (0, 100, 0) です。ベクトル (0, 1, 0) と GA→G0 は、ともに＋Yを指します。OFFT=GGG なら成分は GA の変位座標系で読むため、この数値例ではその軸を基本座標と一致させています。</p>
+<figure class="element-figure"><div data-element-sketch="beamOrientation"></div></figure>
+<p><strong>GAと端A：</strong>GAはCBAR/CBEAMの第4欄に書く接続節点の番号、端Aは梁の軸が始まる位置です。オフセット WA がゼロなら両者は同じ位置です。WA を指定すると、GAからWAだけずれた位置が端Aになります。向きベクトルはGAで指定し、Nastranがその向きを端Aへ平行移動して使います。したがって「GAから」と「端Aで使う」は矛盾しません。</p>
+<p><strong>G0の使い回し：</strong>梁の数だけ専用GRIDを作る必要はありません。図のように複数の梁が同じ G0=90 を参照できます。ただし各梁で<strong>それぞれのGA→G0</strong>を計算するため、梁軸と平行にならず、意図した断面方向になることを全要素で確かめます。G0はGA・GBと同じ番号にはできません。構造につながない向き専用のGRIDにしておくと、構造節点を移動した際に断面方向が意図せず変わるのを防ぎやすくなります。</p>
 <h3>オフセットと OFFT</h3>
 <p>CBAR の継続行の WA・WB で、要素の端を節点からずらせます。オフセットは「節点から端まで剛な棒でつなぐ」ことと同じ扱いです。床板の中心面にある節点から、梁の図心を下にずらして付けるときなどに使います。</p>
 <p>OFFT 欄の3文字で、向きベクトルと両端のオフセットをどの座標系で測るかを選びます。1文字目が向きベクトル（G：GA の変位座標系、B：基本座標系）、2文字目と3文字目が端A と端B のオフセット（G：各節点の変位座標系、O：オフセット座標系）です。既定値は GGG です。オフセット座標系は GA から GB へ向かう x 軸と v から作られるので、向きベクトル自身をオフセット座標系で測ることはできず、OOO のような組み合わせはエラーになります。</p>
@@ -571,7 +575,7 @@ h = 5 × 150 / 50² = 0.3、k ≈ 1.65 / 0.3 ≈ 5.5
 <ul>
 <li><strong>I1 と I2 を逆に入れる。</strong><a href="#beam-inertia">I1・I2の対応図</a>で、たわむ方向と回転軸を照合します。</li>
 <li><strong>向きベクトルが要素の軸と平行。</strong>面1 が決まらずエラーになります。</li>
-<li><strong>G0 に構造の節点を使う。</strong>モデルを修正したときに断面の向きが変わり、気付きにくい誤りになります。専用の固定節点を作ります。</li>
+<li><strong>G0 に移動し得る構造節点を使う。</strong>モデルを修正したときに断面の向きが変わり、気付きにくい誤りになります。向き専用のGRIDを使い、各梁のGA→G0が狙った断面方向を示すか確認します。G0のためだけにSPCを指定するという意味ではありません。</li>
 <li><strong>CBEAM の A・I1・I2 を空欄にする。</strong>CBAR では許されますが、CBEAM では致命的エラーになります。</li>
 <li><strong>オフセットの座標系を取り違える。</strong>WA・WB は節点の変位座標系（OFFT の指定による）、PBEAM の中立軸のずれは要素座標です。</li>
 <li><strong>安全余裕にねじりが入っていると思い込む。</strong>CBAR の安全余裕は曲げと軸だけです。</li>
