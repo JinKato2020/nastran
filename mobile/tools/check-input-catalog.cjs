@@ -51,7 +51,7 @@ for(const entry of analyses){
   for(const model of entry.variants||[])assert(maps[model.id],model.id+' missing variant map');
  }
 }
-const {generated,official}=context.window.AnalysisScenarioCards;
+const {generated}=context.window.AnalysisScenarioCards;
 const decks=context.window.AnalysisOriginalDecks;
 const applicabilityOnly=new Set(['DMIG','K2PP','SVECT','SDISP','PARAM,FRIC']);
 for(const key of ['static','modes','complex-modes']){
@@ -60,8 +60,6 @@ for(const key of ['static','modes','complex-modes']){
  if(key==='complex-modes'){
   assert.deepEqual(models.map(model=>[model.sol,model.damped].join('/')).sort().join(','),'107/false,107/true,110/false,110/true');
  }
- assert(/^https:\/\//.test(official[key].source.url));
- for(const [,rows] of official[key].groups)for(const [id] of rows)assert(applicabilityOnly.has(id)||keys.has(id),key+' official example -> '+id);
  for(const model of models){
   const described=generated(key,model).flatMap(([,rows])=>rows.map(([id])=>id));
   for(const id of [...described,...model.check.map(([id])=>id)])assert(keys.has(id),model.id+' scenario -> '+id);

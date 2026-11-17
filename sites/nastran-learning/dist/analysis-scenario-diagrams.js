@@ -37,19 +37,6 @@
   }
   return svg({baseline:'左端固定、右端自由の梁。先端を観測する。','tip-mass':'左端固定の梁の自由端に集中質量を追加する。','both-fixed':'梁の左端と右端を固定し、梁中央を観測する。',undamped:'左端を固定した梁。先端は自由でダンパなし。',damped:'左端固定の梁の先端から固定側へ横方向のダンパを接続する。'}[kind],shape);
  }
- const officialStatic=()=>svg('固定端から伸びる矩形片持ち梁。自由端の荷重方向を変えて先端変位を評価する。',
-  wall(43,94)+path('M43 77H265V111H43Z',stroke,2,'#eaf1fa')+dot(265,94)+
-  path('M279 94h43m-6-5 6 5-6 5 M265 82V45m-6 6 6-6 6 6',force,2)+
-  text(42,143,'固定',fixed,'middle')+text(270,138,'先端変位',result,'middle')+text(318,38,'荷重方向を変える',force,'end'));
- const officialModes=()=>svg('固定端を介して、2つのばねと2点の集中質量を直列に結ぶ。',wall(37,89)+
-  path('M37 89H63l8-9 9 18 9-18 9 18 9-9h24 M162 89h30l8-9 9 18 9-18 9 18 9-9h25',stroke,2)+
-  path('M131 72h31v34h-31z M260 72h36v34h-36z',stroke,2,'#eaf1fa')+
-  text(91,55,'ばね',stroke,'middle')+text(212,55,'ばね',stroke,'middle')+
-  text(147,136,'質量1',stroke,'middle')+text(278,136,'質量2',stroke,'middle')+text(19,122,'固定',fixed));
- const officialComplex=()=>svg('筐体側とパッド側の接触を概念的に表した断面。法線力に応じた摩擦力が接線方向へ作用する。',
-  path('M75 48H264V86H75Z',stroke,2,'#dde9f7')+path('M108 99H230V137H108Z',stroke,2,'#e6f3ef')+
-  path('M75 92H264',stroke,1)+path('M171 31v18m-5-5 5 5 5-5',force,2)+path('M236 113h66m-7-6 7 6-7 6',force,2)+
-  text(178,28,'法線方向',force,'middle')+text(168,73,'筐体側',stroke,'middle')+text(164,124,'パッド側',stroke,'middle')+text(270,138,'摩擦力',force,'middle'));
  const hot='#b2452f', cold='#2c60ad';
  function heatStrip(convection){
   let shape=path('M70 78H290V112H70Z',stroke,2,'#eaf1fa')+path('M70 78V112',hot,6)+path('M290 78V112',cold,6)+
@@ -83,22 +70,6 @@
  }
  const mass='#855612';
  const spring=(x)=>path(`M${x} 90h14l6-9 8 18 8-18 8 18 6-9h10`,stroke,2);
- const officialHeat=()=>svg('両端の温度を指定した棒。5本の要素でつなぎ、途中の節点の温度を求める。',
-  path('M60 88H300V104H60Z',stroke,2,'#eaf1fa')+path('M60 80V112',hot,6)+path('M300 80V112',cold,6)+[108,156,204,252].map(x=>dot(x,96)).join('')+
-  text(64,140,'1300 K を指定',hot,'middle')+text(296,140,'300 K を指定',cold,'middle')+text(180,66,'5本の棒要素',stroke,'middle')+text(180,170,'途中の節点の温度を読む',result,'middle'));
- const officialDirect=()=>svg('ばねとダンパで台に支えた重り。台を上下に揺らし、重りの振幅を読む。',
-  path('M90 150H270',fixed,5)+path('M150 150v-12l-9-6 18-9-18-9 18-9-9-6v-15',stroke,2)+
-  path('M210 150v-24 M201 126h18 M197 112v20h26v-20 M210 112v-28',stroke,2)+path('M125 48H235V84H125Z',stroke,2,'#eaf1fa')+
-  path('M300 118v40 M294 124l6-6 6 6 M294 152l6 6 6-6',force,2)+dot(235,66)+
-  text(180,71,'重り',stroke,'middle')+text(132,122,'ばね',stroke,'end')+text(230,122,'ダンパ')+text(300,178,'台を上下に加振',force,'middle')+text(296,58,'振幅を読む',result,'middle'));
- const officialModal=()=>svg('大きな質量の土台に、2つの質量をばねで直列につなぐ。土台に一定の加速度を与える。',
-  path('M40 70H100V110H40Z',mass,2,'#f7e1bd')+spring(100)+path('M160 72H200V108H160Z',stroke,2,'#eaf1fa')+spring(200)+path('M260 76H290V104H260Z',stroke,2,'#eaf1fa')+
-  path('M40 52h60m-7-6 7 6-7 6',force,2.5)+text(70,38,'一定の加速度',force,'middle')+
-  text(70,134,'大質量（土台）',mass,'middle')+text(180,134,'質量2',stroke,'middle')+text(275,134,'質量1',stroke,'middle'));
- const officialTransient=()=>svg('片持ち梁の根元に大質量を置き、根元へ立ち上がる加速度を与える。先端の応答を読む。',
-  path('M30 76H70V116H30Z',mass,2,'#f7e1bd')+chain(70,290,96)+dot(290,96)+path('M50 70V34m-6 6 6-6 6 6',force,2.5)+
-  path('M170 60H190L230 30V60H300',force,2)+path('M166 60H306',stroke,1)+
-  text(60,26,'根元に加速度',force)+text(50,140,'大質量',mass,'middle')+text(290,128,'先端の観測点',result,'middle')+text(196,22,'加速度の時間変化',force));
  function heated(both){
   let shape=path('M49 84H286V108H49Z',stroke,2,'#fbe9e4')+wall(49,96)+text(21,140,'固定',fixed)+text(168,66,'全体を 20 → 80 ℃ に加熱',hot,'middle');
   if(both)shape+=path('M286 74v44',fixed,5)+text(300,140,'固定',fixed,'middle')+text(168,140,'伸びられず圧縮になる',force,'middle');
@@ -126,8 +97,7 @@
  }
  const extra={'ts-free':()=>heated(false),'ts-fixed':()=>heated(true),'cyl-coarse':()=>ring(2),'cyl-standard':()=>ring(4),'cyl-fine':()=>ring(8),
   'pre-none':()=>prestressed('pre-none'),'pre-tension':()=>prestressed('pre-tension'),'pre-compression':()=>prestressed('pre-compression'),
-  'heat-official':officialHeat,'direct-frequency-official':officialDirect,'modal-frequency-official':officialModal,'transient-official':officialTransient,'buckling-official':()=>column('buck-pinned'),
   'heat-insulated':()=>heatStrip(false),'heat-convection':()=>heatStrip(true),harmonic,'pulse-short':()=>pulse(false),'pulse-long':()=>pulse(true),
   'buck-cantilever':()=>column('buck-cantilever'),'buck-pinned':()=>column('buck-pinned'),'buck-fixed':()=>column('buck-fixed')};
- window.renderAnalysisScenarioDiagram=kind=>extra[kind]?extra[kind]():({beam,shell,solid,'static-official':officialStatic,'modes-official':officialModes,'complex-modes-official':officialComplex}[kind]?.()||vibration(kind));
+ window.renderAnalysisScenarioDiagram=kind=>extra[kind]?extra[kind]():({beam,shell,solid}[kind]?.()||vibration(kind));
 })();

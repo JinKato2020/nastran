@@ -230,397 +230,351 @@
 
 <article id="beam" data-element="beam" data-title="梁要素（CROD・CBAR・CBEAM）">
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 1次元要素</span><h1>梁要素（CROD・CBAR・CBEAM）</h1>
-<p>棒と梁の選び方から、断面方向、荷重の分解、端部の結合、軸力・曲げ・ねじりの読み方へ進みます。</p></div>
+<p>梁要素は、断面の形を捨てて「数」だけで計算します。捨てた形の情報を、向き・オフセット・応力点・既定値として正しく戻せるかで、答えが何倍も変わります。その「何倍」を、動く図で確かめながら進みます。</p></div>
 
+<div class="element-key"><strong>この記事で分かること</strong>
+<ul>
+<li>CBAR 1本で厳密な答えが出る場合と、何本に分けても足りない場合</li>
+<li>向きベクトルのわずかなずれ、オフセットの有無、K1・K2 の既定値が、たわみや応力を何倍変えるか</li>
+<li>CROD・CBAR・CBEAM・CBEND・CBEAM3 の選び分けと、結果がおかしいときの原因の探し方</li>
+</ul>
+<strong>前提として読む記事</strong>：<a href="coordinates.html#elements">要素の向き</a>。曲げの基本式 M = EI·κ（κ は曲率）を使います。
+<ol>
+<li>梁は断面を A・I1・I2・J などの数に縮める。形の情報は v・WA／WB・C〜F で自分で戻す。</li>
+<li>両端の静的な荷重なら1要素で厳密。振動は、要素数と質量の作り方で答えが変わる。</li>
+<li>空欄の意味はカードと欄ごとに違う。PBAR の K1・K2 の空欄は「せん断に無限に硬い」、C〜F の空欄は「応力点が図心」。</li>
+</ol></div>
 
 <ul class="element-toc" aria-label="この解説の目次">
 <li><button type="button" data-jump="beam-overview">全体像</button></li>
-<li><button type="button" data-jump="beam-theory">梁の理論</button></li>
-<li><button type="button" data-jump="beam-crod">CROD</button></li>
-<li><button type="button" data-jump="beam-cbar">CBAR</button></li>
-<li><button type="button" data-jump="beam-axes">向きベクトル</button></li>
-<li><button type="button" data-jump="beam-cbar-example">検算：断面を90°回す</button></li>
-<li><button type="button" data-jump="beam-pbarl">断面寸法で入力</button></li>
-<li><button type="button" data-jump="beam-pin">端部自由度の解放</button></li>
-<li><button type="button" data-jump="beam-cbeam">CBEAM</button></li>
-<li><button type="button" data-jump="beam-taper">検算：断面が変わる梁</button></li>
-<li><button type="button" data-jump="beam-compare">梁・シェル・ソリッドの比較</button></li>
+<li><button type="button" data-jump="beam-theory">1要素で足りるか</button></li>
+<li><button type="button" data-jump="beam-axes">断面の向き</button></li>
+<li><button type="button" data-jump="beam-offset">オフセット</button></li>
+<li><button type="button" data-jump="beam-cbar">CROD・CBAR の入力</button></li>
+<li><button type="button" data-jump="beam-shear">せん断変形</button></li>
+<li><button type="button" data-jump="beam-pin">端部の解放</button></li>
+<li><button type="button" data-jump="beam-cbeam">CBEAM：せん断中心と反り</button></li>
+<li><button type="button" data-jump="beam-taper">断面が変わる梁</button></li>
+<li><button type="button" data-jump="beam-compare">梁で足りるか</button></li>
 <li><button type="button" data-jump="beam-abcs">任意断面・複合材</button></li>
 <li><button type="button" data-jump="beam-curved">曲がり梁</button></li>
-<li><button type="button" data-jump="beam-choose">選び方と注意点</button></li>
+<li><button type="button" data-jump="beam-choose">症状から原因を探す</button></li>
+<li><button type="button" data-jump="beam-quiz">自分で確かめる</button></li>
 <li><button type="button" data-jump="beam-sources">仕様を調べる</button></li>
 </ul>
 
-<section class="theory-section" id="beam-overview"><h2>1. 1次元要素の全体像</h2>
-<p>1次元要素は、2つの節点の間を「線」として結び、その線に沿った剛さ（変形しにくさ）を持たせる要素です。</p>
-<p>形は線でも、断面の性質（断面積、断面二次モーメントなど）を数値で与えることで、太さを持った部材として計算されます。立体の要素で断面を細かく分割しなくても、少ない自由度で部材全体のたわみや力を求められるのが最大の利点です。</p>
-<div class="element-table-wrap"><table class="element-table">
-<thead><tr><th>要素</th><th>伝える力</th><th>断面の入力</th><th>特徴</th></tr></thead>
-<tbody>
-<tr><td><a href="bulk.html#CROD">CROD</a></td><td>軸力・ねじり</td><td><a href="bulk.html#PROD">PROD</a></td><td>最も単純。曲げを伝えない。ピン結合のトラスに最適</td></tr>
-<tr><td><a href="bulk.html#CONROD">CONROD</a></td><td>軸力・ねじり</td><td>要素カード自身</td><td>CRODと同じ。断面の値を要素カードに直接書く</td></tr>
-<tr><td><a href="bulk.html#CTUBE">CTUBE</a></td><td>軸力・ねじり</td><td><a href="bulk.html#PTUBE">PTUBE</a></td><td>円管の外径と板厚から剛性を計算</td></tr>
-<tr><td><a href="bulk.html#CBAR">CBAR</a></td><td>軸力・ねじり・2方向の曲げとせん断</td><td><a href="bulk.html#PBAR">PBAR</a>／<a href="bulk.html#PBARL">PBARL</a></td><td>断面は一定。せん断中心と図心が一致する断面向け</td></tr>
-<tr><td><a href="bulk.html#CBEAM">CBEAM</a></td><td>CBARの全機能＋反り</td><td><a href="bulk.html#PBEAM">PBEAM</a>／<a href="bulk.html#PBEAML">PBEAML</a></td><td>断面が途中で変わる、せん断中心がずれる断面に対応</td></tr>
-<tr><td>CBEND</td><td>CBARと同等（円弧）</td><td>PBEND</td><td>円弧状の曲がり梁・配管のエルボ</td></tr>
-<tr><td>CBEAM3</td><td>CBEAM＋せん断変形・初期曲率</td><td>PBEAM3など</td><td>3節点の曲がり梁。複合材の梁にも使う</td></tr>
+<section class="theory-section" id="beam-overview"><h2>1. 梁要素は、断面を数に縮める</h2>
+<p>1次元要素は2つの節点を線で結び、断面の性質を数で与えます。立体の要素なら数万の自由度が要る部材を、両端の節点の6自由度ずつで表せます。</p>
+<p>この割り切りがどこまで通用するかを、線形静解析ユーザーガイドが同じ先細りの梁で比べています（表4-1）。</p>
+<div class="element-table-wrap"><table class="element-table"><thead><tr><th>モデル</th><th>要素数</th><th>自由度</th><th>先端のたわみ（×10⁻² in）</th><th>最大垂直応力（psi）</th></tr></thead><tbody>
+<tr><td><a href="bulk.html#CBEAM">CBEAM</a></td><td class="num">1</td><td class="num">14</td><td class="num">1.02</td><td class="num">610</td></tr>
+<tr><td><a href="bulk.html#CQUAD4">CQUAD4</a>（板）</td><td class="num">960</td><td class="num">6,174</td><td class="num">0.99</td><td class="num">710</td></tr>
+<tr><td><a href="bulk.html#CHEXA">CHEXA</a>（立体）</td><td class="num">3,840</td><td class="num">15,435</td><td class="num">1.08</td><td class="num">622</td></tr>
 </tbody></table></div>
-<p class="element-key">要点：まず「曲げを伝える必要があるか」で CROD 系か CBAR／CBEAM 系かが決まります。次に「断面が一定か」「断面が左右対称か（せん断中心と図心が一致するか）」で CBAR か CBEAM かを選びます。</p>
+<p>自由度が約1,100倍のソリッドに対して、梁1本の差はたわみで約6%、応力で約2%です。一方、板の要素は応力が約14%高く出ました。この梁はフランジとウェブが厚く、板として振る舞わないからです。細かいモデルほど正しいとは限りません。</p>
+<h3>梁が知っているのは、この数だけ</h3>
+<div class="element-table-wrap"><table class="element-table"><thead><tr><th>断面の数</th><th>何に効くか</th><th>入れる場所</th></tr></thead><tbody>
+<tr><td>A</td><td>軸方向の伸び縮み（EA）</td><td>PROD・PBAR・PBEAM</td></tr>
+<tr><td>I1・I2</td><td>2つの面それぞれの曲げ（EI）</td><td>PBAR・PBEAM</td></tr>
+<tr><td>I12</td><td>主軸が要素の y・z とずれた断面で、2つの曲げを連成させる</td><td>PBAR・PBEAM</td></tr>
+<tr><td>J</td><td>ねじり（GJ）</td><td>PROD・PBAR・PBEAM</td></tr>
+<tr><td>K1・K2</td><td>横せん断によるたわみ（§6）</td><td>PBAR・PBEAM</td></tr>
+<tr><td>Cw・せん断中心</td><td>反りの拘束、荷重の偏りによるねじれ（§8）</td><td>PBEAM のみ</td></tr>
+</tbody></table></div>
+<p>断面の形そのもの、つまりどちらが上か、どこが一番遠い点か、床からどれだけ離れているかは、数に縮めた時点で失われます。それを戻すのが、向きベクトル v（§3）、オフセット WA・WB（§4）、応力を求める点 C〜F（§5）です。梁の入力でつまずきやすいのは、この3つです。</p>
+<div class="element-table-wrap"><table class="element-table"><thead><tr><th>要素</th><th>伝える力</th><th>断面の入力</th><th>使う場面</th></tr></thead><tbody>
+<tr><td><a href="bulk.html#CROD">CROD</a>・<a href="bulk.html#CONROD">CONROD</a>・<a href="bulk.html#CTUBE">CTUBE</a></td><td>軸力・ねじり</td><td><a href="bulk.html#PROD">PROD</a>、要素カード自身、<a href="bulk.html#PTUBE">PTUBE</a>（円管の外径と板厚）</td><td>ピン結合のトラス、ワイヤ、つなぎ棒</td></tr>
+<tr><td><a href="bulk.html#CBAR">CBAR</a></td><td>軸力・ねじり・2方向の曲げとせん断</td><td><a href="bulk.html#PBAR">PBAR</a>・<a href="bulk.html#PBARL">PBARL</a></td><td>一定断面で、せん断中心と図心が一致する部材</td></tr>
+<tr><td><a href="bulk.html#CBEAM">CBEAM</a></td><td>CBAR の全部＋反り</td><td><a href="bulk.html#PBEAM">PBEAM</a>・<a href="bulk.html#PBEAML">PBEAML</a></td><td>断面が変わる、せん断中心がずれる、反りが効く部材</td></tr>
+<tr><td><a href="bulk.html#CBEND">CBEND</a></td><td>CBAR と同等（円弧）</td><td><a href="bulk.html#PBEND">PBEND</a></td><td>配管のエルボ、円弧の部材</td></tr>
+<tr><td><a href="bulk.html#CBEAM3">CBEAM3</a></td><td>CBEAM＋せん断変形・初期の曲がり</td><td>PBEAM3 など</td><td>曲がった軸、ねじれた羽根、複合材の梁</td></tr>
+</tbody></table></div>
+<p class="element-key">選ぶ順番：曲げが要らなければ CROD 系、要るなら CBAR。断面が途中で変わる、せん断中心が図心とずれる、反りが効く、のどれかなら CBEAM。円弧なら CBEND、曲がった軸や複合材なら CBEAM3。</p>
 </section>
 
-<section class="theory-section" id="beam-theory"><h2>2. 梁要素の土台となる理論</h2>
-<p><strong>梁要素は、中心線の伸び・たわみ・回転から部材の変形を表します。</strong>以下では左端を固定した一定断面の梁を使い、1種類ずつ「荷重 → 変形 → 効く断面の値」の順に示します。赤は荷重、緑は変形後（変形量を強調）、破線は変形前です。</p>
-<h3>① 伸び縮み：軸力 N → 長さ方向の変位 u</h3>
-<figure class="element-figure"><div data-element-sketch="beamAxial"></div></figure>
-<div class="element-table-wrap"><table class="element-table narrow"><tbody><tr><th scope="row">効く断面の値</th><td>断面積 A</td></tr><tr><th scope="row">剛性・応力</th><td>軸方向の剛性 EA/L、軸応力 σ = N/A</td></tr></tbody></table></div>
-<p>同じ材料・長さなら、断面積Aが大きいほど同じ軸力Nによる伸びは小さくなります。図の u = NL/(EA) は図示した片持ち棒の端部変位です。</p>
-<h3>② 曲げ：横荷重 P → 中心線の曲がり δb</h3>
-<figure class="element-figure"><div data-element-sketch="beamBend"></div></figure>
-<div class="element-table-wrap"><table class="element-table narrow"><tbody><tr><th scope="row">効く断面の値</th><td>断面二次モーメント I1・I2（曲がる面に対応）</td></tr><tr><th scope="row">剛性・応力</th><td>曲げ剛性 EI、曲げ応力の大きさ |σ| = |M|c/I</td></tr></tbody></table></div>
-<p>図の δb = PL³/(3EI) は、せん断変形を除いた片持ち梁の先端たわみです。Iは曲げる面に対応するI1またはI2を使います。断面内の応力評価位置までの距離がcです。<a href="#beam-inertia">I1とI2の対応</a>はCBARの節で確認できます。</p>
-<h3>③ 横せん断：横荷重 P → 追加のたわみ δs</h3>
-<figure class="element-figure"><div data-element-sketch="beamShear"></div></figure>
-<div class="element-table-wrap"><table class="element-table narrow"><tbody><tr><th scope="row">効く断面の値</th><td>断面積 Aとせん断補正係数 K（有効せん断面積 K A）</td></tr><tr><th scope="row">剛性・変位</th><td>せん断剛性 KAG、図の片持ち梁では δs = PL/(KAG)</td></tr></tbody></table></div>
-<p>②と③は同じ横荷重によるたわみを、曲げ成分とせん断成分に分けた図です。両方を考える場合の先端たわみは δ = δb + δs。短く太い梁ほど、せん断の寄与が相対的に大きくなります。Kの入力は<a href="bulk.html#PBAR">PBARのK1・K2</a>で確認できます。</p>
-<h3>④ ねじり：トルク T → 軸まわりの回転 θ</h3>
-<figure class="element-figure"><div data-element-sketch="beamTorsion"></div></figure>
-<div class="element-table-wrap"><table class="element-table narrow"><tbody><tr><th scope="row">効く断面の値</th><td>ねじり定数 J</td></tr><tr><th scope="row">剛性・応力</th><td>ねじり剛性 GJ/L。円形断面ならせん断応力 τ = Tr/J</td></tr></tbody></table></div>
-<p>図の θ = TL/(GJ) は一定断面・一定トルクの自由ねじりを表します。非円形断面ではJを I1 + I2 と同一視できず、ねじりによる断面の<a href="#beam-warping">反り</a>も考慮が必要になる場合があります。</p>
-<h3>4つの図に共通する前提</h3>
-<p>Eは縦弾性係数、Gはせん断弾性係数、Lは梁の長さです。上の式は線形弾性・微小変形・一定断面を前提とします。せん断変形を無視した梁の要素剛性行列には、12EI/L³（たわみ）、6EI/L²（たわみと回転の連成）、4EI/L・2EI/L（回転）の係数が入ります。これらは単独のばね定数ではなく、両端の変位・回転と力・モーメントを一緒に結ぶ係数です。実際の荷重と変位の関係は支持条件を適用して求めます。</p>
-<h3>曲げとせん断での断面の向き</h3>
-<p>曲げを受けても各断面は平面を保つと仮定します。②の青い短線は断面の向きで、梁が曲がるにつれて回転します。せん断変形を無視する梁理論では、断面は変形後の中心線に直角です。③では中心線の傾きと断面の回転に差γが生まれます。「断面が平面を保つ」と「中心線に直角を保つ」は別の条件です。ねじりでは非円形断面が反る場合もあるため、平面保持だけで全てを説明できません。</p>
-<h3>2つの面で別々に曲がる</h3>
-<p>要素座標の x-y 面が面1、x-z 面が面2です。面1 の曲げには I1、面2 の曲げには I2 が対応します。断面の主軸に y・z 軸を合わせて I12 = 0 とすると、2つの面の曲げを分離して考えられます。<a href="#beam-inertia">曲がる面と I1・I2 の対応図</a>で確認できます。面の向きの決め方は<a href="#beam-axes">要素座標と向きベクトル</a>へ進んでください。</p>
-<h3 id="beam-shear-center">せん断中心：横荷重をどこに通せば、ねじれないか</h3>
-<p><strong>せん断中心Sは、横荷重の作用線がそこを通ると、その荷重によるねじりが生じない点です。曲げによるたわみは生じます。</strong>図心Gは断面の面積から決まる中心で、Sと必ず一致するわけではありません。ここでは均質・等方性のまっすぐな梁を考えます。</p>
-<p>下図は同じ溝形断面を端から見た比較です。変えたのは下向き荷重Pの作用線だけです。SとGは位置を表す点で、節点を表す記号ではありません。</p>
-<figure class="element-figure"><div data-element-sketch="shearCenter"></div></figure>
-<p>荷重の作用線からSまでの最短距離をeとすると、せん断中心まわりのトルクの大きさは <strong>|T| = P·e</strong> です。たとえば P = 100 N、e = 20 mm なら |T| = 2,000 N·mm。e = 0なら、この荷重が生むトルクは0です。ねじりが拘束されている場合は、自由に回る代わりに反モーメントが生じます。</p>
-<p>2軸対称の円・長方形・I形断面ではSとGが一致します。一方、上下対称の溝形断面でも、Sはウェブの背面側、断面の外にあります。<strong>対称軸が1本あるだけでは、SとGが一致するとは限りません。</strong>Sが材料のない場所にある場合、実際の荷重は剛な治具などを介して伝えます。図の矢印は合力の作用線を示し、空間中に直接荷重を取り付ける意味ではありません。</p>
-<h3 id="beam-warping">反り：断面の点が、梁の長さ方向にずれる</h3>
-<p><strong>ねじれ角θは断面の回転、反りは断面内の各点の軸方向変位uₓの違いです。</strong>下図では、この2つを分けて示しています。薄肉I形断面をねじると、フランジの端が軸方向に前後へずれ、元は同じ平面にあった点が同じ平面に収まらなくなります。梁の中心線が横へ曲がる「たわみ」とも異なります。</p>
-<figure class="element-figure"><div data-element-sketch="beamWarping"></div></figure>
-<p>反りは溝形断面だけに起きる現象ではありません。<strong>I形断面ではSとGが一致していても、トルクを加えれば反りが生じます。</strong>「荷重の偏りでねじりが生じるか」と「ねじった断面がどう変形するか」は別の問題です。円形断面の一様ねじりでは、これらの軸方向の反りは生じません。</p>
-<h4>反りを自由にする場合と、止める場合</h4>
-<p>自由に反れる一様ねじりでは、断面の各点は必要なだけ軸方向へずれることができます。端板などでこのずれを止めると、その近くで軸方向の引張り・圧縮応力が生じ、ねじりへの追加の抵抗になります。<strong>断面の回転θを止めることと、反りによる軸方向のずれを止めることは、異なる拘束です。</strong></p>
-<p>一定断面の線形な反りねじり理論では、全トルクを次の2つに分けます。</p>
-<div class="element-formula">T = G·J·θ′ − E·Cw·θ‴</div>
-<p>θはねじれ角、xは梁の長さ方向、θ′ = dθ/dxは単位長さあたりのねじれ角です。第1項GJθ′は通常のねじりの抵抗。第2項−ECwθ‴は、反り拘束などでねじれ方が長さ方向に変化するときの寄与です。θ‴ = d³θ/dx³はxに関する3階微分、Cwは断面の反り定数（長さの6乗の単位）です。符号は定義した軸と回転の正方向に従います。一様ねじりならθ′は一定でθ‴ = 0となり、T = GJθ′に戻ります。</p>
-<p>MSC Nastranでは、CBARは反り拘束による追加の剛性を扱いません。CBEAMでは、反り定数や反り自由度・端部条件を適切に設定して扱います。<a href="#beam-cbeam">CBEAMの入力と出力</a>、<a href="bulk.html#CBEAM">CBEAMのSA・SB</a>、<a href="bulk.html#PBEAM">PBEAMの反り定数</a>へ進んでください。要素名を変えるだけで反り拘束が自動設定されるわけではありません。</p>
-
-</section>
-
-<section class="theory-section" id="beam-crod"><h2>3. CROD — 軸力とねじりだけを伝える棒</h2>
-<p><a href="bulk.html#CROD">CROD</a> は、長さ方向に性質が一定のまっすぐな棒です。剛さは「軸方向の伸び縮み」と「軸まわりのねじり」だけで、曲げは伝えません。形を持つ要素の中では最も単純で、「引張り・圧縮とねじりだけが必要なら理想的な選択」としています。CBAR や CBEAM でも棒を表せますが、要素座標の向きを指定する手間が増えます。</p>
-<h3>入力するもの</h3>
-<div class="element-table-wrap"><table class="element-table narrow">
-<thead><tr><th>カード</th><th>項目</th><th>意味</th></tr></thead>
-<tbody>
-<tr><td>CROD</td><td>EID, PID, G1, G2</td><td>要素番号、物性番号、両端の節点</td></tr>
-<tr><td>PROD</td><td>PID, MID</td><td>物性番号と材料番号</td></tr>
-<tr><td>PROD</td><td>A</td><td>断面積。空欄にすると軸方向の剛さがなくなる</td></tr>
-<tr><td>PROD</td><td>J</td><td>ねじり定数。空欄にするとねじりの剛さがなくなる</td></tr>
-<tr><td>PROD</td><td>C</td><td>ねじり応力を求めるための係数</td></tr>
-<tr><td>PROD</td><td>NSM</td><td>単位長さあたりの構造以外の質量（塗装・配線など）</td></tr>
-</tbody></table></div>
-</section>
-
-<section class="theory-section" id="beam-cbar"><h2>4. CBAR — 曲げも伝える一定断面の梁</h2>
-<p><a href="bulk.html#CBAR">CBAR</a> は、2つの節点を結ぶまっすぐな梁です。<strong>「一定断面」は、1要素の端Aから端Bまで同じ断面諸量を使うという意味です。「曲げも伝える」は、横荷重に対して曲げモーメントとたわみを表せるという意味です。</strong>軸力とねじりだけを扱うCRODとは、この点が違います。</p>
-<figure class="element-figure"><div data-element-sketch="cbarMeaning"></div></figure>
-<p>CBARに節点と向きを与え、<a href="bulk.html#PBAR">PBAR</a>に断面積・断面二次モーメント・ねじり定数を、<a href="bulk.html#MAT1">MAT1</a>に材料定数を与えることで剛性が決まります。PBARLを使う場合は、断面形状と寸法から断面諸量を求めます。下表は必要な剛性を与え、端部解放をしない場合の基本的な能力です。</p>
-<div class="element-table-wrap"><table class="element-table narrow">
-<thead><tr><th>できること</th><th>できないこと（CBEAMならできる）</th></tr></thead>
-<tbody>
-<tr><td>中立軸に沿った伸びと、中立軸まわりのねじり</td><td>長さ方向に断面を変える</td></tr>
-<tr><td>軸に直交する2方向の曲げとせん断</td><td>せん断中心と中立軸をずらす</td></tr>
-<tr><td>要素の端を節点からずらす（オフセット）</td><td>断面の反りの効果</td></tr>
-<tr><td>各端で断面の4点の応力を出力（途中の点は <a href="bulk.html#CBARAO">CBARAO</a> で追加）</td><td></td></tr>
-<tr><td>横せん断力によるせん断変形を含める</td><td></td></tr>
-</tbody></table></div>
-<h3>PBAR に入力する断面の値</h3>
-<div class="element-table-wrap"><table class="element-table narrow">
-<thead><tr><th>項目</th><th>意味</th></tr></thead>
-<tbody>
-<tr><td>A</td><td>断面積</td></tr>
-<tr><td>I1, I2, I12</td><td>断面二次モーメントと断面相乗モーメント</td></tr>
-<tr><td>J</td><td>ねじり定数</td></tr>
-<tr><td>NSM</td><td>単位長さあたりの構造以外の質量</td></tr>
-<tr><td>C1, C2 … F1, F2</td><td>応力を求める4点（C・D・E・F）の y, z 座標</td></tr>
-<tr><td>K1, K2</td><td>せん断の断面積係数（K·A·G の K）</td></tr>
-</tbody></table></div>
-<p>CROD と同じく、空欄にした剛性は「ない」ものとして扱われます。たとえば I1 と I2 を空欄にすると、曲げの剛さのない要素になります。K1・K2 を空欄にすると、せん断変形を無視した（せん断方向に無限に硬い）梁になります。</p>
-<h3 id="beam-inertia">I1・I2：たわむ方向と、回転する軸を分ける</h3>
-<p><strong>y方向へたわむ → x-y面で曲がる → z軸まわりに回転する → I1（Izz）。<br>z方向へたわむ → x-z面で曲がる → y軸まわりに回転する → I2（Iyy）。</strong></p>
-<p>「1・2」は曲がる面の番号です。一般の材料力学で Iyy・Izz と書くときの添字は、回転する軸を表します。この2つの命名規則を混ぜると逆に入力してしまいます。次の図は同じ矩形断面を使い、荷重の向きだけを変えた比較です。y・z は全体座標ではなく、梁の要素座標です。</p>
-<figure class="element-figure"><div data-element-sketch="beamInertia"></div></figure>
-<div class="element-table-wrap"><table class="element-table"><thead><tr><th>たわむ方向</th><th>曲がる面／回転軸</th><th>使う値</th></tr></thead><tbody>
-<tr><td>y方向</td><td>面1：x-y／z軸</td><td>I1 = Izz = ∫y² dA = b h³ / 12</td></tr>
-<tr><td>z方向</td><td>面2：x-z／y軸</td><td>I2 = Iyy = ∫z² dA = h b³ / 12</td></tr>
-</tbody></table></div>
-<p>図では h = 30 mm（y方向）、b = 10 mm（z方向）なので、I1 = 22,500 mm⁴、I2 = 2,500 mm⁴です。同じ E・L・先端荷重の大きさで、せん断変形を無視すると、<strong>z方向のたわみはy方向の9倍</strong>になります。I1・I2を入れ替えると、硬い方向と柔らかい方向が逆になるため、たわみ・曲げ応力・固有振動数にも影響します。</p>
-<p>断面の主軸に y・z 軸を合わせれば I12 = 0 です。主軸と一致しない場合は I12 による曲げの連成も必要なので、この2方向を独立に扱う比較をそのまま当てはめないでください。断面を実際に回す場合は<a href="#beam-cbar-example">断面を90°回す検算</a>へ、座標の設定は<a href="coordinates.html#elements">要素の向き</a>へ進めます。</p>
-<h3>その他の注意</h3>
+<section class="theory-section" id="beam-theory"><h2>2. 1要素で足りるか — 静荷重と振動で答えが違う</h2>
+<p>CBAR の剛性は、梁の曲げの微分方程式を、両端の変位と回転について厳密に解いた式です。両端に集中荷重やモーメントだけがかかる梁では、本当のたわみの形が3次式になり、要素の中で仮定する形（3次式）と一致します。だから片持ち梁の先端荷重なら、CBAR 1本で手計算の PL³/(3EI) と同じ値が出ます。</p>
+<p>振動ではそうはいきません。振動の形は3次式ではなく、質量は長さ方向に分布しています。MSC Nastran の既定の<strong>集中質量</strong>は、要素の質量を両端の並進に半分ずつ置くだけで、回転の慣性を持ちません。<a href="bulk.html#PARAM_COUPMASS">PARAM,COUPMASS,1</a> の<strong>連成質量</strong>は、分布した質量を3次式の形に合わせて配ります。CBAR の連成質量は、曲げについては教科書どおりの一貫質量です（違うのは軸方向とねじりの扱いだけ）。</p>
+<figure data-beam-lab="mesh"></figure>
+<h3>図から読み取ること</h3>
 <ul>
-<li>ねじりの回転慣性（質量）は、標準では質量行列に入りません。入れるには NASTRAN 文の BARMASS を 1 にします（PARAM COUPMASS を使う場合はどちらでも追加されます）。静解析には影響しませんが、固有値解析では効きます。</li>
-<li>SOL 106 や SOL 400 の非線形解析でも、CBAR は線形の要素として扱われます。幾何学的な非線形を考えたいときは、<a href="bulk.html#MDLPRM">MDLPRM</a> の BRTOBM を 1 にして CBAR を CBEAM に変換します。</li>
-<li>CBAR の要素番号の既定値や、向きベクトルの既定値は <a href="bulk.html#BAROR">BAROR</a> でまとめて与えられます。</li>
+<li><strong>1要素・集中質量では1次が30%低い。</strong>先端に要素の質量の半分（0.5 mL）が集まるからです。実際の1次の振動で先端に効く質量は約0.24 mL なので、重すぎて振動数が下がります。</li>
+<li><strong>集中質量は下から、連成質量は上から近づく。</strong>誤差1%以内に必要な要素数は、集中質量で1次7本・2次13本・3次17本、連成質量で1次1本・2次2本・3次4本でした（この片持ち梁での計算）。</li>
+<li><strong>静的な答えが合っても、振動が合うとは限らない。</strong>静解析用のモデルをそのまま固有値解析に使うときは、見たいモードの振動の形を何本の要素で表しているかを数えます。</li>
 </ul>
+<p>CBAR の集中質量には、ねじりの回転慣性も入りません。入れるには NASTRAN 文の BARMASS を 1 にします。CBEAM の集中質量にはねじりの慣性が入ります（動解析ユーザーガイド）。</p>
 </section>
 
-<section class="theory-section" id="beam-axes"><h2>5. 要素座標と向きベクトル v</h2>
-<div class="analysis-links"><a href="coordinates.html#elements">最初に学ぶ「要素の向き」へ →</a></div>
-<p>梁要素で初心者が最もつまずくのが「向きベクトル」です。同じ寸法の I形鋼でも、縦に置くか横に置くかで構造の硬さは大きく変わります。両端の節点と断面の値だけでは、断面がどちらを向いているかが決まりません。そこで、断面の向きを決める矢印 v を別に与えます。</p>
-<figure class="element-figure"><div data-element-sketch="beamAxes" data-description="梁のAからBへ局所x。斜めの向きベクトルvのうちxに垂直な成分が局所y。局所zは手前。Bに下向き荷重。"></div><figcaption>オフセットなしの例。青は要素の正方向、緑は断面の向きを決める v、赤は外力です。この例は局所 x・y が基本 X・Y と一致しています。v が斜めでも y は x に直角です。</figcaption></figure>
+<section class="theory-section" id="beam-axes"><h2>3. 断面の向き — 10°のずれで、横へ4倍たわむ</h2>
+<p>両端の節点と断面の数だけでは、断面がどちらを向いているかが決まりません。それを決めるのが向きベクトル v です。v を誤ると「I1 と I2 が入れ替わる」とよく言われますが、本当に怖いのは、少しだけずれた場合です。</p>
+<div data-beam-fig="axes"></div>
 <h3>座標の決まり方</h3>
-<ol>
-<li>x 軸：端A（GA 側の端）から端B（GB 側の端）へ向かう線。</li>
-<li>面1：x 軸と向きベクトル v を含む平面。これを決めるのは利用者の責任です。</li>
-<li>y 軸：面1の中で、vからx成分を引いた向き。v自体が斜めでも、yはxに直角です。</li>
-<li>z 軸：右手の法則で z = x × y。</li>
-<li>面2：x 軸と z 軸を含む平面。</li>
-</ol>
-<p>GA・GB と v を与えれば、要素座標は Nastran が自動で計算します。v の長さは関係なく、向きだけが意味を持ちます。v が x 軸と平行だと面1 が決まらず、エラーになります。</p>
+<ul>
+<li>x：端A（GA 側）から端B（GB 側）へ。</li>
+<li>y：v から x 方向の成分を除いた向き。v は斜めでもよく、長さは関係ありません。v が x と平行だと面1 が決まらず、エラーになります。</li>
+<li>z：右手の法則で z = x × y。</li>
+</ul>
+<p id="beam-inertia"><strong>I1 は「面1で曲がるときの I」</strong>です。y 方向にたわみ、z 軸まわりに回るので、材料力学の書き方では I1 = Izz = ∫y² dA になります。添字が「面の番号」なのか「回転軸の名前」なのかで逆に見えるので、I1 = Izz、I2 = Iyy と覚えます。</p>
+<figure data-beam-lab="orient" id="beam-cbar-example"></figure>
+<h3>なぜ横へたわむのか</h3>
+<p>平鋼 100×20 は、弱い向きのほうが強い向きより25倍たわみやすい断面です。v が10°ずれると、真下の荷重のうち弱い向きの成分は sin10° ≈ 0.17 しかありません。それでも25倍たわみやすいので、横へのたわみが鉛直のたわみを上回ります。根元の応力も、角に2方向の曲げ応力が重なって約1.85倍になります。</p>
+<p>H形鋼は強い向きと弱い向きの差が約14倍なので、10°で横たわみが設計のたわみの約2.2倍です。角形鋼管は I1 = I2 なので、どの角度でもたわみは同じです。ただし応力は45°で√2 倍になります。角が中立軸から最も遠くなるからです。</p>
 <h3>v の2つの与え方</h3>
-<p><a href="bulk.html#CBAR">CBAR</a> と <a href="bulk.html#CBEAM">CBEAM</a> は、どちらも<strong>第6欄で方式を切り替え</strong>ます。実数なら第6〜8欄に X1・X2・X3、整数なら第6欄に G0 の GRID 番号を入れ、第7・8欄を空けます。<code>1.</code> は実数の成分、<code>1</code> は GRID 1 の番号です。</p>
-<div class="element-table-wrap"><table class="element-table narrow">
-<thead><tr><th>方式</th><th>第1欄<br>カード名</th><th>第2欄<br>EID</th><th>第3欄<br>PID</th><th>第4欄<br>GA</th><th>第5欄<br>GB</th><th>第6欄<br>X1 / G0</th><th>第7欄<br>X2</th><th>第8欄<br>X3</th><th>第9欄<br>OFFT</th></tr></thead>
-<tbody>
-<tr><th scope="row">実数</th><td>CBAR</td><td>10</td><td>20</td><td>1</td><td>2</td><td>0.</td><td>1.</td><td>0.</td><td>GGG</td></tr>
-<tr><th scope="row">G0</th><td>CBAR</td><td>10</td><td>20</td><td>1</td><td>2</td><td>90</td><td>空欄</td><td>空欄</td><td>GGG</td></tr>
+<p>CBAR と CBEAM は、どちらも第6欄で方式が切り替わります。実数なら第6〜8欄に成分 X1・X2・X3、整数なら第6欄に向きの目印にする GRID の番号 G0 を書き、第7・8欄を空けます。<code>1.</code> は成分、<code>1</code> は GRID 1 の番号です。</p>
+<div class="element-table-wrap"><table class="element-table pin-field-table"><thead><tr><th>方式</th><th>第1欄</th><th>第2欄 EID</th><th>第3欄 PID</th><th>第4欄 GA</th><th>第5欄 GB</th><th>第6欄 X1／G0</th><th>第7欄 X2</th><th>第8欄 X3</th><th>第9欄 OFFT</th></tr></thead><tbody>
+<tr><td>成分</td><td>CBAR</td><td>10</td><td>20</td><td>1</td><td>2</td><td>0.</td><td>0.</td><td>1.</td><td>GGG</td></tr>
+<tr><td>G0</td><td>CBAR</td><td>10</td><td>20</td><td>1</td><td>2</td><td>90</td><td>空欄</td><td>空欄</td><td>GGG</td></tr>
 </tbody></table></div>
-<p>表の2行は<strong>同じ梁に対する代替入力</strong>で、同時には使いません。8文字固定長の各欄と入力例の詳細は <a href="bulk.html#CBAR">CBAR のInputデータ</a>、CBEAM の欄は <a href="bulk.html#CBEAM">CBEAM のInputデータ</a>で確認できます。この例の基本座標で GA=GRID 1 は (0, 0, 0)、GB=GRID 2 は (100, 0, 0)、G0=GRID 90 は (0, 100, 0) です。ベクトル (0, 1, 0) と GA→G0 は、ともに＋Yを指します。OFFT=GGG なら成分は GA の変位座標系で読むため、この数値例ではその軸を基本座標と一致させています。</p>
-<figure class="element-figure"><div data-element-sketch="beamOrientation"></div></figure>
-<p><strong>GAと端A：</strong>GAはCBAR/CBEAMの第4欄に書く接続節点の番号、端Aは梁の軸が始まる位置です。オフセット WA がゼロなら両者は同じ位置です。WA を指定すると、GAからWAだけずれた位置が端Aになります。向きベクトルはGAで指定し、Nastranがその向きを端Aへ平行移動して使います。したがって「GAから」と「端Aで使う」は矛盾しません。</p>
-<p><strong>G0の使い回し：</strong>梁の数だけ専用GRIDを作る必要はありません。図のように複数の梁が同じ G0=90 を参照できます。ただし各梁で<strong>それぞれのGA→G0</strong>を計算するため、梁軸と平行にならず、意図した断面方向になることを全要素で確かめます。G0はGA・GBと同じ番号にはできません。構造につながない向き専用のGRIDにしておくと、構造節点を移動した際に断面方向が意図せず変わるのを防ぎやすくなります。</p>
-<h3>オフセットと OFFT</h3>
-<p>CBAR／CBEAM の継続行の WA・WB で、要素の端を節点からずらせます。オフセットは「節点から端まで剛な腕でつなぐ」ことと同じ扱いです。たとえば RC 床をシェル、床の下面にある梁を梁要素で表すと、床シェルの基準面上の接続節点 GA・GB と、梁断面の中心を通る梁軸の端 A・B は同じ高さにありません。</p>
-<figure class="element-figure"><div data-element-sketch="beamSlabOffset"></div></figure>
-<p>図では床厚 <i>t<sub>s</sub></i> = 120 mm、床下面から梁下面までの梁せい <i>h<sub>b</sub></i> = 500 mm とします。床シェルの基準面を厚さ中央、梁軸を梁矩形断面の中央に置くと、両者の高さの差は <strong><i>e</i> = 120/2 + 500/2 = 310 mm</strong> です。基本座標の＋Zを上に取り、GA・GB の変位座標系も基本座標に一致させた例では、<code>OFFT=GGG</code> として <code>W3A=-310.</code>、<code>W3B=-310.</code> を指定します。W1A・W2A・W1B・W2B はこの例ではゼロです。これは梁端を床から下へずらす指定で、梁の断面寸法を310 mmにする指定ではありません。</p>
-<p>この模式図は床と梁を共有節点でつなぐ単純化です。梁断面と床シェルの材料領域を二重に数えないよう断面設定を確認し、結合範囲・曲げ剛性・局所応力が目的に合うか検証します。<a href="bulk.html#CBAR">CBAR</a>／<a href="bulk.html#CBEAM">CBEAM</a> の WA・WB 欄と、断面の <a href="bulk.html#PBAR">PBAR</a>／<a href="bulk.html#PBEAM">PBEAM</a> 欄は別々に設定します。</p>
-<p>OFFT 欄の3文字で、向きベクトルと両端のオフセットをどの座標系で測るかを選びます。1文字目が向きベクトル（G：GA の変位座標系、B：基本座標系）、2文字目と3文字目が端A と端B のオフセット（G：各節点の変位座標系、O：オフセット座標系）です。既定値は GGG です。オフセット座標系は GA から GB へ向かう x 軸と v から作られるので、向きベクトル自身をオフセット座標系で測ることはできず、OOO のような組み合わせはエラーになります。</p>
-<ul>
-<li>オフセットの計算には「従来の方法」（既定）と「改良した方法」があり、改良した方法は <a href="bulk.html#MDLPRM">MDLPRM</a> の OFFDEF,LROFF で選びます。</li>
-<li>改良した方法では、オフセットによる熱荷重の位置の変化、座屈解析の結果、質量の変換が正しく扱われます。</li>
-<li>オフセットの長さそのものは、熱荷重では伸び縮みしません。</li>
-</ul>
-<h3>力の出力の向き</h3>
-<p>要素の力と応力は要素座標で出力されます。V1 は面1内のせん断、M1 は面1の曲げに対応する面外軸まわりのモーメントです。V2・M2 は面2に対応します、Fx が軸力、T がトルクです。</p>
+<p>2行は同じ梁の別の書き方です。GRID 1 が (0, 0, 0)、GRID 90 が (0, 0, 100) なら、どちらも v は＋Z です。G0 は複数の梁で使い回せますが、梁ごとに GA→G0 の向きが変わるので、全部の梁で意図した向きになるかを図で確かめます。構造につながない向き専用の GRID にしておくと、構造の節点を動かしたときに断面の向きが勝手に変わりません。PBARL・PBEAML で断面を寸法で入れる場合も、寸法の「高さ」がどの軸に乗るかは v で決まります（<a href="#beam-pbarl">§5</a>）。</p>
 </section>
 
-<section class="theory-section" id="beam-cbar-example"><h2>6. 検算：断面を90°回す</h2><figure class="element-figure"><div data-element-sketch="rectangularSection" data-description="同じ矩形断面を90度回転。荷重はどちらも下向き。高さ10ミリの断面と高さ30ミリの断面。"></div><figcaption>梁を端B側から見た断面。荷重方向の高さが3倍になると、同じ面積でも曲げ剛性は9倍になります。</figcaption></figure>
-<p>長さ240 mm、幅30 mm、高さ10 mm、E=70,000 MPaの片持ち梁を用います。端Aを固定し、端Bに−Yへ70 Nを加えます。局所 x が＋X、局所 y が＋Yの場合を基準にします。</p><div class="element-formula">断面高さ10 mm：I = 30 × 10³/12 = 2,500 mm⁴、変位 ≈ −1.843 mm<br>断面高さ30 mm：I = 10 × 30³/12 = 22,500 mm⁴、変位 ≈ −0.205 mm<br>共通の根元曲げモーメントの大きさ：70 × 240 = 16,800 N·mm</div><p>細長い一様梁の曲げのみの近似です。断面を回すときは荷重の基本座標方向を維持します。局所出力では曲げ面の番号が入れ替わるので、基本Y方向の変位と同じ物理断面を比較します。</p>
+<section class="theory-section" id="beam-offset"><h2>4. オフセット — 床と梁を一緒に曲げると、剛さは約3倍</h2>
+<p>RC の床をシェル、床の下の梁を CBAR で表すとき、梁を床の節点にそのまま置くと、梁は床の中央面で曲がることになります。実物の梁は床の下にあり、床と一緒に曲がる「合成断面」です。この差を埋めるのが、梁の端を節点からずらすオフセット WA・WB です。</p>
+<figure data-beam-lab="offset"></figure>
+<h3>図から読み取ること</h3>
+<ul>
+<li>オフセットなしでは、床と梁は同じ曲率で別々に曲がります。床は自分の中央面のまわりにしか曲がらず、梁の圧縮を床が受け持ちません。</li>
+<li>オフセットありでは、床が圧縮、梁の下端が引張を受ける1つの断面になり、曲げの剛さが約3倍になります。梁の下端の応力は、オフセットなしの値の約半分です。</li>
+<li>有効幅を広げるほど差は開きます。シェルで床をモデル化した場合、合成に効く幅は手で決めるのではなく、シェルの膜の剛さと要素分割から決まります。</li>
+</ul>
+<h3>入力</h3>
+<p>CBAR・CBEAM の継続行の W1A〜W3B に、節点から梁端までのずれを書きます。図の例は、床厚 120 mm、床の下面から梁の下面まで 500 mm です。床シェルの基準面（厚さの中央）から梁の中心までは e = 120/2 + 500/2 = 310 mm です。＋Z を上、GA・GB の変位座標系を基本座標と一致させると、OFFT = GGG で W3A = W3B = −310. と書きます。</p>
+<ul>
+<li>オフセットは、節点から梁端までを剛な腕でつなぐのと同じ扱いです。</li>
+<li>OFFT の3文字で、v と両端のオフセットをどの座標系で測るかを選びます。1文字目が v（G：GA の変位座標系、B：基本座標系）、2・3文字目が端A・端B のオフセット（G：節点の変位座標系、O：オフセット座標系）です。既定は GGG。オフセット座標系は v から作るので、v 自身をその座標系では測れず、OOO はエラーです。</li>
+<li>オフセットの計算には、従来の方法（既定）と、<a href="bulk.html#MDLPRM">MDLPRM</a> の OFFDEF,LROFF で選ぶ改良した方法があります。改良した方法では、オフセットによる熱荷重の位置の変化、座屈解析、質量の変換が正しく扱われます。オフセットの腕そのものは、熱では伸び縮みしません。</li>
+<li><strong>二重に数えない。</strong>床をシェルで表したうえで、梁の断面を床を含む T 形で定義すると、床の分を2回数えて硬すぎるモデルになります。梁の断面は梁の部分だけにします。</li>
+<li>端部の解放（§7）は、GRID の位置ではなく、ずらした梁の端で働きます。</li>
+</ul>
 </section>
 
-<section class="theory-section" id="beam-pbarl"><h2>7. 断面を寸法で入れる（PBARL）</h2>
-<p><a href="bulk.html#PBAR">PBAR</a> では、断面積や断面二次モーメントを自分で計算して入力します。標準的な断面なら難しくはありませんが、手間がかかり、入力の誤りも起きやすくなります。<a href="bulk.html#PBARL">PBARL</a> を使うと、断面の形と寸法だけを入れれば、Nastran が断面の値を計算します。</p>
+<section class="theory-section" id="beam-cbar"><h2>5. CROD・CBAR の入力 — 空欄の意味が欄ごとに違う</h2>
+<h3 id="beam-crod">CROD：軸力とねじりだけ</h3>
+<p>CROD は、長さ方向に一様なまっすぐの棒です。剛さは伸び縮みとねじりだけで、曲げを伝えません。曲げが要らないトラスなら、向きベクトルを考えなくて済む分、CBAR より間違えにくい要素です。</p>
+<div class="element-table-wrap"><table class="element-table narrow"><thead><tr><th>カード・欄</th><th>意味</th></tr></thead><tbody>
+<tr><td>CROD：EID, PID, G1, G2</td><td>要素番号、物性番号、両端の節点</td></tr>
+<tr><td>PROD：A</td><td>断面積。空欄だと軸の剛さなし</td></tr>
+<tr><td>PROD：J</td><td>ねじり定数。空欄だとねじりの剛さなし</td></tr>
+<tr><td>PROD：C</td><td>ねじり応力を求める係数</td></tr>
+<tr><td>PROD：NSM</td><td>単位長さあたりの構造以外の質量（塗装・配線など）</td></tr>
+</tbody></table></div>
+<h3>PBAR：空欄が「0」の欄と「無限大」の欄がある</h3>
+<div class="element-table-wrap"><table class="element-table"><thead><tr><th>欄</th><th>意味</th><th>空欄にすると</th></tr></thead><tbody>
+<tr><td>A, I1, I2, J</td><td>断面積、断面二次モーメント、ねじり定数</td><td>0：その剛さがない要素になる</td></tr>
+<tr><td>I12</td><td>断面相乗モーメント</td><td>0：主軸が y・z と一致</td></tr>
+<tr><td>K1, K2</td><td>せん断の断面積係数（K·A·G の K）</td><td><strong>無限大</strong>：せん断変形なし（§6）</td></tr>
+<tr><td>C1, C2 … F1, F2</td><td>応力を求める4点 C・D・E・F の (y, z)</td><td><strong>0</strong>：4点とも図心になり、曲げ応力の出力が 0</td></tr>
+<tr><td>NSM</td><td>単位長さあたりの構造以外の質量</td><td>0</td></tr>
+</tbody></table></div>
+<div data-beam-fig="stresspoints" id="beam-stress-points"></div>
+<p>応力が 0 と出たのは安全だからではなく、点を入れていないからです。MSC Nastran では、応力の点は断面の最も遠い点に置くのが普通で、そこが曲げ応力の最大の位置になります。CBAR の安全余裕は曲げと軸の応力だけで計算され、ねじりは入りません。</p>
+<h3 id="beam-pbarl">PBARL：寸法で入れると、点と K も自動で決まる</h3>
+<p><a href="bulk.html#PBARL">PBARL</a> は断面の形と寸法を入れ、断面の数を Nastran に計算させます。形は ROD、TUBE、TUBE2、I、CHAN、T、BOX、BAR、CROSS、H、T1、I1、CHAN1、Z、CHAN2、T2、BOX1、HEXA、HAT、HAT1、DBOX の21種類です。</p>
 <ul>
-<li>選べる形は21種類：ROD、TUBE、TUBE2、I、CHAN（溝形）、T、BOX、BAR（長方形）、CROSS、H、T1、I1、CHAN1、Z、CHAN2、T2、BOX1、HEXA（六角形）、HAT、HAT1、DBOX。I・CHAN・T・BOX は向きの違う形も選べます。</li>
-<li>応力を求める点は自動で決まり、その断面で最大応力が出る位置に置かれます。</li>
-<li>構造以外の質量（NSM）は最後の寸法の後に書きます。</li>
-<li>標準の断面にない形は、FORTRAN で小さなプログラムを書いて独自の断面ライブラリとして追加できます。</li>
-<li>寸法から断面の値が自動で決まるので、最適化（SOL 200）で寸法を設計変数にしやすくなります。</li>
+<li>応力を求める点は、その断面で最大応力が出る位置に自動で置かれます。上の「空欄で 0」は起きません。</li>
+<li>現在の既定では、標準の形も任意断面（§11）と同じ方法で計算され、せん断係数 K1・K2 も求まります。そのため PBARL の CBAR は、既定でせん断変形を含みます。以前の薄肉の公式に戻すには MDLPRM,TWBRBML,1 とします。</li>
+<li>構造以外の質量 NSM は、最後の寸法の後に書きます。</li>
+<li>寸法を設計変数にできるので、最適化（SOL 200）で使いやすい形式です。</li>
+<li>寸法の「高さ」と「幅」がどの軸に乗るかは v で決まります。寸法を入れ替えると、§3 の図の 90° と同じことが起きます。</li>
 </ul>
-<h3>断面寸法と座標をセットで確認する</h3><p>矩形の寸法を入れ替えると曲げ剛性が入れ替わります。断面の表示と梁の局所y・zを同時に出し、荷重方向に対する高さを確認します。</p></section>
+<h3>その他</h3>
+<ul>
+<li>SOL 106・SOL 400 でも、CBAR は線形の要素のままです。幾何学的な非線形を扱うには MDLPRM の BRTOBM を 1 にして CBEAM に変換します。</li>
+<li>多数の CBAR に共通の物性番号や v は <a href="bulk.html#BAROR">BAROR</a> で既定値として与えられます。</li>
+<li>途中の点の応力は <a href="bulk.html#CBARAO">CBARAO</a> で追加できます。</li>
+</ul>
+</section>
 
-<section class="theory-section" id="beam-pin"><h2>8. 端部自由度の解放（PA・PB）</h2>
-<p><a href="bulk.html#CBAR">CBAR</a> の <code>PA</code>・<code>PB</code> は、指定した梁端の自由度を接続節点から解放する入力です。<strong>1〜3は並進方向の力、4〜6は回転方向のモーメント</strong>を解放できます。指定した成分の梁端力・梁端モーメントがゼロになります。<code>PA</code> は GA 側の端A、<code>PB</code> は GB 側の端Bです。MSCのQRGでは “pin flags” と呼びますが、並進も対象なので、この教材では「端部自由度の解放」と呼びます。</p>
-<h3>1. 入力する場所</h3>
-<p>1行目の第4・5欄で GA・GB を指定し、2行目（継続行）の第2・3欄に PA・PB を書きます。下の各列は8文字の入力欄です。<strong>表を左右に送ると第9欄まで見られます。</strong>例の2行は欄位置を示す抜粋で、GRID・PBARなどを含む完成モデルではありません。</p>
+<section class="theory-section" id="beam-shear"><h2>6. せん断変形 — 同じH形鋼でも、カードで答えが変わる</h2>
+<p>先端荷重の片持ち梁のたわみは、曲げの PL³/(3EI) に、せん断の PL/(K·A·G) が加わります。2つの比は 3EI/(K·A·G·L²) で、梁が短いほどせん断の割合が増えます。問題は、K の既定値がカードによって違うことです。</p>
+<div class="element-table-wrap"><table class="element-table narrow"><thead><tr><th>入力</th><th>K1・K2 の既定</th><th>意味</th></tr></thead><tbody>
+<tr><td>PBAR（空欄）</td><td>無限大</td><td>せん断変形なし</td></tr>
+<tr><td>PBEAM（空欄）</td><td>1.0</td><td>断面積の全部でせん断を受ける</td></tr>
+<tr><td>PBARL</td><td>断面から計算</td><td>せん断変形を含む梁（ティモシェンコ梁）</td></tr>
+</tbody></table></div>
+<figure data-beam-lab="shear"></figure>
+<h3>図から読み取ること</h3>
+<ul>
+<li>H形のせん断は、ほぼウェブだけが受けます。有効なせん断面積はウェブ程度で、全断面積の約4割です。PBEAM の既定 1.0 は全断面で受ける扱いなので、せん断のたわみを約2.5分の1に見積もります。</li>
+<li>L/h = 5 の H形では、PBAR（K 空欄）のたわみが PBARL より約12%小さく出ます。L/h = 2 では、せん断のたわみが曲げの約8割になります。</li>
+<li>長方形はせん断を全断面で受けるので、どの入力でも差は小さめです（L/h = 5 で約3%）。</li>
+</ul>
+<p>K1 は面1、K2 は面2 のせん断です。H形を強い向きで曲げるとき、せん断を受けるウェブの面が面1 なら K1 に約0.4 を入れます。CBAR と同じ「せん断変形なし」にしたい CBEAM では、K1・K2 に 0.0 を入れます（PBEAM では 0.0 が無限大の意味です）。</p>
+</section>
+
+<section class="theory-section" id="beam-pin"><h2>7. 端部の解放（PA・PB）— 6 が「どの軸」かは v で決まる</h2>
+<p>CBAR の継続行の PA・PB に 1〜6 の数字を書くと、その梁端の成分が節点から外れ、その成分の梁端力が 0 になります。1〜3 が並進、4〜6 が回転で、番号は<strong>要素座標</strong>で読みます。だから同じ「6」でも、v の向きで外れる曲げが変わります。</p>
+<figure data-beam-lab="release"></figure>
+<h3>入力する場所</h3>
 <div class="element-table-wrap"><table class="element-table pin-field-table"><thead><tr><th>行</th><th>第1欄</th><th>第2欄</th><th>第3欄</th><th>第4欄</th><th>第5欄</th><th>第6欄</th><th>第7欄</th><th>第8欄</th><th>第9欄</th></tr></thead><tbody>
-<tr><th scope="row">項目・1行目</th><td>CBAR</td><td>EID</td><td>PID</td><td>GA</td><td>GB</td><td>X1/G0</td><td>X2</td><td>X3</td><td>OFFT</td></tr>
-<tr><th scope="row">項目・継続行</th><td>空欄</td><td>PA</td><td>PB</td><td>W1A</td><td>W2A</td><td>W3A</td><td>W1B</td><td>W2B</td><td>W3B</td></tr>
-<tr><th scope="row">例・1行目</th><td>CBAR</td><td>101</td><td>1</td><td>10</td><td>20</td><td>0.</td><td>0.</td><td>1.</td><td>GGG</td></tr>
-<tr><th scope="row">例・継続行</th><td>空欄</td><td><strong>56</strong></td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td></tr>
+<tr><td>1行目</td><td>CBAR</td><td>EID</td><td>PID</td><td>GA</td><td>GB</td><td>X1／G0</td><td>X2</td><td>X3</td><td>OFFT</td></tr>
+<tr><td>継続行</td><td>空欄</td><td>PA</td><td>PB</td><td>W1A</td><td>W2A</td><td>W3A</td><td>W1B</td><td>W2B</td><td>W3B</td></tr>
+<tr><td>例</td><td>空欄</td><td>56</td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td></tr>
 </tbody></table></div>
-<p>この例は端Aで曲げの2方向を解放し、端Bは解放しません。<code>56</code> のように数字を続けて書き、数字の間に空白を入れません。全フィールドの書式・既定値は <a href="bulk.html#CBAR">InputデータのCBAR</a>で確認できます。</p>
-<h3>2. 数字が表す力とモーメント</h3>
-<div class="element-table-wrap"><table class="element-table narrow"><thead><tr><th>番号</th><th>解放する成分</th><th>結果</th></tr></thead><tbody>
-<tr><td>1</td><td>要素 x 方向の並進</td><td>その端の軸力 Fₓ = 0</td></tr>
-<tr><td>2・3</td><td>要素 y・z 方向の並進</td><td>対応するせん断力 Vᵧ・V𝓏 = 0</td></tr>
-<tr><td>4</td><td>要素 x 軸まわりの回転</td><td>ねじりモーメント Mₓ = 0</td></tr>
-<tr><td>5</td><td>要素 y 軸まわりの回転</td><td>面2の曲げモーメント Mᵧ = 0</td></tr>
-<tr><td>6</td><td>要素 z 軸まわりの回転</td><td>面1の曲げモーメント M𝓏 = 0</td></tr>
+<div class="element-table-wrap"><table class="element-table narrow"><thead><tr><th>番号</th><th>外れる成分</th><th>0 になる梁端力</th></tr></thead><tbody>
+<tr><td>1</td><td>x 方向の並進</td><td>軸力</td></tr>
+<tr><td>2・3</td><td>y・z 方向の並進</td><td>面1・面2 のせん断力</td></tr>
+<tr><td>4</td><td>x 軸まわりの回転</td><td>ねじりモーメント</td></tr>
+<tr><td>5</td><td>y 軸まわりの回転</td><td>面2 の曲げモーメント</td></tr>
+<tr><td>6</td><td>z 軸まわりの回転</td><td>面1 の曲げモーメント</td></tr>
 </tbody></table></div>
-<p>番号は<strong>要素座標</strong>で読みます。局所 x は梁の端A→端B、局所 y は向きベクトルの x に直角な成分、局所 z は x×y です。オフセットがゼロなら端A→端BはGA→GBと一致します。全体座標やGRIDの変位座標 CD の番号とは区別してください。軸の図は <a href="#beam-axes">要素座標と向きベクトル</a>にあります。</p>
-<h3>3. 何を「ピン」と呼ぶか</h3>
-<div class="element-table-wrap"><table class="element-table narrow"><thead><tr><th>指定例</th><th>その端でゼロになるもの</th><th>残るもの</th></tr></thead><tbody>
-<tr><td><code>PA=5</code> または <code>6</code></td><td>指定した1つの曲げモーメント</td><td>もう一方の曲げ・ねじりは伝えられる</td></tr>
-<tr><td><code>PA=56</code></td><td>曲げモーメント2方向</td><td>ねじり（4）と並進力は伝えられる。「曲げに対するピン」</td></tr>
-<tr><td><code>PA=456</code></td><td>曲げ2方向＋ねじり</td><td>並進力は伝えられる。3方向の回転を解放する</td></tr>
-<tr><td><code>PA=123</code></td><td>軸力＋せん断力2方向</td><td>並進力を伝えない。回転ピンではなく、接続が不安定になりやすい</td></tr>
-</tbody></table></div>
-<p><code>PA=56</code> を「完全にモーメントを伝えないピン」と呼ぶと、残るねじりを見落とします。<code>PA=123</code> は実際に入力できますが、軸力と両せん断力を解放するため、一般的なピン接合の指定ではありません。上の表はA端の例で、B端なら <code>PB</code> に同じ数字を書きます。</p>
-<h3>4. 2本の梁をつなぐ場合</h3>
-<p>梁1の <code>GB=20</code> と梁2の <code>GA=20</code> が<strong>同じ GRID 20</strong>を参照する例です。両梁端の位置は重なり、並進変位も同じになります。ただし「同じ節点を使う」ことと「回転も常に同じ」は別です。</p>
-<figure class="element-figure"><div data-element-sketch="pin" data-description="梁1のGBと梁2のGAは同一GRID20。並進は共有。梁1のB端はPB1=456で回転を解放し、梁2のA端はPA2空欄で節点回転に従う。外部モーメントなしの2本梁では両梁端モーメントはゼロ"></div><figcaption>左は梁1のB端、右は梁2のA端です。どちらもGRID 20の位置にあります。<code>PB₁=456</code> によって梁1のB端の回転だけが節点から切り離され、<code>PA₂=空欄</code> の梁2のA端は節点と一緒に回ります。図の ∅ は空欄です。</figcaption></figure>
-<ol><li><strong>位置：</strong>梁1のB端、GRID 20、梁2のA端は同じ位置で動きます。</li><li><strong>回転：</strong>梁2のA端はGRID 20と一緒に回ります。梁1のB端は別の角度へ回れるため、2本の梁の間はピンです。</li><li><strong>モーメント：</strong>梁1のB端は解放によってゼロです。この節点に2本しかなく外部モーメントもなければ、つり合いから梁2のA端もゼロです。</li></ol>
-<p>この条件では両方の梁がピン端になりますが、<code>PA₂=456</code> を追加する必要はありません。両側を解放すると、GRID 20の回転自由度がどの要素にもつながらず、特異行列の原因になる場合があります。別の部材や外部モーメントがGRID 20につながる場合、梁2のA端モーメントはゼロとは限りません。</p>
-<h3>5. 入力時の注意</h3>
 <ul>
-<li>同じCBARの両端で同じ成分を解放すると、その成分の剛性を失うことがあります。両端の4ならねじり、両端の1なら軸方向の剛性経路を失います。両端の56は曲げを伝えない棒に近づきますが、軸力・ねじりは残ります。モデル全体の自由度と <a href="analysis.html#model-verification">特異・AUTOSPC</a> を確認します。</li>
-<li>オフセット WA・WB がある場合、解放はGRIDの位置ではなく<strong>ずらした梁の端A・B</strong>で作用します。GRIDから梁端までの腕によって、GRID側に別のモーメントが生じ得ます。位置関係は <a href="#beam-axes">床と梁のオフセット図</a>で確認してください。</li>
-<li>解放する自由度には元の剛性が必要です。たとえば4を解放するなら <a href="bulk.html#PBAR">PBAR</a> のねじり定数 J が必要です。数字は1〜6から重複なく最大5個、数字の間に空白は入れません。SOL 700ではピンフラグを使えません。</li>
+<li>PA = 56 は曲げ2方向のピンで、ねじり（4）は伝わります。「モーメントを一切伝えないピン」にするなら 456 です。</li>
+<li>1本の CBAR の両端で同じ成分を外すと、その成分の剛さの経路が切れます。両端の 4 ならねじり、両端の 1 なら軸方向の剛さを失います。</li>
+<li>1つの節点に集まる梁の全部で同じ回転を外すと、その節点の回転がどこにもつながらず、特異になります（図の両方の解放）。<a href="analysis.html#model-verification">特異・AUTOSPC</a> の出力で見つけられます。</li>
+<li>外す成分には元の剛さが要ります。4 を外すなら PBAR の J が必要です。数字は重複なく最大5個、間に空白を入れません。SOL 700 では使えません。</li>
 </ul>
 </section>
 
-<section class="theory-section" id="beam-cbeam"><h2>9. CBEAM — 断面が変わる・ねじれる梁</h2>
-<p><a href="bulk.html#CBEAM">CBEAM</a> は CBAR のすべての機能に加えて、次のことができます。</p>
+<section class="theory-section" id="beam-cbeam"><h2>8. CBEAM — せん断中心と反り</h2>
+<p>CBEAM は CBAR の機能に加えて、断面を途中で変えられ（両端と途中の最大9か所）、せん断中心と図心をずらせ、反りがねじりの剛さに与える効果を含められます。構造以外の質量の重心を別の位置に置くことや、ねじりの回転慣性の分布、テーパーによるせん断の補正も扱えます。</p>
+<h3 id="beam-shear-center">せん断中心：荷重がそこを通らないと、梁はねじれる</h3>
+<p>せん断中心 S は、横荷重の作用線がそこを通ればねじりが生じない点です。図心 G とは一致するとは限りません。上下対称の溝形でも、S はウェブの外側、材料のない場所にあります。</p>
+<figure data-beam-lab="shearcenter"></figure>
+<p>2軸対称の断面（円、長方形、I形）では S と G が一致します。対称軸が1本だけの溝形では一致しません。CBAR は S と G が一致する断面の要素なので、溝形を CBAR で解くと、図心に荷重をかけてもねじれません。実物はねじれます。CBEAM では、要素の x 軸がせん断中心を結ぶ線になり、図心（中立軸）の位置は PBEAM の N1・N2 で x 軸からずらして与えます。</p>
+<h3 id="beam-warping">反り：H形鋼の根元を溶接すると、ねじれ角は数分の1</h3>
+<p>H形をねじると、上下のフランジが逆向きに横へ曲がり、断面の点が長さ方向にずれます（反り）。根元を端板に溶接するなどして反りを止めると、フランジの曲げがねじりに抵抗します。CBAR はこの効果を扱えません。</p>
+<figure data-beam-lab="warp"></figure>
+<p>反りを止めたときのねじりの式は、全トルクを2つに分けます。</p>
+<p class="element-formula">T = G·J·θ′ − E·Cw·θ‴</p>
+<p>θ はねじれ角、θ′ = dθ/dx は単位長さあたりのねじれ角、Cw は反り定数（長さの6乗の単位）です。第1項が通常のねじり、第2項が反りの拘束による寄与です。反りが自由な一様なねじりなら θ′ は一定、θ‴ = 0 で T = GJθ′ に戻ります。</p>
 <ul>
-<li>両端と、途中の最大9か所で、別々の断面の値を与えられる（テーパー梁）。</li>
-<li>中立軸とせん断中心がずれていてもよい（非対称断面で重要）。</li>
-<li>断面の反りがねじりの剛さに与える効果を含める。</li>
-<li>テーパーがせん断の剛さに与える影響（せん断の補正）を含める。</li>
-<li>構造以外の質量の重心を、別の軸に置ける。</li>
-<li>動解析のため、分布したねじりの回転慣性を含める。</li>
+<li>図の 1/λ は、反りの拘束の影響が届く長さの目安です。部材がこれより短いほど、CBAR のねじれ角は過大になります。H形 300×150 で約1.7 m なので、2 m の部材では CBAR が約3.3倍、1 m では約10倍ねじれます。</li>
+<li>CBEAM で反りを扱うには、PBEAM に Cw を入れ、CBEAM の2番目の継続行の SA・SB に<a href="bulk.html#SPOINT">スカラー点</a>を指定します。スカラー点の自由度が反りの変数 dθ/dx です。根元で反りを止めるなら、そのスカラー点を <a href="bulk.html#SPC1">SPC</a> で 0 にします。要素名を CBEAM に変えるだけでは反りは拘束されません。</li>
+<li>答えは要素分割で変わるので、分割を変えて先端のねじれ角が落ち着くかを見ます。</li>
 </ul>
-<p>CBEAM カードは CBAR とほぼ同じ形で、違いは2つ目の継続行に SA・SB 欄（反りの自由度を表すスカラー点）があることだけです。要素番号などの既定値は <a href="bulk.html#BEAMOR">BEAMOR</a> で与えられます。</p>
-<h3>CBEAM の座標</h3>
-<p>CBEAM の x 軸は「せん断中心を結ぶ線」に沿います。中立軸と、構造以外の質量の重心の軸は、x 軸から離して置けます（CBAR では3つとも x 軸に一致）。向きベクトル v の決め方は CBAR と同じです。CBEAM のオフセット WA・WB は、節点からせん断中心の軸の端までのずれを表します。</p>
 <h3>PBEAM に入力する値</h3>
-<div class="element-table-wrap"><table class="element-table narrow">
-<thead><tr><th>項目</th><th>意味</th></tr></thead>
-<tbody>
+<div class="element-table-wrap"><table class="element-table"><thead><tr><th>欄</th><th>意味</th></tr></thead><tbody>
 <tr><td>A, I1, I2, I12, J, NSM</td><td>端A の断面の値（J は第8欄。PBAR の第7欄とずれる）</td></tr>
-<tr><td>C1, C2 … F1, F2</td><td>応力を求める点の y, z 座標。<strong>せん断中心からの位置</strong>で入れる</td></tr>
-<tr><td>SO</td><td>その断面で応力を出すか：YES（次の行の点で出す）、YESA（端A と同じ点で出す）、NO（出さない）</td></tr>
-<tr><td>X/XB</td><td>端A からの距離を要素の長さで割った値（0〜1）</td></tr>
-<tr><td>K1, K2</td><td>せん断の剛さ K·A·G の K（面1・面2）</td></tr>
+<tr><td>C1, C2 … F1, F2</td><td>応力を求める点。せん断中心からの位置で入れる</td></tr>
+<tr><td>SO</td><td>その断面で応力を出すか：YES（次の行の点）、YESA（端A と同じ点）、NO</td></tr>
+<tr><td>X/XB</td><td>端A からの距離 ÷ 要素の長さ（0〜1）</td></tr>
+<tr><td>K1, K2</td><td>せん断の剛さ K·A·G の K（既定 1.0）</td></tr>
 <tr><td>S1, S2</td><td>テーパーによるせん断の補正係数</td></tr>
 <tr><td>NSI(A), NSI(B)</td><td>構造以外の質量の回転慣性（単位長さあたり）</td></tr>
 <tr><td>CW(A), CW(B)</td><td>反り定数</td></tr>
-<tr><td>M1, M2</td><td>構造以外の質量の重心の (y, z)</td></tr>
-<tr><td>N1, N2</td><td>中立軸の (y, z)</td></tr>
+<tr><td>M1, M2 ／ N1, N2</td><td>構造以外の質量の重心 ／ 中立軸の (y, z)</td></tr>
 </tbody></table></div>
-<p>使わない機能の欄は空欄にでき、既定値が使われます。ただし例外があります。<strong>A・I1・I2 を空欄にすると致命的エラー</strong>になります。CBAR は入力値から直接剛性マトリクスを作るので、I1 = 0 でもその項がゼロになるだけです。CBEAM は入力値から柔性マトリクスを作り、それを逆行列にして剛性を求めるので、A・I1・I2 に正の値が必要です。</p>
-<h3>CBAR から CBEAM への書き換え（beam1）</h3>
-<p>3本のトラスの CBAR モデルを CBEAM にするには、3か所を変えるだけです。</p>
-<ol><li>CBAR を CBEAM に変える。</li><li>PBAR を PBEAM に変える。</li><li>J を PBAR の第7欄から PBEAM の第8欄へ移す。</li></ol>
-<p>見落としやすい違いが1つあります。<strong>せん断変形の既定値</strong>です。CBAR では K1・K2 の既定値が無限大（せん断変形なし）ですが、CBEAM では 1.0 で、せん断変形を含みます。CBAR と同じにしたいなら、CBEAM の K1・K2 に 0.0 を入れます。</p>
-<h3>CBEAM の出力</h3>
-<p>CBAR では曲げだけの応力と軸応力が別の列でしたが、CBEAM の SXC・SXD・SXE・SXF は、点 C・D・E・F での<strong>曲げと軸を合わせた</strong>応力です。応力は両端と、PBEAM で指定した途中の断面で出力されます。力の出力には、面1・面2 の曲げモーメントとせん断力、軸力、全トルク、反りのトルクが並びます。</p>
+<p><strong>A・I1・I2 は正の値が必須です。</strong>CBAR は入力値から剛性を直接作るので、I1 = 0 でもその項が 0 になるだけです。CBEAM は柔らかさの行列を作ってから逆行列で剛性を求めるので、0 だと致命的エラーになります。</p>
+<h3>CBAR から CBEAM へ書き換えるとき</h3>
+<ol>
+<li>CBAR を CBEAM に、PBAR を PBEAM に変える。</li>
+<li>J を PBAR の第7欄から PBEAM の第8欄へ移す。</li>
+<li>K1・K2 を確かめる。空欄のままだと、CBAR では「せん断変形なし」だったのが、CBEAM では 1.0 で「せん断変形あり」になります。そろえるなら 0.0 を入れます。</li>
+</ol>
+<p>出力の SXC・SXD・SXE・SXF は、点 C〜F での曲げと軸を合わせた応力です（CBAR では別の列）。両端と、PBEAM で指定した途中の断面で出ます。力の出力には、2つの面の曲げモーメントとせん断力、軸力、全トルク、反りのトルクが並びます。</p>
 </section>
 
-<section class="theory-section" id="beam-taper"><h2>10. 検算：断面が変わる梁</h2>
-<p>同じ長さの2区間で、根元側の曲げ剛性 EI を先端側の4倍とします。先端の横力Pによる曲げモーメントは、固定端からの距離xに対して大きさ P(L−x) です。</p><div class="element-formula">先端たわみ：δ = P ∫₀ᴸ (L−x)²/[E I(x)] dx<br>曲げ剛性が一様に弱い場合と比較：δの比 = (7/8)/4 + 1/8 = 11/32</div><p>根元側は曲げモーメントが大きく、同じ補強でも取り付け位置で効き方が変わります。実際に段差がある場合は境界で要素を分けます。滑らかなテーパーなら <a href="bulk.html#PBEAM">PBEAM</a> の断面位置を使い、端だけで足りるか分割を変えて確認します。</p>
+<section class="theory-section" id="beam-taper"><h2>9. 断面が変わる梁 — 補強は根元の半分で9割の効果</h2>
+<p>片持ち梁の曲げモーメントは根元で最大、先端で 0 です。だから同じ補強でも、どこに置くかで効き方が大きく違います。先端たわみは δ = P∫(L−x)²/[E·I(x)] dx で、根元に近い区間ほど大きく効きます。</p>
+<figure data-beam-lab="taper"></figure>
+<p>根元から半分の EI を4倍にすると、先端たわみは補強なしの 11/32（約0.34倍）です。全長を補強した 1/4 と比べると、減少分の87.5%を半分の長さで得ています。逆に、先端側の補強はほとんど効きません。</p>
+<p>実物に段差があるなら、境界で要素を分けます。なめらかなテーパーなら、PBEAM の途中の断面（最大9か所）を使えます。端の値だけで足りるかは、要素を分けた結果と比べて判断します。</p>
 </section>
 
-<section class="theory-section" id="beam-compare"><h2>11. 梁・シェル・ソリッドの比較</h2>
-<p>先端のたわみには梁モデル、幅方向に変わる表裏応力にはシェル、厚さ方向や接合部の詳細にはソリッドが向きます。同じ支持・荷重の合力・作用位置で比較し、応力は同じ断面と方向にそろえます。</p><p><a href="analysis.html#static">同じ片持ち部材を3種類で比較する</a></p>
+<section class="theory-section" id="beam-compare"><h2>10. 梁で足りるか — シェル・ソリッドに替える目安</h2>
+<div class="element-table-wrap"><table class="element-table"><thead><tr><th>見るところ</th><th>梁で足りる</th><th>シェル・ソリッドに替える</th></tr></thead><tbody>
+<tr><td>知りたいもの</td><td>部材の力、全体のたわみ、振動数</td><td>局部の応力、局部座屈、接合部の応力</td></tr>
+<tr><td>細長さ</td><td>せん断のたわみの割合が小さい（§6 の図で H形の L/h = 10 なら約3%）</td><td>太く短い。H形で L/h = 2 だと、せん断のたわみが曲げの約8割</td></tr>
+<tr><td>断面の形</td><td>荷重を受けても断面の形が保たれる</td><td>薄いフランジの局部座屈、ウェブのつぶれ、開口</td></tr>
+<tr><td>幅の広いフランジ</td><td>応力が幅方向にほぼ一様</td><td>床スラブのように、ウェブから離れるほど応力が減る（せん断遅れ）</td></tr>
+<tr><td>接合部</td><td>剛接合・ピンで表せる</td><td>ボルト・溶接・ガセットの局部</td></tr>
+</tbody></table></div>
+<p>§1 の比較のとおり、板の要素に替えれば必ず良くなるわけではありません。厚いフランジを板で表すと、応力がかえって外れます。梁とソリッドをつなぐときは、ソリッドの節点に回転の自由度がないことに注意します（<a href="#solid-dof">ソリッド要素の回転自由度</a>）。</p>
+<p><a href="modeling.html">片持ち梁をばね・梁・立体で比べる →</a>　<a href="analysis.html#static">同じ片持ち部材を解析で比べる →</a>　<a href="comparisons.html#beam">CBAR と CBEAM の比較 →</a>　<a href="comparisons.html#beam-properties">断面プロパティの選び方 →</a></p>
 </section>
 
-<section class="theory-section" id="beam-abcs"><h2>12. 任意の断面と複合材の梁</h2>
-<h3>なぜ「断面を描く」機能が必要か</h3>
-<p>梁要素に必要な断面の値のうち、断面積 A と断面二次モーメント I1・I2 は、断面の図形を積分すれば求まります。ところが、ねじり定数 J、せん断中心の位置、せん断の係数 K1・K2、反り定数 Cw は、図形の積分だけでは求まりません。断面がねじられたときに断面内で軸方向にどう反るか（反りの分布）を、断面全体で解く必要があるからです。</p>
-<p class="element-note">一般的な理論の補足：ねじりの反りの分布は、断面を領域とする2次元の微分方程式（ポアソン方程式）の解として決まります。円や長方形のような単純な形でしか式で解けず、ふつうは数値計算が必要です。</p>
-<p>PBARL・PBEAML の21種類の形なら、Nastran がこれらの値を用意してくれます。しかし、自動車のプレス部材のような複雑な形は標準形にありません。そこで、断面の形を点で描き、Nastran に断面の値を計算させる機能が任意断面（ABCS）です。BAR には PBRSECT、BEAM には PBMSECT を使い、断面の形は POINT カードの点を SET1・SET3 で並べて与えます。</p>
-<p>ABCS は断面を CTRIA6 の三角形要素で分割した有限要素モデルを作り、出力することもできます。ABCS が断面そのものを有限要素で解いて値を求めていることが分かります。そのため、薄肉の断面でなくても J・K1・K2・反り定数が正しく求まると説明されています（計算式の詳細は本文に書かれていません）。</p>
-<h3>開いた断面と閉じた断面で、ねじりの硬さは桁違い</h3>
-<p>断面の定義方法は3種類あります。一般断面（GS）は輪郭の点で領域を描く方法です。開いた断面（OP）と閉じた断面（CP）は、板の中心線と板厚 T で描く方法で、外周、内周、枝分かれの線分（BRP）を指定します。OP と CP の選び方は、結果を大きく左右します。</p>
-<p class="element-note">一般的な理論の補足（薄肉断面のねじり）：開いた断面は J ≈ Σ b·t³/3（b：板の幅、t：板厚）、閉じた断面は J ≈ 4·Am²·t / s（Am：中心線が囲む面積、s：中心線の周長）です。</p>
-<div class="element-formula">例：中心線 98 × 48 mm、板厚 2 mm の箱形
-閉じた断面：Am = 98 × 48 = 4,704 mm²、s = 2 × (98 + 48) = 292 mm
-　J ≈ 4 × 4,704² × 2 / 292 ≈ 606,000 mm⁴
-1か所に切れ目を入れた開いた断面：J ≈ 292 × 2³ / 3 ≈ 779 mm⁴
-　→ 閉じた断面のほうが約780倍ねじりに硬い</div>
-<p>同じ形でも、溶接で閉じているか、切れ目があるかで、ねじりの硬さが3桁近く変わります。閉じた部材を OP で描いたり、開いた部材を CP で描いたりすると、ねじりの結果がまったく違うものになります。断面を描くときは、まず「実物の断面は閉じているか」を確かめてください。</p>
-<h3>入力の決まり</h3>
+<section class="theory-section" id="beam-abcs"><h2>11. 任意の断面と複合材の梁</h2>
+<h3>形の積分だけでは求まらない数がある</h3>
+<p>A と I1・I2 は断面の図形を積分すれば求まります。ところが、ねじり定数 J、せん断中心の位置、せん断係数 K1・K2、反り定数 Cw は、断面がねじられたときにどう反るかを断面全体で解かないと求まりません。円や長方形のような単純な形でしか式で解けず、ふつうは数値計算が必要です。</p>
+<p>標準の21種類にない形（自動車のプレス部材など）は、任意断面（ABCS）で点を使って描き、Nastran に計算させます。BAR には PBRSECT、BEAM には PBMSECT を使い、断面の形は POINT の点を SET1・SET3 で並べて与えます。ABCS は断面を CTRIA6 の三角形要素で分割して解くので、薄肉でない断面でも J・K1・K2・反り定数が求まります。</p>
+<h3>閉じているか、切れ目があるかで、ねじりは約780倍違う</h3>
+<p>断面の描き方は、輪郭で領域を描く一般断面（GS）と、板の中心線と板厚で描く開いた断面（OP）・閉じた断面（CP）の3種類です。OP と CP の選び方は、結果を大きく変えます。</p>
+<p>薄肉断面の一般的な理論では、開いた断面は J ≈ Σ b·t³/3（b：板の幅、t：板厚）、閉じた断面は J ≈ 4·Am²·t/s（Am：中心線が囲む面積、s：中心線の周長）です。中心線 98 × 48 mm、板厚 2 mm の箱形で計算します。</p>
 <ul>
-<li>枝分かれの線分（BRP）は、外周（OUTP）の途中から出入りしなければなりません。別の BRP から出たり、外周の端から出たりはできません。</li>
-<li>OP・CP では、線分ごとに板厚を指定する場合でも、全体の板厚 T を必ず書きます。板厚を指定していない線分には T が使われます。</li>
-<li>線分の板厚を PT=(id1,id2) で与える場合、2つの点は SET1・SET3 の並びで隣り合っている必要があります。</li>
-<li>BEAM（PBMSECT）は現在、一定断面だけに対応しています。断面が変わる梁には使えません。</li>
+<li>閉じた断面：Am = 98 × 48 = 4,704 mm²、s = 292 mm、J ≈ 4 × 4,704² × 2 / 292 ≈ 606,000 mm⁴</li>
+<li>1か所に切れ目を入れた開いた断面：J ≈ 292 × 2³ / 3 ≈ 779 mm⁴</li>
 </ul>
-<h3>出力を使ったモデルの確認</h3>
-<p>ABCS は、計算した断面の値から等価な BAR・BEAM を作り、出力ファイルに印刷します。さらに次のファイルを出力でき、断面を正しく描けたかの確認に使えます。</p>
-<div class="element-table-wrap"><table class="element-table">
-<thead><tr><th>出力</th><th>指定</th><th>使い方</th></tr></thead>
-<tbody>
-<tr><td>断面の図（PostScript .ps）</td><td>PARAM,ARBMPS（既定 YES）</td><td>輪郭、重心、せん断中心、断面の値が描かれる。せん断中心が思った側にあるか、目で確かめる</td></tr>
-<tr><td>断面の有限要素モデル（.bdf）</td><td>PARAM,ARBMFEM（既定 YES）</td><td>CTRIA6 で分割した断面。番号は 10001 から。分割が形をなぞれているか確かめる</td></tr>
-<tr><td>断面全体の応力（.op2）</td><td>ケース制御の FORCE（ELFORCE）＋ PARAM,ARBMSS,YES</td><td>ねじりとせん断を含む断面内の応力分布。同じジョブの .bdf と組み合わせて表示する</td></tr>
-<tr><td>選別した応力</td><td>同上</td><td>断面ごとの最大・最小の垂直応力と最大ミーゼス応力。SOL 200 の設計応答に使える</td></tr>
+<p>溶接で閉じているか、切れ目があるかで、ねじりの剛さが約780倍違います。描き始める前に、実物の断面が閉じているかを確かめます。</p>
+<h3>描くときの決まり</h3>
+<ul>
+<li>枝分かれの線分（BRP）は、外周（OUTP）の途中から出入りします。別の BRP や外周の端からは出せません。</li>
+<li>OP・CP では、線分ごとに板厚を指定する場合でも、全体の板厚 T を必ず書きます。</li>
+<li>線分の板厚を PT=(id1,id2) で与えるときは、2つの点が SET1・SET3 の並びで隣り合っている必要があります。</li>
+<li>BEAM（PBMSECT）は一定断面だけに対応しています。</li>
+</ul>
+<h3>描けたかを出力で確かめる</h3>
+<div class="element-table-wrap"><table class="element-table"><thead><tr><th>出力</th><th>指定</th><th>見るところ</th></tr></thead><tbody>
+<tr><td>断面の図（PostScript）</td><td>PARAM,ARBMPS（既定 YES）</td><td>輪郭、重心、せん断中心、断面の値。せん断中心が思った側にあるか</td></tr>
+<tr><td>断面の有限要素モデル（.bdf）</td><td>PARAM,ARBMFEM（既定 YES）</td><td>CTRIA6 の分割（番号は 10001 から）が形をなぞれているか</td></tr>
+<tr><td>断面全体の応力（.op2）</td><td>ケース制御の FORCE と PARAM,ARBMSS,YES</td><td>ねじりとせん断を含む断面内の応力分布</td></tr>
 </tbody></table></div>
-<p>断面全体の応力を出すのに FORCE の出力要求が必要なのは、ABCS が梁の内力（軸力・曲げ・ねじり・せん断）を入力として断面内の応力を計算するためだと、説明しています。FORCE を要求し忘れると、断面全体の応力は出ません。</p>
-<p class="element-note">現在は PBARL・PBEAML の標準形も ABCS で計算するのが既定です。以前の薄肉の公式に戻すには MDLPRM,TWBRBML,1 とします。</p>
+<p>断面全体の応力は梁の内力から計算するので、FORCE の出力要求を忘れると出ません。現在は PBARL・PBEAML の標準形も ABCS で計算するのが既定で、以前の薄肉の公式に戻すには MDLPRM,TWBRBML,1 とします。</p>
 <h3>複合材の梁（VAM）</h3>
-<p>回転翼のブレードのような複合材の梁は、CHEXA などのソリッドで層ごとに表すこともできますが、モデルが非常に大きくなります。そこで、断面だけを2次元で解いて梁の性質を求め、梁要素で全体を解く方法が変分漸近法（VAM）です。</p>
-<p class="element-note">一般的な理論の補足：金属の梁では、引張り・2方向のせん断・ねじり・2方向の曲げの6種類の変形は、断面の主軸に合わせれば互いに独立です（剛性行列は対角）。複合材では、繊維の向きによって「引っ張るとねじれる」「曲げるとねじれる」といった連成が生まれます。この連成を表すには、6種類の変形の間のつながりをすべて含む 6×6 の剛性行列が必要です。</p>
-<p>VAM で計算した断面の性質は 6×6 の行列として求まり、等価な PBEAM3 として出力できます。この行列を使える梁が、せん断変形を含む3節点の梁 CBEAM3 です。</p>
+<p>金属の梁では、引張り・2方向のせん断・ねじり・2方向の曲げの6つの変形は、主軸に合わせれば互いに独立です。複合材では繊維の向きによって「引っ張るとねじれる」「曲げるとねじれる」といった連成が生まれ、6×6 の剛性行列が必要になります。変分漸近法（VAM）は断面だけを2次元で解いてこの行列を求め、等価な PBEAM3 として出力します。この行列を使えるのが、せん断変形を含む3節点の梁 CBEAM3 です。</p>
 <ul>
 <li>積層は <a href="bulk.html#PCOMP">PCOMP</a>／<a href="bulk.html#PCOMPG">PCOMPG</a> で定義し、PBMSECT の Core（芯の積層）と Layer（外側に足す層）で断面の線分に割り当てます。</li>
-<li>Core や Layer を使う PBMSECT は CBEAM では参照できず、CBEAM3 で参照します。PARAM,ARBMSTYP,TIMOSHEN も必要です。既定の VKI は複合材に対応していません。</li>
-<li>層は常に下から上へ積まれます。中心線（OUTP・BRP で描いた線）は層と層の間になければなりません。</li>
-<li>隣り合う線分の間で、内側の層を増やしたり減らしたりはできません。層を足せるのは、一番外側の層の上（Layer）だけです。</li>
-<li>断面の要素分割では、層の厚さが最も小さい寸法になります。線分方向の要素の長さは PARAM,ARBMASP（既定 2）で調整します。</li>
-<li>断面全体の応力は量が多いので OUTPUT2 形式だけで出ます。CBEAM3 の各節点では、破損指数が最大になる層の応力が印刷されます。</li>
+<li>Core や Layer を使う PBMSECT は CBEAM では参照できず、CBEAM3 で参照します。PARAM,ARBMSTYP,TIMOSHEN も必要です。</li>
+<li>層は常に下から上へ積まれ、中心線は層と層の間になければなりません。隣り合う線分の間で内側の層を増減できず、足せるのは一番外側の層の上だけです。</li>
+<li>出力される断面の .bdf では、層の角度が PSHELL の板厚欄に入ります。板厚欄は負の値を受け付けないので、負の角度は 180° を足した値で書かれます。</li>
 </ul>
-<p class="element-note">出力される断面の有限要素モデルでは、PCOMP の各層が PSHELL に変換され、層の角度が PSHELL の板厚欄に入ります。板厚欄は負の値を受け付けないので、負の角度は補角（180°を足した正の値）に変換されます。生成された .bdf を読むときに、角度が変わって見えても誤りではありません。</p>
 </section>
 
-<section class="theory-section" id="beam-curved"><h2>13. 曲がった梁（CBEND と CBEAM3）</h2>
-<h3>CBEND — 円弧の梁と配管のエルボ</h3>
-<p>CBEND は、2つの節点を円弧で結ぶ要素です。伸び、ねじり、曲げの剛さと、2方向のせん断の柔らかさを持ちます。内圧のかかる配管系や曲がった部材に使うと説明しています。</p>
-<p>曲がった管を、まっすぐな梁を何本かつないで表すと、硬すぎる結果になります。曲がった管を曲げると、丸い断面がつぶれて楕円になり（偏平化）、断面二次モーメントが実質的に小さくなるからです。</p>
-<p class="element-note">一般的な理論の補足（配管の設計基準でよく使われる式）：曲がり管の特性値 h = t·R / r²（t：管の肉厚、R：曲げ半径、r：管の平均半径）、曲げの柔らかさの係数 k ≈ 1.65 / h です。</p>
-<div class="element-formula">例：平均半径 r = 50 mm、肉厚 t = 5 mm、曲げ半径 R = 150 mm
-h = 5 × 150 / 50² = 0.3、k ≈ 1.65 / 0.3 ≈ 5.5
-→ このエルボは、同じ管のまっすぐな部分より約5.5倍曲がりやすい</div>
-<p>エルボを直管として扱うと、配管系の柔らかさを大きく見誤ります。CBEND の配管の形式は、この曲がりの影響を柔らかさと応力の割増し（応力集中係数）として取り込みます。考え方は3通りから選べ、そのうち2つでは内圧の影響も入ります。内圧は断面のつぶれに抵抗するので、内圧が高いほど曲がり管は硬くなります。どの方法がどの式を使うかは、クイックリファレンスガイドの PBEND の説明で確かめてください（この解説では未確認）。</p>
-<p>曲がった梁では、中立軸が図心から曲率の中心側へずれます。曲率がきついほどずれが大きくなり、内側の応力が外側より大きくなります。CBEND はこのずれを自動で計算し、曲がり梁の形式では利用者が値（DN）で上書きもできます。</p>
+<section class="theory-section" id="beam-curved"><h2>12. 曲がった梁（CBEND と CBEAM3）</h2>
+<h3>CBEND：エルボは直管の数倍曲がりやすい</h3>
+<p>曲がった管を曲げると、丸い断面がつぶれて楕円になり（偏平化）、実質的な断面二次モーメントが小さくなります。だから、曲がった管をまっすぐな梁をつないで表すと硬すぎます。</p>
+<p>配管の設計基準でよく使われる式では、曲がり管の特性値 h = t·R/r²（t：肉厚、R：曲げ半径、r：管の平均半径）、曲げの柔らかさの係数 k ≈ 1.65/h です。r = 50 mm、t = 5 mm、R = 150 mm なら h = 0.3、k ≈ 5.5 で、このエルボは同じ管の直管部より約5.5倍曲がりやすくなります。</p>
 <ul>
-<li>曲げの主軸は、要素の面に平行と垂直でなければなりません。主軸が斜めを向く非対称断面は扱えません。</li>
-<li>要素の面と曲率の決め方は4通りあります。図心は2方向にずらせます。</li>
-<li>物性 PBEND には、任意断面の曲がり梁の形式と、配管のエルボの形式があります。CBEAM と同じく A・I1・I2 に正の値が必要です。せん断の柔らかさは、PBEND の該当欄を空欄にすれば無視できます。</li>
-<li>長さ方向の分布荷重は PLOAD1 で与えます。応力は各端の断面4点で出力されます。</li>
+<li><a href="bulk.html#CBEND">CBEND</a> は2つの節点を円弧で結び、伸び・ねじり・曲げの剛さと、2方向のせん断の柔らかさを持ちます。配管の形式では、曲がりの影響を柔らかさと応力の割増しとして取り込み、考え方を3通りから選べます。そのうち2つでは内圧の影響も入ります。内圧は断面のつぶれに抵抗するので、内圧が高いほど曲がり管は硬くなります。</li>
+<li>曲がった梁では中立軸が図心から曲率の中心側へずれ、内側の応力が外側より大きくなります。CBEND はこのずれを自動で計算し、曲がり梁の形式では値（DN）で上書きもできます。</li>
+<li>曲げの主軸は、要素の面に平行と垂直でなければなりません。主軸が斜めの非対称断面は扱えません。</li>
+<li><a href="bulk.html#PBEND">PBEND</a> も A・I1・I2 に正の値が必要です。長さ方向の分布荷重は <a href="bulk.html#PLOAD1">PLOAD1</a> で与え、応力は各端の断面4点で出ます。</li>
 </ul>
-<h3>CBEAM3 — 3節点の曲がり梁</h3>
-<p>CBEAM3 は、両端と中間の3節点を持つ梁です。3点を通る2次曲線で梁の軸を表すので、1本の要素で曲がった軸をなめらかに表せます。2節点のまっすぐな梁で曲がった部材を表すと、軸が折れ線になり、要素を細かく分ける必要があります。</p>
-<p>梁の軸は、各節点からその断面のせん断中心までのずれ（オフセット）で決まります。3つのせん断中心が一直線上になければ、それらが乗る平面と2次曲線が一意に決まります。せん断変形を含む梁理論（ティモシェンコ梁）で作られていて、軸の初期の曲がりと断面のせん断の両方が、ひずみと変位の関係に入っています。</p>
-<div class="element-table-wrap"><table class="element-table narrow">
-<thead><tr><th>CBEAM との違い</th><th>意味</th></tr></thead>
-<tbody>
-<tr><td>剛性の作り方</td><td>CBEAM は柔性行列を逆行列にして作る。CBEAM3 は変位法（節点の変位を未知数にし、エネルギーを最小にする方法）で、剛性・質量・座屈用の微分剛性を作る</td></tr>
-<tr><td>軸の形</td><td>2次曲線（3節点）。2節点のまっすぐな梁に縮退すると1次式になる</td></tr>
-<tr><td>断面の値の補間</td><td>3節点なら2次、2節点なら1次</td></tr>
-<tr><td>応力の出力</td><td>垂直応力に加えて、断面の点のせん断応力・ひずみも出る。反りを考えるとバイモーメントによる垂直応力も出る</td></tr>
-<tr><td>断面の向き</td><td>曲がった軸では、接線・曲率の中心へ向かう法線・その両方に直角な方向で作る座標（フレネ・セレの座標）が基準。まっすぐなら CBEAM と同じ向きベクトルを使う</td></tr>
-<tr><td>初期ねじれ</td><td>3つの断面で、基準の座標からの回転角（初期ねじれ角）を与えられる。ねじれた羽根のような部材に使う</td></tr>
+<h3>CBEAM3：3節点で曲がった軸をなめらかに</h3>
+<p><a href="bulk.html#CBEAM3">CBEAM3</a> は両端と中間の3節点を持ち、軸を2次曲線で表します。2節点のまっすぐな梁で曲がった部材を表すと軸が折れ線になり、細かく分ける必要があります。せん断変形を含む梁理論（ティモシェンコ梁）で作られ、軸の初期の曲がりも、ひずみと変位の関係に入っています。</p>
+<div class="element-table-wrap"><table class="element-table"><thead><tr><th>CBEAM との違い</th><th>内容</th></tr></thead><tbody>
+<tr><td>剛性の作り方</td><td>CBEAM は柔らかさの行列の逆行列。CBEAM3 は節点の変位を未知数にする方法で、剛性・質量・座屈用の剛性を作る</td></tr>
+<tr><td>軸の形と断面の補間</td><td>3節点なら2次、2節点に縮退すると1次</td></tr>
+<tr><td>応力の出力</td><td>垂直応力に加えて、断面の点のせん断応力・ひずみも出る。反りを考えると、反りによる垂直応力も出る</td></tr>
+<tr><td>断面の向き</td><td>曲がった軸では、接線・曲率の中心への法線・その両方に直角な方向で作る座標が基準。まっすぐなら CBEAM と同じ v</td></tr>
+<tr><td>初期ねじれ</td><td>3つの断面で初期のねじれ角を与えられる。ねじれた羽根のような部材に使う</td></tr>
 </tbody></table></div>
-<p>各節点は並進3・回転3の自由度を持ち、反りを考える場合は反りの自由度（スカラー点または節点）が1つ加わります。</p>
-<p>CBEAM3 を2次のシェル要素（<a href="bulk.html#CTRIA6">CTRIA6</a>・<a href="bulk.html#CQUAD8">CQUAD8</a>）と組み合わせて補強材を表す使い方を挙げています。2次のシェルは辺の中央にも節点を持ちます。中央の節点を持つ CBEAM3 なら、シェルの辺のすべての節点を共有して、辺に沿ってぴったり補強できます（2節点の梁では中央の節点がつながりません。この理由づけは解説としての補足です）。</p>
+<p>2次のシェル要素（<a href="bulk.html#CTRIA6">CTRIA6</a>・<a href="bulk.html#CQUAD8">CQUAD8</a>）の辺を補強するとき、中間節点を持つ CBEAM3 なら辺のすべての節点を共有できます。2節点の梁では、辺の中央の節点がつながりません。</p>
 </section>
-<section class="theory-section" id="beam-choose"><h2>14. 選び方と、よくある間違い</h2>
-<div class="analysis-links"><a href="comparisons.html#beam">CBARとCBEAMの選び方を比較する →</a><a href="comparisons.html#beam-properties">断面プロパティの選び方 →</a></div>
-<h3>要素の選び方</h3>
-<div class="element-table-wrap"><table class="element-table">
-<thead><tr><th>こんなとき</th><th>使う要素</th><th>理由</th></tr></thead>
-<tbody>
-<tr><td>ピン結合のトラス、ワイヤ、つなぎ棒</td><td><a href="bulk.html#CROD">CROD</a>（円管なら <a href="bulk.html#CTUBE">CTUBE</a>）</td><td>軸力と、必要な場合はねじりを表す。CTUBEは外径・肉厚を<a href="bulk.html#PTUBE">PTUBE</a>で与える</td></tr>
-<tr><td>標準形にない断面</td><td>PBRSECT／PBMSECT</td><td>点で断面を描いて性質を計算</td></tr>
-<tr><td>配管のエルボ、円弧の部材</td><td><a href="bulk.html#CBEND">CBEND</a>＋<a href="bulk.html#PBEND">PBEND</a></td><td>円弧の形を指定し、曲がりによる柔らかさを考慮</td></tr>
-<tr><td>初めから曲がった梁、複合材の梁</td><td><a href="bulk.html#CBEAM3">CBEAM3</a></td><td>初期曲率とせん断変形、VAM の断面</td></tr>
-<tr><td>部材が太く短い、板厚の応力分布を見たい</td><td>ソリッド（CHEXA など）</td><td>梁の仮定（平面保持）が成り立ちにくい</td></tr>
+
+<section class="theory-section" id="beam-choose"><h2>13. 症状から原因を探す</h2>
+<p>結果がおかしいとき、症状から先に疑う入力を引けるようにまとめました。右の列の図で、どれくらい変わるかを確かめられます。</p>
+<div class="element-table-wrap"><table class="element-table"><thead><tr><th>症状</th><th>先に疑う入力</th><th>図</th></tr></thead><tbody>
+<tr><td>真下に押したのに横へたわむ。応力が手計算の2倍近い</td><td>v（第6〜8欄または G0）のずれ、I12</td><td><a href="#beam-cbar-example">§3</a></td></tr>
+<tr><td>剛さがちょうど数倍〜数十倍ずれる</td><td>I1 と I2 の入れ替え、PBARL の寸法と v の組み合わせ</td><td><a href="#beam-cbar-example">§3</a></td></tr>
+<tr><td>曲げ応力の出力が 0</td><td>PBAR の C1〜F2 が空欄</td><td><a href="#beam-stress-points">§5</a></td></tr>
+<tr><td>床と梁のたわみが大きすぎる</td><td>WA・WB のオフセットがない</td><td><a href="#beam-offset">§4</a></td></tr>
+<tr><td>床と梁が硬すぎる</td><td>梁の断面に床を含めて二重に数えている</td><td><a href="#beam-offset">§4</a></td></tr>
+<tr><td>短い梁で、手計算と5〜20%ずれる</td><td>K1・K2 の既定（PBAR 空欄・PBEAM 1.0・PBARL 自動）</td><td><a href="#beam-shear">§6</a></td></tr>
+<tr><td>固有振動数が手計算より低い</td><td>要素が少ない＋集中質量</td><td><a href="#beam-theory">§2</a></td></tr>
+<tr><td>開いた断面のねじれ角が大きすぎる</td><td>CBAR で反りの拘束を扱えていない</td><td><a href="#beam-warping">§8</a></td></tr>
+<tr><td>溝形がねじれない</td><td>CBAR では S と G が一致する扱い</td><td><a href="#beam-shear-center">§8</a></td></tr>
+<tr><td>特異・AUTOSPC の警告が節点の回転に出る</td><td>同じ節点で、全部の梁の同じ回転を解放</td><td><a href="#beam-pin">§7</a></td></tr>
+<tr><td>6 を書いたのにモーメントが残る</td><td>v の向きで 6 の軸が変わる</td><td><a href="#beam-pin">§7</a></td></tr>
+<tr><td>CBEAM だけ致命的エラー</td><td>PBEAM の A・I1・I2 が空欄</td><td><a href="#beam-cbeam">§8</a></td></tr>
 </tbody></table></div>
-<h3>よくある間違い</h3>
-<ul>
-<li><strong>I1 と I2 を逆に入れる。</strong><a href="#beam-inertia">I1・I2の対応図</a>で、たわむ方向と回転軸を照合します。</li>
-<li><strong>向きベクトルが要素の軸と平行。</strong>面1 が決まらずエラーになります。</li>
-<li><strong>G0 に移動し得る構造節点を使う。</strong>モデルを修正したときに断面の向きが変わり、気付きにくい誤りになります。向き専用のGRIDを使い、各梁のGA→G0が狙った断面方向を示すか確認します。G0のためだけにSPCを指定するという意味ではありません。</li>
-<li><strong>CBEAM の A・I1・I2 を空欄にする。</strong>CBAR では許されますが、CBEAM では致命的エラーになります。</li>
-<li><strong>オフセットの座標系を取り違える。</strong>WA・WB は節点の変位座標系（OFFT の指定による）、PBEAM の中立軸のずれは要素座標です。</li>
-<li><strong>安全余裕にねじりが入っていると思い込む。</strong>CBAR の安全余裕は曲げと軸だけです。</li>
-<li><strong>テーパー梁で根元だけを確認する。</strong>最大応力は途中に出ることがあります。</li>
-<li><strong>単位をそろえない。</strong>N・mm・MPaなど、一貫した単位で荷重・形状・物性を入力します。</li>
-</ul>
-<div class="analysis-links"><a href="modeling.html">片持ち梁をばね・梁・立体で比べる →</a><a href="coordinates.html#elements">要素座標と応力の向き →</a></div>
+</section>
+
+<section class="theory-section" id="beam-quiz"><h2>自分で確かめる</h2>
+<div class="theory-quiz">
+<details><summary>問1　長さ1 m の片持ち梁を CBAR 1本で作り、先端に荷重をかけた。たわみの誤差は？ 同じモデルの1次の固有振動数（既定の質量）は？</summary><p>たわみの誤差は 0 です。先端荷重のたわみは3次式で、要素の形と一致します。1次の固有振動数は約30%低く出ます。集中質量では先端に要素の質量の半分が載り、実際の1次の振動で効く質量（約0.24倍）より重いからです。</p></details>
+<details><summary>問2　平鋼 100×20 の梁で v が10°ずれた。真下への荷重による横たわみは、設計どおりの鉛直たわみの何倍？</summary><p>約4.1倍です。横たわみ ∝ sinφ·cosφ·(1/I弱 − 1/I強) = 0.171 × (1/66,667 − 1/1,666,667)、設計どおりの鉛直たわみ ∝ 1/1,666,667 で、比は約4.1です。</p></details>
+<details><summary>問3　PBAR の C1〜F2 を空欄にした。曲げ応力の出力は？</summary><p>0 です。4つの点がすべて図心 (0, 0) になり、曲げ応力が0の位置で計算されるからです。PBARL なら点が自動で決まります。</p></details>
+<details><summary>問4　H形鋼の短い CBAR を CBEAM に書き換え、K1・K2 は空欄のままにした。たわみはどうなる？</summary><p>大きくなります。PBAR の空欄はせん断変形なし、PBEAM の空欄は K = 1.0 でせん断変形を含むからです。§6 の図では L/h = 5 で約5%増えます。CBAR とそろえるなら K1・K2 に 0.0 を入れます。</p></details>
+<details><summary>問5　H形鋼 300×150 の長さ2 m の片持ち梁を、根元を溶接してねじる。CBAR で解くと、ねじれ角は実際の約何倍？</summary><p>約3.3倍です。1/λ ≈ 1.7 m より短い部材では、根元で止められた反りがねじりに強く抵抗します。CBEAM に Cw と SA・SB のスカラー点を入れ、根元のスカラー点を拘束すると扱えます。</p></details>
+</div>
 </section>
 
 <section class="theory-section" id="beam-sources"><h2>仕様を調べる</h2>
-<p>各カード名からInputデータの書式・適用条件を確認できます。計算例は手計算用の条件です。</p>
-<p>複雑な断面の入力には、断面寸法・材料層・応力回復点の指定が関係します。書式を決める際は、該当するQRGの定義を確認します。</p>
+<p>各カード名から Inputデータの書式・適用条件を確認できます。動く図の数値は、記事の中の条件で計算した学習用の値です。</p>
 <ul>
+<li><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=73" target="_blank" rel="noopener">線形静解析ユーザーガイド 2025.1 · 1次元要素（K1・K2 の既定は PDF 118ページ、表4-1 は 132ページ）</a></li>
+<li><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Dynamic_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Dynamic_Analysis_User_Guide.pdf#page=34" target="_blank" rel="noopener">動解析ユーザーガイド 2025.1 · 集中質量と連成質量（CBAR・CBEAM は 38ページ）</a></li>
 <li><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=2498" target="_blank" rel="noopener">PBEAM3 · 3節点梁の断面特性</a></li>
 <li><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=2526" target="_blank" rel="noopener">PBMSECT · 任意断面・複合材の断面</a></li>
 <li><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=2531" target="_blank" rel="noopener">PBRSECT · 棒・梁の任意断面</a></li>
@@ -1967,4 +1921,4 @@ J = 2I ≈ 0.04692 in⁴</div>
 </section>
 </article>
 </main>
-<script src="lesson-diagrams.js"></script><script src="element-visuals.js"></script><script src="elements.js"></script><script src="teaching-diagrams.js"></script><script src="home-visuals.js"></script><script src="learning-data.js"></script><script src="learning.js"></script></body></html>
+<script src="lesson-diagrams.js"></script><script src="element-visuals.js"></script><script src="beam-labs.js"></script><script src="elements.js"></script><script src="teaching-diagrams.js"></script><script src="home-visuals.js"></script><script src="learning-data.js"></script><script src="learning.js"></script></body></html>

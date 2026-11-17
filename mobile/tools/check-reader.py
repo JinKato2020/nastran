@@ -120,6 +120,53 @@ with sync_playwright() as p:
     assert '398.9 MPa' in page.locator('[data-lab="lab-crack"] .theory-lab-readout').inner_text()
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
     page.close()
+    # Beam article: every interactive figure draws, and the headline numbers match the hand calculations.
+    page=reader('elements.html')
+    page.evaluate("location.hash='#beam'")
+    page.locator('[data-beam-lab="mesh"] svg').wait_for()
+    assert page.locator('#beam figure.beam-lab svg').count()>=8
+    assert page.locator('#beam [data-beam-lab] .theory-lab-readout').evaluate_all('els=>els.every(e=>e.textContent&&!e.textContent.includes("描けません"))')
+    assert '−30.33%' in page.locator('[data-beam-lab="mesh"] table').inner_text()
+    page.locator('[data-beam-lab="mesh"] select').first.select_option('coupled')
+    assert '+0.48%' in page.locator('[data-beam-lab="mesh"] table').inner_text()
+    assert '4.10 倍' in page.locator('[data-beam-lab="orient"] .theory-lab-readout').inner_text()
+    page.locator('[data-beam-lab="orient"] [data-lab-action="deg:0"]').click()
+    assert '横たわみ 0.00 mm' in page.locator('[data-beam-lab="orient"] .theory-lab-readout').inner_text()
+    assert '2.96 倍' in page.locator('[data-beam-lab="offset"] .theory-lab-readout').inner_text()
+    assert '0.895 mm' in page.locator('[data-beam-lab="shear"] .theory-lab-readout').inner_text()
+    page.locator('[data-beam-lab="release"] [data-lab-input="pb"]').check()
+    page.locator('[data-beam-lab="release"] [data-lab-input="pa"]').check()
+    assert '特異' in page.locator('[data-beam-lab="release"] .theory-lab-readout').inner_text()
+    page.locator('[data-beam-lab="shearcenter"] button').nth(1).click()
+    assert 'ねじりモーメントは 0' in page.locator('[data-beam-lab="shearcenter"] .theory-lab-readout').inner_text()
+    assert '0.30 倍' in page.locator('[data-beam-lab="warp"] .theory-lab-readout').inner_text()
+    assert '87.5%' in page.locator('[data-beam-lab="taper"] .theory-lab-readout').inner_text()
+    assert page.locator('#beam-stress-points svg').count()==1 and page.locator('#beam .beam-fig').count()==2
+    assert page.locator('#beam .ev-diagram').count()==0  # the old generic sketches are gone from the beam article
+    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+    page.close()
+    # Static analysis quiz: three 4-choice input questions, then the hand-calculation check diagnoses F06 values.
+    page=reader('analysis.html')
+    page.evaluate("location.hash='#static/beam/quiz'")
+    page.locator('.aq-q').first.wait_for()
+    assert page.locator('.aq-q').count()==3 and page.locator('.aq-q .aq-opt').count()==12
+    assert page.locator('[data-analysis-tab="quiz"]').get_attribute('aria-selected')=='true'
+    for n,right in enumerate([1,2,3]):
+        page.locator(f'.aq-q[data-n="{n}"] .aq-opt[data-i="{right}"]').click()
+        assert page.locator(f'.aq-q[data-n="{n}"] .aq-result').inner_text()=='正解です。'
+    assert '3問中 3問に回答、正解 3問' in page.locator('.aq-score').inner_text()
+    card=page.locator('.aq-q[data-n="1"]')
+    card.locator('.aq-check input').fill('-0.1714')
+    card.locator('.aq-run').click()
+    assert 'I1 と I2 が入れ替わって' in card.locator('.aq-diag').inner_text()
+    card.locator('.aq-check input').fill('−6.1725E+00')
+    card.locator('.aq-run').click()
+    assert '一致しています' in card.locator('.aq-diag').inner_text()
+    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+    page.evaluate("location.hash='#modes/baseline'")
+    page.locator('[data-analysis-tab="model"]').wait_for()
+    assert page.locator('[data-analysis-tab="quiz"]').count()==0  # questions exist only where they have been written
+    page.close()
     page=reader('modeling.html')
     page.locator('[data-model="detailed"]').click()
     page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#model-detailed")')

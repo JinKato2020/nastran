@@ -185,11 +185,10 @@ ${verificationReferences([[490,'MAXMIN（従来形式）'],[492,'MAXMIN（定義
 <details><summary>モニター点で断面荷重や応答を追う</summary>
 <p>MONITORは全SUBCASEに共通する印刷制御で、先頭SUBCASE以前またはその中に置きます。MONPNT1は指定領域の積分荷重、MONPNT2は指定要素の応力・ひずみ・力などの成分、MONPNT3は節点力の合計、MONDSP1は変位の集計を扱います。MONPNT1の領域はCOMPからAECOMPを経由して構造節点の集合を追います。線形の成分で照合し、ミーゼス応力のような合成量を線形に加算しません。</p>
 <p>MONSUMは重み付きの数値合成、MONSUM1は出力位置と座標を定義した合成、MONSUMTは腕の長さによるモーメント移送も含む合成です。位置を移すときは M新＝M旧＋(r旧−r新)×F を確認します。例えば力100 Nの基準位置を力の作用線から垂直に50 mm移せば、モーメントの差の大きさは5,000 N·mmです。出力のSUBCASE、軸、集計範囲、基準点を確認します。</p>
-<p>公式例題1ではモニター点ごとに荷重、個別の要素成分、節点力など異なる量を並べ、どの結果項目が線形に合成できるかを確認します。例題2では同じ片持ち梁で基準点を移し、力の合計を保ったままMONSUMTのモーメントが腕の分だけ変化することを照合します。</p>
 ${verificationReferences([[527,'MONITOR']])}
 </details>
 <div class="analysis-links"><a href="analysis.html#node-element-check">節点・要素の結果の確認 →</a><a href="analysis.html#load-check">荷重と反力の入力を照合 →</a><a href="analysis.html#constraint-check">支持とAUTOSPCを確認 →</a><a href="modeling.html#model-mesh-transition">メッシュ境界と節点応力 →</a><a href="workflow.html#results">F06の結果表を読む →</a></div>
-<div class="analysis-links"><a href="${linearStaticGuide2024}#page=385" target="_blank" rel="noopener">MSC 2024.1 第10章・モデル検証 ↗</a><a href="${linearStaticGuide2024}#page=394" target="_blank" rel="noopener">ひずみエネルギー ↗</a><a href="${linearStaticGuide2024}#page=398" target="_blank" rel="noopener">モデルの診断ツール ↗</a><a href="${linearStaticGuide2024}#page=418" target="_blank" rel="noopener">荷重・反力・釣合い ↗</a><a href="${linearStaticGuide2024}#page=436" target="_blank" rel="noopener">応力誤差の指標 ↗</a><a href="${linearStaticGuide2024}#page=447" target="_blank" rel="noopener">モニター点の例題 ↗</a></div>
+<div class="analysis-links"><a href="${linearStaticGuide2024}#page=385" target="_blank" rel="noopener">MSC 2024.1 第10章・モデル検証 ↗</a><a href="${linearStaticGuide2024}#page=394" target="_blank" rel="noopener">ひずみエネルギー ↗</a><a href="${linearStaticGuide2024}#page=398" target="_blank" rel="noopener">モデルの診断ツール ↗</a><a href="${linearStaticGuide2024}#page=418" target="_blank" rel="noopener">荷重・反力・釣合い ↗</a><a href="${linearStaticGuide2024}#page=436" target="_blank" rel="noopener">応力誤差の指標 ↗</a></div>
 </section>
 
 <section class="analysis-section" id="analysis-common-node-element-check"><h2>節点・要素の結果が想定と違うとき</h2>

@@ -18,12 +18,13 @@
  const guideBasics=g=>g.basics.map(([title,items])=>sub(title,list(items))).join('')+sub('用語',conditions(g.terms))+sub('入力を組み立てる順番',ordered(g.steps));
  const verifySteps=g=>g?sub('実行後に確かめる順番',ordered(g.verify)):'';
  // Three tabs grouped by purpose; older tab names in saved links map onto them.
- const tabLabels=[['model','解説'],['input','入力'],['results','結果']];
+ const tabLabels=[['model','解説'],['input','入力'],['results','結果'],['quiz','問題']];
  const tabAlias={basics:'model',map:'input',dat:'input',pitfalls:'results',compare:'results'};
  const tabOf=key=>{const tab=tabAlias[key]||key;return tabLabels.some(([id])=>id===tab)?tab:'model';};
  function tabbed(current,blocks){
-  return `<div class="analysis-tabs" role="tablist" aria-label="この解析の説明">${tabLabels.map(([id,label])=>`<button type="button" role="tab" data-analysis-tab="${id}" aria-selected="${id===current}">${label}</button>`).join('')}</div>`+
-   tabLabels.map(([id])=>`<div class="analysis-tab-panel" role="tabpanel" data-analysis-panel="${id}"${id===current?'':' hidden'}>${blocks[id].filter(Boolean).map(([title,body,anchor])=>section(title,body,anchor)).join('')}</div>`).join('');
+  const shown=tabLabels.filter(([id])=>blocks[id]);
+  return `<div class="analysis-tabs" role="tablist" aria-label="この解析の説明">${shown.map(([id,label])=>`<button type="button" role="tab" data-analysis-tab="${id}" aria-selected="${id===current}">${label}</button>`).join('')}</div>`+
+   shown.map(([id])=>`<div class="analysis-tab-panel" role="tabpanel" data-analysis-panel="${id}"${id===current?'':' hidden'}>${blocks[id].filter(Boolean).map(([title,body,anchor])=>section(title,body,anchor)).join('')}</div>`).join('');
  }
  function bindTabs(state,save){
   for(const button of detail.querySelectorAll('[data-analysis-tab]'))button.addEventListener('click',()=>{
@@ -36,7 +37,6 @@
    save();
   });
  }
- const explanation=window.AnalysisScenarioCards;
  const unlinkedCards=new Set(['DMIG','K2PP','SVECT','SDISP','PARAM,FRIC']);
  const displayCard=id=>id.startsWith('EXEC_SOL_')?id.replace('EXEC_SOL_','SOL '):id.replace(/^EXEC_|^CASE_/,'').replace(/^PARAM_/,'PARAM,').replaceAll('_',' ');
  function cardGroups(groups){
@@ -70,10 +70,9 @@
  function select(id,label,options,value,css=''){
   return `<label class="analysis-selector analysis-model-selector ${css}" for="${id}">${esc(label)}<select id="${id}">${options.map(([key,title])=>`<option value="${esc(key)}"${key===value?' selected':''}>${esc(title)}</option>`).join('')}</select></label>`;
  }
- function scenarioControls(scenario,reference,model,official,complex){
+ function scenarioControls(scenario,model,complex){
   if(!complex)return select('analysis-example-picker','モデル',
-   [...scenario.models.map(item=>[item.id,item.title]),...(reference?[['official','公式例題 · '+reference.title]]:[])],official?'official':model.id);
-  if(official)return `<a class="analysis-example-switch" href="#complex-modes/${model.id}">自作例を見る →</a>`;
+   scenario.models.map(item=>[item.id,item.title]),model.id);
   return `<div class="analysis-complex-options">${complexChoices.map(({id,label,options,value})=>select(id,label,options,value(model))).join('')}</div>`;
  }
  function bucklingSetup(){
@@ -90,14 +89,12 @@
    ]))+cardLinks([['EXEC_SOL_105','SOL 105'],['CASE_STATSUB','STATSUB'],['CASE_METHOD','METHOD'],['EIGRL','EIGRL'],['EIGB','EIGB'],['PARAM_EXCLUDE','PARAM,EXCLUDE'],['PARAM_K6ROT','PARAM,K6ROT']]);
  }
  function showScenario(entry,scenario,modelKey,tabKey){
-  const reference=explanation.official[entry.key];
-  const official=modelKey==='official'&&!!reference;
   const complex=entry.key==='complex-modes';
   const model=scenario.models.find(item=>item.id===modelKey)||scenario.models[0];
   const deck=window.AnalysisOriginalDecks[model.id];
-  const figure=`<figure class="analysis-scenario-figure">${window.renderAnalysisScenarioDiagram(official?entry.key+'-official':model.diagram)}<figcaption>境界条件の模式図</figcaption><p>${esc(official?reference.title:model.takeaway)}</p></figure>`;
-  const selection=scenarioControls(scenario,reference,model,official,complex);
-  const related=complex&&!official?[['analysis.html#complex-modes/official','公式例題 · '+reference.title],...scenario.links]:[...(scenario.links||[])];
+  const figure=`<figure class="analysis-scenario-figure">${window.renderAnalysisScenarioDiagram(model.diagram)}<figcaption>境界条件の模式図</figcaption><p>${esc(model.takeaway)}</p></figure>`;
+  const selection=scenarioControls(scenario,model,complex);
+  const related=[...(scenario.links||[])];
   if(entry.key==='static')related.push(
    ['analysis.html#model-verification','モデル検証'],
    ['analysis.html#material-check','材料と断面の照合'],
@@ -105,23 +102,23 @@
    ['analysis.html#load-check','荷重・反力の照合'],
   );
   const guide=window.AnalysisScenarioGuides?.[entry.key];
-  const state={current:official?'model':tabOf(tabKey)};
+  const quiz=window.AnalysisQuiz?.data[entry.key];
+  const state={current:tabOf(tabKey)==='quiz'&&!quiz?'model':tabOf(tabKey)};
   // "dat" in the address means the Input tab with the full deck open, so Back from a card returns there.
   const token=()=>state.current==='input'&&byId('analysis-original-input')?.open?'dat':state.current;
   const place=(id,tab)=>'#'+entry.key+'/'+id+(tab&&tab!=='model'?'/'+tab:'');
-  detail.innerHTML=heading(entry,'')+selection+figure+(official
-   ? `<p class="analysis-scenario-summary">${esc(reference.intro)}</p>`+
-     sources([reference.source])+section('公式例題の主要カード',cardGroups(reference.groups),'analysis-relations')
-   : tabbed(state.current,{
+  detail.innerHTML=heading(entry,'')+selection+figure+(tabbed(state.current,{
       model:[['モデル化と境界条件',`<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+conditions(model.conditions)],guide&&['この解析の基礎',guideBasics(guide)]],
       input:[['カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations'],
        entry.key==='buckling'&&['SOL 105で静解析と座屈を対応させる',bucklingSetup(),'analysis-buckling-setup'],
        guide?.inputReview&&['入力で確認する指定',cardGroups(guide.inputReview)+sources([{url:'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=38',label:'線形静解析ユーザーガイド 2025.1 · 第2章 PDF 38–40ページ'}])],
        ['自作モデルのDAT',deckSection(deck,tabKey==='dat')]],
+      quiz:quiz&&[['入力の4択問題',window.AnalysisQuiz.render(entry.key),'analysis-quiz']],
       results:[['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(guide)],['モデル間の比較',compare(scenario,scenario.models.indexOf(model))],guide&&['よくある失敗と直し方',conditions(guide.pitfalls)]]
      }))+
    contextLinks(entry,related)+sources(scenario.sources||entry.sources);
   bindTabs(state,()=>history.replaceState(null,'',place(model.id,token())));
+  if(quiz)window.AnalysisQuiz.bind(detail);
   byId('analysis-original-input')?.addEventListener('toggle',()=>history.replaceState(null,'',place(model.id,token())));
   byId('save-original-dat')?.addEventListener('click',()=>saveDeck(deck));
   function changeModel(id,controlId){
@@ -130,7 +127,7 @@
    showScenario(entry,scenario,id,tab);
    byId(controlId)?.focus({preventScroll:true});
   }
-  if(complex&&!official){
+  if(complex){
    for(const {id} of complexChoices)byId(id).addEventListener('change',()=>{
     const selected=scenario.models.find(item=>complexChoices.every(choice=>choice.value(item)===byId(choice.id).value));
     if(selected)changeModel(selected.id,id);
@@ -162,7 +159,7 @@
   const mapBody=window.renderAnalysisRelations(entry.key,model.id);
   const resultBody=list(model.outputs||entry.outputs)+`<h3>確認する条件</h3>`+list(model.checks||entry.checks)+links(entry.resultLinks||[]);
   if(guide){
-   const state={current:tabOf(tabKey)};
+   const state={current:tabOf(tabKey)==='quiz'?'model':tabOf(tabKey)};
    detail.innerHTML=head+diagram+tabbed(state.current,{
      model:[['モデル化と境界条件',modelBody],['この解析の基礎',guideBasics(guide)]],
      input:[['主要カードの相関図',mapBody,'analysis-relations']],

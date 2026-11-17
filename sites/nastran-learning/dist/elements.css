@@ -50,3 +50,51 @@
 @media print{.ev-key{display:none}.ev-panel{break-inside:avoid}}
 .elements-main ol{padding-left:22px}
 .elements-main .theory-section ol li{font-size:15px;line-height:1.95;color:#435c79;margin:8px 0}
+/* 梁の記事の動く図（beam-labs.js） */
+.beam-lab .theory-lab-controls output{min-width:3.6em;font-variant-numeric:tabular-nums;color:#1f4f9a;font-weight:600}
+.beam-lab-presets{display:flex;flex-wrap:wrap;gap:6px}
+.beam-lab-presets button{min-height:40px;padding:4px 10px;border:1px solid #9cb2cb;border-radius:999px;background:#fff;color:#243e60;font-size:15px}
+.beam-lab .theory-lab-readout b{color:#173f72}
+.beam-lab .theory-lab-readout .warn{display:inline-block;margin-top:4px;color:#8a3a12}
+.beam-lab-views{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:4px 10px}
+.beam-3d{display:block;width:100%;max-width:440px;height:auto;margin:6px auto 0;direction:ltr}
+.beam-lab-views .beam-3d{flex:1 1 280px;max-width:360px;margin:0}
+.beam-end{flex:0 1 190px;width:190px;max-width:100%;height:auto;direction:ltr}
+.beam-3d text,.beam-end text{font:13px system-ui,sans-serif;fill:#2c4561;direction:ltr;unicode-bidi:isolate}
+.beam-lab-freq{width:100%;max-width:440px;margin:10px auto 0}
+.beam-lab-freq tr.on td{background:#eef5ff;font-weight:600}
+.beam-fig svg{max-width:460px}
+.b3-wall{fill:#e3e8ee;stroke:#8d9cad;stroke-width:1}
+.b3-ghost{fill:none;stroke:#7d8fa3;stroke-width:1.2;stroke-dasharray:5 4}
+.b3-edge{fill:none;stroke:#1f4f9a;stroke-width:1.6}
+.b3-load{stroke:#a92b30;stroke-width:2.6}.b3-load-head{fill:#a92b30}.beam-3d .b3-loadText{fill:#a92b30;font-weight:700}
+.b3-axis{stroke:#175e9c;stroke-width:2}.b3-axis-head{fill:#175e9c}.beam-3d .b3-axisText{fill:#175e9c;font-weight:600}
+.b3-v{stroke:#b5650d;stroke-width:2.6}.b3-v-head{fill:#b5650d}.beam-3d .b3-vText{fill:#b5650d;font-weight:700;font-size:15px}
+.b3-plane1{fill:#4f86c6;fill-opacity:.14;stroke:#4f86c6;stroke-width:1}.b3-plane2{fill:#3f9a6f;fill-opacity:.13;stroke:#3f9a6f;stroke-width:1}
+.beam-3d .b3-plane1Text{fill:#2c5f9e;font-weight:600}.beam-3d .b3-plane2Text{fill:#2c7a54;font-weight:600}
+.b3-node{fill:#173f72;stroke:#fff;stroke-width:1.5}.beam-3d .b3-nodeText{font-weight:700}
+.theory-lab-svg .b2-title,.beam-end .b2-title{font-size:13px;font-weight:700;fill:#29466b}
+.theory-lab-svg .b2-small{font-size:12px;fill:#344f6e}
+.b2-guide{stroke:#c4d1df;stroke-width:1}
+.b2-ghost{fill:none;stroke:#7d8fa3;stroke-width:1.2;stroke-dasharray:4 3}
+.b2-sec{fill:#a9c2de;stroke:#2f4d6e;stroke-width:1.3}.b2-hole{fill:#f3f6f9;stroke:#2f4d6e;stroke-width:1}
+.b2-move{stroke:#16704d;stroke-width:2.4}.b2-moveDot{fill:#16704d}
+.b2-slab{fill:#d6dde5;stroke:#56697d;stroke-width:1.2}
+.b2-beam{fill:#b9cde3;stroke:#2f4d6e;stroke-width:1.2}.b2-beam.ghosted{fill:#b9cde3;fill-opacity:.55;stroke-dasharray:4 3}
+.b2-real{fill:none;stroke:#8d9cad;stroke-width:1.2;stroke-dasharray:3 3}
+.b2-ref{stroke:#56697d;stroke-width:1;stroke-dasharray:8 3 2 3}
+.b2-dim{stroke:#344f6e;stroke-width:1}
+.b2-na{stroke:#a92b30;stroke-width:1.6;stroke-dasharray:6 3}.theory-lab-svg .b2-naText{font-size:11px;fill:#a92b30}
+.b2-ten{fill:#e9a7a2;fill-opacity:.75;stroke:#b5473f;stroke-width:1}.b2-comp{fill:#9dbbe0;fill-opacity:.75;stroke:#3d6aa3;stroke-width:1}
+.b2-mline{fill:none;stroke:#344f6e;stroke-width:1.2}
+.b2-load{stroke:#a92b30;stroke-width:1.2}.b2-loadHead{fill:#a92b30}.b2-loadBold{stroke:#a92b30;stroke-width:2.6}.theory-lab-svg .b2-loadText{fill:#a92b30;font-weight:700;font-size:13px}
+.b2-beamLine{stroke:#2f4d6e;stroke-width:5;stroke-linecap:round}
+.b2-support{fill:#fff;stroke:#344f6e;stroke-width:1.4}.b2-ground{stroke:#344f6e;stroke-width:1.4}
+.b2-hinge{fill:#fff;stroke:#a92b30;stroke-width:2.2}.b2-hinge.off{stroke:#8d9cad;stroke-dasharray:2 2}
+.b2-defl{fill:none;stroke:#16704d;stroke-width:2;stroke-dasharray:6 3}
+.b2-action{stroke:#a92b30;stroke-width:1;stroke-dasharray:3 3}
+.b2-g{fill:#fff;stroke:#173f72;stroke-width:1.6}.b2-gx{stroke:#173f72;stroke-width:1.2}.b2-s{fill:#b5650d}
+.b2-twist{fill:none;stroke:#16704d;stroke-width:2.2}.b2-twistHead{fill:#16704d}.theory-lab-svg .b2-twistText{fill:#16704d;font-weight:700;font-size:13px}
+.b2-wallFill{fill:#c9d3de}.b2-mfill{fill:#f2e1c7;stroke:#c48a1c;stroke-width:1}.b2-reinf{fill:#7fa3d0;stroke:#2f4d6e;stroke-width:1.2}
+.b2-secEdge{stroke:#2f4d6e;stroke-width:1.4}.b2-pt{fill:#fff;stroke:#173f72;stroke-width:2}
+.bl-node{fill:#1f4f9a}

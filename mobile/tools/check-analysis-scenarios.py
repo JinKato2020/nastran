@@ -87,15 +87,10 @@ with ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=str(R
         expect(frame.locator('#analysis-original-input')).to_have_attribute('open','')
         page.wait_for_timeout(350)
         assert abs(frame.locator('body').evaluate('()=>scrollY')-dat_scroll)<3,(title,dat_key)
-        if title == '複素固有値解析':
-            frame.locator('a[href="analysis.html#complex-modes/official"]').click()
-        else:
-            frame.locator('#analysis-example-picker').select_option('official')
-        expect(frame.locator('#analysis-original-input')).to_have_count(0)
-        assert frame.locator('.analysis-sources a[href$=".pdf#page=17"],.analysis-sources a[href$=".pdf#page=77"],.analysis-sources a[href$=".pdf#page=681"]').count()>=1
-        expect(frame.get_by_role('heading',name='公式例題の主要カード')).to_be_visible()
-        if title == '複素固有値解析':
-            frame.get_by_role('link',name='自作例を見る →').click()
+        # Official example problems were removed from every analysis (2026-11-18).
+        expect(frame.locator('#analysis-example-picker option[value="official"]')).to_have_count(0)
+        expect(frame.locator('a[href*="/official"]')).to_have_count(0)
+        expect(frame.get_by_text('公式例題')).to_have_count(0)
         select_variant(frame,title,variants[-1][0])
         page.screenshot(path=str(ROOT/'.qa'/f"analysis-{variants[-1][0]}.png"))
         model_key,card_key=variants[-1]
@@ -133,4 +128,4 @@ with ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=str(R
     assert not errors,errors
     browser.close()
     host.shutdown()
-print('PASS: 10 variants at 320/390/768, schematic first, card navigation, Back position, original DAT saving, official PDF links, and release version.')
+print('PASS: 10 variants at 320/390/768, schematic first, card navigation, Back position, original DAT saving, source PDF links, and release version.')
