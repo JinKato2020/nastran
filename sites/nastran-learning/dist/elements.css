@@ -9,6 +9,9 @@
 .element-table.narrow{min-width:0}
 .element-table th,.element-table td{border:1px solid #d4e0ef;padding:7px 8px;text-align:left;vertical-align:top;color:#334e6e}
 .element-table th{background:#eef3fa;color:#29466b;font-weight:700}
+.pin-field-table{min-width:870px;table-layout:fixed}
+.pin-field-table th,.pin-field-table td{white-space:nowrap}
+.pin-field-table th:first-child{width:112px}
 .element-table td.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .element-figure{margin:18px 0;padding:12px 14px 14px;border:1px solid #cddbe9;border-radius:10px;background:#fff}
 .element-figure svg{display:block;width:100%;max-width:440px;height:auto;margin:0 auto}

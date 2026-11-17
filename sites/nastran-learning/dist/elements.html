@@ -425,19 +425,40 @@
 <h3>断面寸法と座標をセットで確認する</h3><p>矩形の寸法を入れ替えると曲げ剛性が入れ替わります。断面の表示と梁の局所y・zを同時に出し、荷重方向に対する高さを確認します。</p></section>
 
 <section class="theory-section" id="beam-pin"><h2>8. 端の結合を外す（ピンフラグ PA・PB）</h2>
-<p>CBAR の継続行の PA（A端）・PB（B端）には、梁端と節点の間で<strong>結合を外す自由度</strong>を書きます。図の <code>PB₁=456</code> は、梁1のB端で要素座標の x・y・z 軸まわりの回転を解放する指定です。<strong>梁2のA端は <code>PA₂=空欄</code> で、共通節点との回転のつながりを保ちます。</strong>同じ節点を共有していても、PA・PBは節点ではなく各梁の端ごとに指定します。面1内だけを曲がり自由にする場合は、梁1の局所z軸まわりの <code>PB₁=6</code> を指定します。</p>
-<figure class="element-figure"><div data-element-sketch="pin" data-description="梁1のB端と梁2のA端は共通節点を使う。PB1=456、PA2は空欄。2本だけで節点への外部モーメントがなければ両梁端のモーメントはゼロ"></div><figcaption>∅ は空欄、M₁B・M₂A は各梁の接続端モーメントです。図は2本だけが共通節点につながり、そこに外部モーメントがない場合を示します。<strong>梁1のB端も梁2のA端もピン端となり、両端のモーメントはゼロ</strong>です。</figcaption></figure>
-<div class="element-table-wrap"><table class="element-table narrow"><thead><tr><th>梁端</th><th>入力</th><th>何が起こるか</th></tr></thead><tbody>
-<tr><td>梁1のB端</td><td><code>PB₁=456</code></td><td>共通節点の回転から解放される。梁1のB端モーメントはゼロ。</td></tr>
-<tr><td>梁2のA端</td><td><code>PA₂=空欄</code></td><td>共通節点と一緒に回る。ただしこの節点に梁2以外からのモーメントがなければ、つり合いにより梁2のA端モーメントもゼロ。</td></tr>
+<p><a href="bulk.html#CBAR">CBAR</a> の <code>PA</code>・<code>PB</code> は、指定した梁端の自由度を接続節点から解放する入力です。その自由度に対応する<strong>梁端の力またはモーメントがゼロ</strong>になります。<code>PA</code> は GA 側の端A、<code>PB</code> は GB 側の端Bに使います。曲げだけを解放するのか、ねじりも解放するのかを数字で選びます。</p>
+<h3>1. 入力する場所</h3>
+<p>1行目の第4・5欄で GA・GB を指定し、2行目（継続行）の第2・3欄に PA・PB を書きます。下の各列は8文字の入力欄です。<strong>表を左右に送ると第9欄まで見られます。</strong>例の2行は欄位置を示す抜粋で、GRID・PBARなどを含む完成モデルではありません。</p>
+<div class="element-table-wrap"><table class="element-table pin-field-table"><thead><tr><th>行</th><th>第1欄</th><th>第2欄</th><th>第3欄</th><th>第4欄</th><th>第5欄</th><th>第6欄</th><th>第7欄</th><th>第8欄</th><th>第9欄</th></tr></thead><tbody>
+<tr><th scope="row">項目・1行目</th><td>CBAR</td><td>EID</td><td>PID</td><td>GA</td><td>GB</td><td>X1/G0</td><td>X2</td><td>X3</td><td>OFFT</td></tr>
+<tr><th scope="row">項目・継続行</th><td>空欄</td><td>PA</td><td>PB</td><td>W1A</td><td>W2A</td><td>W3A</td><td>W1B</td><td>W2B</td><td>W3B</td></tr>
+<tr><th scope="row">例・1行目</th><td>CBAR</td><td>101</td><td>1</td><td>10</td><td>20</td><td>0.</td><td>0.</td><td>1.</td><td>GGG</td></tr>
+<tr><th scope="row">例・継続行</th><td>空欄</td><td><strong>56</strong></td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td><td>空欄</td></tr>
 </tbody></table></div>
-<p><strong>2本の梁の間をピンにするために、<code>PA₂=456</code> まで入力する必要はありません。</strong>片側の回転を解放すれば、2本の梁は互いに別の角度へ回れ、接続を通じて曲げ・ねじりモーメントを渡しません。両側に <code>456</code> を入れると、共通節点の回転自由度に接続がなくなり、不要な自由度や特異行列の原因となる場合があります。</p>
-<p>この「両梁端のモーメントがゼロ」は、図のように接続先が2本だけで外部モーメントもない場合の結論です。他の部材や外部モーメントが共通節点に加わる場合、<code>PA₂=空欄</code> の梁2はそのモーメントを受けることがあります。梁2のA端も他の接続に関係なく常にモーメントゼロにしたい場合は、単に両側へ <code>456</code> を追加せず、接続節点と並進の伝達方法を別に設計します。</p>
+<p>この例は端Aで曲げの2方向を解放し、端Bは解放しません。<code>56</code> のように数字を続けて書き、数字の間に空白を入れません。全フィールドの書式・既定値は <a href="bulk.html#CBAR">InputデータのCBAR</a>で確認できます。</p>
+<h3>2. 数字が表す力とモーメント</h3>
+<div class="element-table-wrap"><table class="element-table narrow"><thead><tr><th>番号</th><th>解放する成分</th><th>結果</th></tr></thead><tbody>
+<tr><td>1</td><td>要素 x 方向の並進</td><td>その端の軸力 Fₓ = 0</td></tr>
+<tr><td>2・3</td><td>要素 y・z 方向の並進</td><td>対応するせん断力 Vᵧ・V𝓏 = 0</td></tr>
+<tr><td>4</td><td>要素 x 軸まわりの回転</td><td>ねじりモーメント Mₓ = 0</td></tr>
+<tr><td>5</td><td>要素 y 軸まわりの回転</td><td>面2の曲げモーメント Mᵧ = 0</td></tr>
+<tr><td>6</td><td>要素 z 軸まわりの回転</td><td>面1の曲げモーメント M𝓏 = 0</td></tr>
+</tbody></table></div>
+<p>番号は<strong>要素座標</strong>で読みます。局所 x は梁の端A→端B、局所 y は向きベクトルの x に直角な成分、局所 z は x×y です。オフセットがゼロなら端A→端BはGA→GBと一致します。全体座標やGRIDの変位座標 CD の番号とは区別してください。軸の図は <a href="#beam-axes">要素座標と向きベクトル</a>にあります。</p>
+<h3>3. 何を「ピン」と呼ぶか</h3>
+<div class="element-table-wrap"><table class="element-table narrow"><thead><tr><th>指定例</th><th>その端でゼロになるもの</th><th>残るもの</th></tr></thead><tbody>
+<tr><td><code>PA=5</code> または <code>6</code></td><td>指定した1つの曲げモーメント</td><td>もう一方の曲げ・ねじりは伝えられる</td></tr>
+<tr><td><code>PA=56</code></td><td>曲げモーメント2方向</td><td>ねじり（4）と並進力は伝えられる。「曲げに対するピン」</td></tr>
+<tr><td><code>PA=456</code></td><td>曲げ2方向＋ねじり</td><td>並進力は伝えられる。3方向の回転を解放する</td></tr>
+</tbody></table></div>
+<p><code>PA=56</code> を「完全にモーメントを伝えないピン」と呼ぶと、残るねじりを見落とします。上の表はA端の例で、B端なら <code>PB</code> に同じ数字を書きます。1・2・3は力を解放する指定であり、通常の回転ピンとは用途が異なります。</p>
+<h3>4. 2本の梁をつなぐ場合</h3>
+<figure class="element-figure"><div data-element-sketch="pin" data-description="梁1のB端と梁2のA端は共通節点を使う。PB1=456、PA2は空欄。2本だけで節点への外部モーメントがなければ両梁端のモーメントはゼロ"></div><figcaption>図の ∅ は空欄です。梁1のB端を <code>PB₁=456</code> で解放し、梁2のA端は <code>PA₂=空欄</code>。2本だけが節点につながり外部モーメントがなければ、梁1の解放と節点のつり合いにより<strong>両梁端のモーメントはゼロ</strong>になります。</figcaption></figure>
+<p><code>PA₂=空欄</code> なら梁2のA端は共通節点の回転に従いますが、梁1とは別の角度へ回れます。したがって<strong>梁1と梁2の間は両側から見てピン</strong>です。この2本だけの接続に <code>PA₂=456</code> を追加する必要はありません。両方を解放すると、共通節点の回転自由度がどの要素にもつながらず、特異行列の原因になる場合があります。他の部材や外部モーメントが節点につながる場合、梁2のA端モーメントはゼロとは限りません。</p>
+<h3>5. 入力時の注意</h3>
 <ul>
-<li>自由度は要素座標で数えます。全体座標ではありません。</li>
-<li>外す自由度に対応する剛性を、物性カードに持っている必要があります。たとえば PA = 4 なら、PBAR に J が必要です。</li>
-<li>書ける数字は1〜6のうち最大5つ（空白を挟まない）。6つ全部を外すと要素が浮いてしまいます。</li>
-<li>SOL 700 ではピンフラグは使えません。</li>
+<li>同じCBARの両端で同じ成分を解放すると、その成分の剛性を失うことがあります。両端の4ならねじり、両端の1なら軸方向の剛性経路を失います。両端の56は曲げを伝えない棒に近づきますが、軸力・ねじりは残ります。モデル全体の自由度と <a href="analysis.html#model-verification">特異・AUTOSPC</a> を確認します。</li>
+<li>オフセット WA・WB がある場合、解放はGRIDの位置ではなく<strong>ずらした梁の端A・B</strong>で作用します。GRIDから梁端までの腕によって、GRID側に別のモーメントが生じ得ます。位置関係は <a href="#beam-axes">床と梁のオフセット図</a>で確認してください。</li>
+<li>解放する自由度には元の剛性が必要です。たとえば4を解放するなら <a href="bulk.html#PBAR">PBAR</a> のねじり定数 J が必要です。数字は1〜6から重複なく最大5個、数字の間に空白は入れません。SOL 700ではピンフラグを使えません。</li>
 </ul>
 </section>
 
