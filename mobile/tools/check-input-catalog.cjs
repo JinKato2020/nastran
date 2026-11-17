@@ -9,6 +9,17 @@ for(const key of elementLinks)assert(keys.has(key),'elements.html -> '+key);
 for(const name of ['theory-data','extended-theory-data','practice-theory-data','linear-foundations','analysis-common']){
  vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),context);
 }
+// Check the final merged data: review patches must not hide the shear-factor example again.
+const pbar=context.window.BULK_CARDS.find(e=>e.id==='PBAR');
+assert.equal(pbar.rows.length,3);
+assert.deepEqual(Array.from(pbar.rows[2].slice(1,3)),['0.833333','0.833333']);
+assert.equal(pbar.rows[1][9],pbar.rows[2][0]);
+assert.equal(pbar.page,2474);
+assert.equal(pbar.sourceVersion,'2025.1');
+assert(context.window.FIELD_GUIDE.PBAR.fields.K1.meaning.includes('κ₁'));
+assert(context.window.FIELD_GUIDE.PBAR.fields.K2.example.includes('17–24列'));
+assert(keys.get('PBEAM').lines.flat().find(f=>f.label==='K1').help.includes('既定1.0'));
+assert(context.window.FIELD_GUIDE.PSHELL.fields['TS/T'].meaning.includes('κ'));
 for(const topic of context.window.NastranTheory){
  for(const [url] of topic.links||[]){
   if(url.startsWith('bulk.html#'))assert(keys.has(url.split('#')[1]),topic.key+' -> '+url);
