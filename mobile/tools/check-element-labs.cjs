@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const dist=path.resolve(__dirname,'../../sites/nastran-learning/dist'),ctx={window:{}};
 vm.createContext(ctx);
-for(const f of ['element-labs.js','analysis-mode-quiz.js','analysis-quiz.js'])vm.runInContext(fs.readFileSync(path.join(dist,f),'utf8'),ctx,{filename:f});
+for(const f of ['element-labs.js','analysis-mode-quiz.js','analysis-quiz.js','analysis-model-quiz.js','analysis-original-decks.js'])vm.runInContext(fs.readFileSync(path.join(dist,f),'utf8'),ctx,{filename:f});
 const c=ctx.window.ElementLabs.core,m=ctx.window.AnalysisModeQuiz.core;
 const close=(a,b,tol=1e-10)=>assert(Math.abs(a-b)<=tol*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 for(const shift of [-10,0,7]){const r=c.spring(120,.6+shift,.2+shift);close(r.f1,48);close(r.f1+r.f2,0);close(r.energy,9.6);}
@@ -30,3 +30,33 @@ assert.equal(quiz.data.modes.questions.length,5);
 for(const q of quiz.data.modes.questions){assert.equal(q.options.length,4);assert(q.options[q.answer]);assert.equal(quiz.diagnose(String(q.verify.check.expect),q.verify.check)[0],'ok');}
 assert(quiz.render('modes').includes('METHOD = ？'));assert(!quiz.render('modes').includes('undefined'));
 console.log('PASS: 18 element experiments, equilibrium/energy/coordinate invariants, analytic reference values, modal scaling and 5 quiz answers.');
+// Independent quadrature of Rayleigh numerator and denominator, including both-fixed boundaries.
+const integrate=f=>{const n=10000,h=1/n;let z=f(0)+f(1);for(let i=1;i<n;i++)z+=(i%2?4:2)*f(i*h);return z*h/3;};
+close(integrate(x=>(16*x*x*(1-x)**2)**2),128/315);
+close(integrate(x=>(32-192*x+192*x*x)**2),1024/5);
+assert(m.estimate(0,1,true)>6*m.frequency);
+for(const [kind,ids] of Object.entries({static:['beam','shell','solid'],modes:['baseline','tip-mass','both-fixed']})){
+ const signatures=[];
+ for(const id of ids){const d=quiz.resolve(kind,id);assert(d);signatures.push(JSON.stringify(d.questions));
+  for(const q of d.questions){assert.equal(q.options.length,4);assert(q.options[q.answer]);assert.equal(quiz.diagnose(q.verify.check.expect,q.verify.check)[0],'ok');}
+  assert(quiz.render(kind,id).includes('data-model="'+id+'"'));
+  assert(ctx.window.AnalysisModelGuides[id].verify.length>=3);
+ }
+ assert.equal(new Set(signatures).size,3,kind+' questions must follow the selected model');
+}
+assert.equal(quiz.resolve('static','unknown'),null);
+// Compare questions with the actual local decks, not just another copy of the quiz formulas.
+for(const id of ['beam','shell','solid']){
+ const deck=ctx.window.AnalysisOriginalDecks[id].text.split(/BEGIN BULK/i)[1].split(/\r?\n/);
+ const forces=deck.filter(l=>l.slice(0,8).trim()==='FORCE').map(l=>Array.from({length:8},(_,i)=>l.slice(i*8,(i+1)*8).trim()));
+ close(forces.reduce((sum,c)=>sum+Number(c[4])*Number(c[7]),0),-18);
+ assert.equal(forces.length,{beam:1,shell:5,solid:15}[id]);
+ const spcs=deck.filter(l=>l.slice(0,8).trim()==='SPC1');assert(spcs.every(l=>l.slice(16,24).trim()===(id==='solid'?'123':'123456')));
+}
+assert.equal(quiz.resolve('modes','tip-mass').questions[0].verify.check.expect,m.mass+m.added);
+close(quiz.resolve('modes','both-fixed').questions[1].verify.check.expect,242.31073725137875);
+assert(quiz.resolve('modes','both-fixed').experiment().includes('16s²(1−s)²'));
+assert(!quiz.resolve('modes','baseline').experiment().includes('data-mode-control="mass"'));
+assert(quiz.resolve('modes','baseline').links.some(([href])=>href==='bulk.html#SPC1'));
+assert(!quiz.resolve('modes','baseline').links.some(([href])=>href==='bulk.html#CONM2'));
+console.log('PASS: six model-specific quizzes, 24 answers, 1/5/15-node load distribution, support components and both-fixed Rayleigh integrals.');

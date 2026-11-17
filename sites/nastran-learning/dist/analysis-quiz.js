@@ -59,11 +59,12 @@
 
  if(window.AnalysisModeQuiz)DATA.modes=window.AnalysisModeQuiz.data;
  DATA.static.links=[['bulk.html#SPC1','SPC1'],['bulk.html#FORCE','FORCE'],['bulk.html#PBEAM','PBEAM']];
- if(DATA.modes)DATA.modes.links=[['bulk.html#MAT1','MAT1'],['bulk.html#CASE_METHOD','METHOD'],['bulk.html#EIGRL','EIGRL'],['bulk.html#CONM2','CONM2'],['theory.html#modes','実固有値の理論']];
- function render(key){
-  const d=DATA[key];if(!d)return '';
+ if(DATA.modes&&!DATA.modes.links)DATA.modes.links=[['bulk.html#MAT1','MAT1'],['bulk.html#CASE_METHOD','METHOD'],['bulk.html#EIGRL','EIGRL'],['bulk.html#CONM2','CONM2'],['theory.html#modes','実固有値の理論']];
+ function resolve(key,model){return window.AnalysisModelQuizzes?.[key]?.[model] || (model && window.AnalysisModelQuizzes?.[key] ? null : DATA[key]);}
+ function render(key,model){
+  const d=resolve(key,model);if(!d)return '';
   const letters='ABCD';
-  return `<div class="aq" data-quiz="${esc(key)}"><p class="aq-intro">${esc(d.intro)}</p><div class="analysis-links">${(d.links||[]).map(([href,label])=>`<a href="${esc(href)}">${esc(label)} →</a>`).join('')}</div>${d.experiment?d.experiment():''}<p class="aq-score" aria-live="polite">${d.questions.length}問中 0問に回答（正解数は初回回答で集計）</p>`+
+  return `<div class="aq" data-quiz="${esc(key)}" data-model="${esc(model||'')}"><p class="aq-intro">${esc(d.intro)}</p><div class="analysis-links">${(d.links||[]).map(([href,label])=>`<a href="${esc(href)}">${esc(label)} →</a>`).join('')}</div>${d.experiment?d.experiment():''}<p class="aq-score" aria-live="polite">${d.questions.length}問中 0問に回答、初回の正解数：0問（答え直しは得点に含みません）</p>`+
    d.questions.map((q,n)=>`<article class="aq-q" data-n="${n}"><h4>問${n+1}　${esc(q.title)}</h4><pre class="aq-line"><code>${q.code?esc(q.code):line(q.line)}</code></pre><p class="aq-ask">${esc(q.ask)}</p>`+
     `<div class="aq-options" role="group" aria-label="問${n+1}の選択肢">${q.options.map(([label],i)=>`<button type="button" class="aq-opt" data-i="${i}"><span class="aq-letter">${letters[i]}</span><span>${esc(label)}</span></button>`).join('')}</div>`+
     `<div class="aq-feedback" hidden><p class="aq-result" aria-live="polite"></p><ul class="aq-why">${q.options.map(([label,why],i)=>`<li data-i="${i}"${i===q.answer?' class="right"':''}><b>${letters[i]}　${esc(label)}</b>${i===q.answer?'（正解）':''}<br>${esc(why)}</li>`).join('')}</ul>`+
@@ -78,11 +79,15 @@
   for(const [k,msg] of c.diag){if(k===0?Math.abs(v)<=1e-6*Math.abs(ex):Math.abs(r/k-1)<0.03)return [k===1?'ok':'warn',`手計算 ${num(ex,4)} に対して ${num(r,3)} 倍。${msg}`];}
   return ['warn',`手計算 ${num(ex,4)} に対して ${num(r,3)} 倍です。単位系、断面の値、荷重の向きと大きさを順に見直します。`];
  }
+ const sessions=new Map();
  function bind(root){
   for(const quiz of root.querySelectorAll('.aq')){
-   const d=DATA[quiz.dataset.quiz],score=quiz.querySelector('.aq-score'),done=new Map();
+   const d=resolve(quiz.dataset.quiz,quiz.dataset.model),score=quiz.querySelector('.aq-score');
+   const key=quiz.dataset.quiz+':'+quiz.dataset.model;
+   if(!sessions.has(key))sessions.set(key,{done:new Map(),last:new Map(),checks:new Map()});
+   const {done,last,checks}=sessions.get(key);
    if(d.bind)d.bind(quiz);
-   const update=()=>{score.textContent=`${d.questions.length}問中 ${done.size}問に回答、初回の正解 ${[...done.values()].filter(Boolean).length}問`;};
+   const update=()=>{score.textContent=`${d.questions.length}問中 ${done.size}問に回答、初回の正解数：${[...done.values()].filter(Boolean).length}問`;};
    quiz.querySelectorAll('.aq-q').forEach(card=>{
     const q=d.questions[+card.dataset.n],fb=card.querySelector('.aq-feedback');
     card.querySelectorAll('.aq-opt').forEach(btn=>btn.addEventListener('click',()=>{
@@ -91,14 +96,17 @@
      card.querySelectorAll('.aq-why li').forEach(li=>li.classList.toggle('chosen',+li.dataset.i===i));
      fb.hidden=false;fb.querySelector('.aq-result').textContent=ok?'正解です。':`不正解です。正解は ${'ABCD'[q.answer]} です。選んだ ${'ABCD'[i]} で何が起きるかを確かめてください。`;
      fb.querySelector('.aq-result').className='aq-result '+(ok?'ok':'ng');
-     if(!done.has(card.dataset.n))done.set(card.dataset.n,ok);update();
+     if(!done.has(card.dataset.n))done.set(card.dataset.n,ok);last.set(card.dataset.n,i);update();
     }));
     const input=card.querySelector('.aq-check input'),out=card.querySelector('.aq-diag');
-    const run=()=>{const [cls,msg]=diagnose(input.value,q.verify.check);out.textContent=msg;out.className='aq-diag '+cls;};
+    const run=()=>{checks.set(card.dataset.n,input.value);const [cls,msg]=diagnose(input.value,q.verify.check);out.textContent=msg;out.className='aq-diag '+cls;};
     card.querySelector('.aq-run').addEventListener('click',run);
     input.addEventListener('keydown',e=>{if(e.key==='Enter')run();});
+    if(last.has(card.dataset.n))card.querySelector('.aq-opt[data-i="'+last.get(card.dataset.n)+'"]').click();
+    if(checks.has(card.dataset.n)){input.value=checks.get(card.dataset.n);run();}
    });
+   if(done.size)update();
   }
  }
- window.AnalysisQuiz={data:DATA,render,bind,diagnose};
+ window.AnalysisQuiz={data:DATA,resolve,render,bind,diagnose};
 })();

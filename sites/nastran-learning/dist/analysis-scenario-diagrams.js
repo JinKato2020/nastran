@@ -2,7 +2,9 @@
 (() => {
  'use strict';
  const fixed='#2c60ad', force='#ad3928', result='#1b705a', stroke='#48627e';
- const text=(x,y,value,color=stroke,align='start')=>`<text x="${x}" y="${y}" fill="${color}" text-anchor="${align}">${value}</text>`;
+ let neutral=false,legend=[];
+ const symbols={'固定点':'SPC','固定辺':'SPC','固定面':'SPC','固定':'SPC','横荷重':'P','変位の観測点':'O','梁の中心線':'CBEAM','先端辺へ配分':'ΣP','先端面へ配分':'ΣP','板の中立面':'CQUAD4','厚さ方向にも分割':'CHEXA','中央の観測点':'O','追加質量':'m','先端の観測点':'O'};
+ const text=(x,y,value,color=stroke,align='start')=>{if(neutral&&symbols[value]){const original=value;value=symbols[value];if(!legend.some(([s,t])=>s===value&&t===original))legend.push([value,original]);}return `<text x="${x}" y="${y}" fill="${color}" text-anchor="${align}">${value}</text>`;};
  const path=(d,color=stroke,width=2,fill='none')=>`<path d="${d}" fill="${fill}" stroke="${color}" stroke-width="${width}" stroke-linejoin="round" stroke-linecap="round"/>`;
  const arrow=(x,y)=>path(`M${x} ${y-43}v36m-6-6 6 6 6-6`,force,2.5);
  const dot=(x,y)=>`<circle cx="${x}" cy="${y}" r="5" fill="#fff" stroke="${result}" stroke-width="2.5"/>`;
@@ -12,7 +14,7 @@
  const svg=(title,shape)=>`<svg viewBox="0 0 360 184" role="img" aria-label="${title}"><g font-family="system-ui,sans-serif" font-size="14" font-weight="550">${shape}</g></svg>`;
  const beam=()=>svg('左端の一点を固定した梁。右端に下向き荷重を与え、そこで変位を読む。',
   wall(51,101)+chain(51,290,101)+arrow(290,101)+dot(290,101)+text(23,145,'固定点',fixed)+text(289,47,'横荷重',force,'middle')+text(291,145,'変位の観測点',result,'middle')+text(168,89,'梁の中心線'));
- const shell=()=>svg('板の中立面。左辺を固定し、右辺の3点に面外荷重を分配する。',
+ const shell=()=>svg('板の中立面。左辺を固定し、右辺に面外荷重を分配する。矢印と分割数は模式表示。',
   path('M62 72H308L277 119H31Z',stroke,2,'#eaf1fa')+
   path('M123 72l-31 47 M185 72l-31 47 M246 72l-31 47 M47 95H292','#bdcce0',1)+
   path('M62 72L31 119',fixed,6)+[ [308,72],[292,95],[277,119] ].map(([x,y])=>arrow(x,y)).join('')+
@@ -99,5 +101,10 @@
   'pre-none':()=>prestressed('pre-none'),'pre-tension':()=>prestressed('pre-tension'),'pre-compression':()=>prestressed('pre-compression'),
   'heat-insulated':()=>heatStrip(false),'heat-convection':()=>heatStrip(true),harmonic,'pulse-short':()=>pulse(false),'pulse-long':()=>pulse(true),
   'buck-cantilever':()=>column('buck-cantilever'),'buck-pinned':()=>column('buck-pinned'),'buck-fixed':()=>column('buck-fixed')};
- window.renderAnalysisScenarioDiagram=kind=>extra[kind]?extra[kind]():({beam,shell,solid}[kind]?.()||vibration(kind));
+ window.renderAnalysisScenarioDiagram=kind=>{
+  neutral=['beam','shell','solid','baseline','tip-mass','both-fixed'].includes(kind);legend=[];
+  const drawing=extra[kind]?extra[kind]():({beam,shell,solid}[kind]?.()||vibration(kind));
+  const key=neutral?`<div class="analysis-figure-key">${legend.map(([s,t])=>`<span><b>${s}</b>：${t}</span>`).join('')}</div>`:'';
+  neutral=false;return drawing+key;
+ };
 })();

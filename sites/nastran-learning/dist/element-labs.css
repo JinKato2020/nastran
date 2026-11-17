@@ -30,3 +30,16 @@
 
 .el-node-hidden{fill:#f2f6fb;stroke:#315b87;stroke-width:1.6;stroke-dasharray:2 2}
 .el-motion{stroke-dasharray:5 3}
+
+/* Scoped to the new labs; Claude's beam figures and their geometry are untouched. */
+.el-cue{font-size:15px;font-weight:650;line-height:1.7;margin:0 0 14px;color:#173f72}
+.el-presets{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 16px}
+.el-presets button{min-height:40px;border:1px solid #9cb2cb;background:#fff;color:#243e60;border-radius:999px;padding:6px 10px;font:inherit;font-size:14px}
+.el-presets button:focus-visible{outline:3px solid #1f4f9a;outline-offset:2px}
+.element-lab .el-svg text{font-size:14px}
+.element-lab .beam-3d text{font-size:14px}
+.el-dimension{fill:none;stroke:#7d8fa3;stroke-width:1.1}
+.el-force-component{fill:none;stroke:#a92b30;stroke-width:1.3;stroke-dasharray:4 3}
+.el-stress-area{fill:#c58c60;fill-opacity:.16;stroke:none}
+.element-lab .el-force{stroke:#a92b30}.element-lab .el-force-head{fill:#a92b30}
+.element-lab .el-motion{stroke:#147b52}.element-lab .el-motion-head{fill:#147b52}

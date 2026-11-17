@@ -154,7 +154,7 @@ with sync_playwright() as p:
     for n,right in enumerate([1,2,3]):
         page.locator(f'.aq-q[data-n="{n}"] .aq-opt[data-i="{right}"]').click()
         assert page.locator(f'.aq-q[data-n="{n}"] .aq-result').inner_text()=='正解です。'
-    assert '3問中 3問に回答、初回の正解 3問' in page.locator('.aq-score').inner_text()
+    assert '3問中 3問に回答、初回の正解数：3問' in page.locator('.aq-score').inner_text()
     card=page.locator('.aq-q[data-n="1"]')
     card.locator('.aq-check input').fill('-0.1714')
     card.locator('.aq-run').click()

@@ -102,19 +102,20 @@
    ['analysis.html#load-check','荷重・反力の照合'],
   );
   const guide=window.AnalysisScenarioGuides?.[entry.key];
-  const quiz=window.AnalysisQuiz?.data[entry.key];
+  const quiz=window.AnalysisQuiz?.resolve(entry.key,model.id);
+  const specific=window.AnalysisModelGuides?.[model.id];
   const state={current:tabOf(tabKey)==='quiz'&&!quiz?'model':tabOf(tabKey)};
   // "dat" in the address means the Input tab with the full deck open, so Back from a card returns there.
   const token=()=>state.current==='input'&&byId('analysis-original-input')?.open?'dat':state.current;
   const place=(id,tab)=>'#'+entry.key+'/'+id+(tab&&tab!=='model'?'/'+tab:'');
   detail.innerHTML=heading(entry,'')+selection+figure+(tabbed(state.current,{
-      model:[['モデル化と境界条件',`<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+conditions(model.conditions)],guide&&['この解析の基礎',guideBasics(guide)]],
+      model:[['モデル化と境界条件',`<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+conditions(model.conditions)],specific&&[specific.title,list(specific.items)],guide&&['この解析で共通する基礎',specific?'<details class=analysis-shared><summary>全モデルに共通する用語と手順</summary>'+guideBasics(guide)+'</details>':guideBasics(guide)]],
       input:[['カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations'],
        entry.key==='buckling'&&['SOL 105で静解析と座屈を対応させる',bucklingSetup(),'analysis-buckling-setup'],
        guide?.inputReview&&['入力で確認する指定',cardGroups(guide.inputReview)+sources([{url:'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=38',label:'線形静解析ユーザーガイド 2025.1 · 第2章 PDF 38–40ページ'}])],
        ['自作モデルのDAT',deckSection(deck,tabKey==='dat')]],
-      quiz:quiz&&[['入力の4択問題',window.AnalysisQuiz.render(entry.key),'analysis-quiz']],
-      results:[['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(guide)],['モデル間の比較',compare(scenario,scenario.models.indexOf(model))],guide&&['よくある失敗と直し方',conditions(guide.pitfalls)]]
+      quiz:quiz&&[['入力の4択問題',window.AnalysisQuiz.render(entry.key,model.id),'analysis-quiz']],
+      results:[['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(specific||guide)],['モデル間の比較',compare(scenario,scenario.models.indexOf(model))],specific?.pitfalls?['このモデルで間違えやすい点',conditions(specific.pitfalls)]:guide&&['よくある失敗と直し方',conditions(guide.pitfalls)]]
      }))+
    contextLinks(entry,related)+sources(scenario.sources||entry.sources);
   bindTabs(state,()=>history.replaceState(null,'',place(model.id,token())));

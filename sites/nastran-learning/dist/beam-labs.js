@@ -168,8 +168,8 @@
    draw(el,v){const N=+v.n,c=v.mass==='coupled',i=+v.mode,res=cantilever(N,c);el.out.n.textContent=N;
     const fe=res.modes[i],dots=[[0,0]];
     if(fe){const sh=feShape(N,fe.x);for(let k=1;k<=N;k++)dots.push(sh[Math.min(sh.length-1,k*8)]);}
-    el.plot.innerHTML=chart({id:'mesh',label:'振動の形',x:[0,1],y:[-1.1,1.1],xt:[0,0.25,0.5,0.75,1],yt:[-1,-0.5,0,0.5,1],xf:v=>v*1000,xl:'固定端からの距離（mm）',yl:'振動の形',legend:true,
-     series:[{pts:exactShape(i),name:'理論',dash:'7 4'},...(fe?[{pts:feShape(N,fe.x),name:`要素 ${N} 本`,strong:true,dash:''}]:[])],dots:fe?dots:[]})+
+    el.plot.innerHTML=chart({id:'mesh',label:'振動の形',x:[0,1],y:[-1.1,1.1],xt:[0,0.25,0.5,0.75,1],yt:[-1,-0.5,0,0.5,1],xf:v=>v*1000,xl:'x (mm)',yl:'φ/φ(L)',legend:true,
+     series:[{pts:exactShape(i),name:'φ',dash:'7 4'},...(fe?[{pts:feShape(N,fe.x),name:`φh, n=${N}`,strong:true,dash:''}]:[])],dots:fe?dots:[]})+
      `<table class="theory-lab-table beam-lab-freq"><tr><th>モード</th><th>理論</th><th>要素 ${N} 本</th><th>誤差</th></tr>${BETA.map((b,k)=>{const ex=b*b*MESH.scale,m=res.modes[k],f=m?m.w*MESH.scale:NaN;return `<tr${k===i?' class="on"':''}><td>${k+1}次</td><td>${sg(ex,4)} Hz</td><td>${m?sg(f,4)+' Hz':'—'}</td><td>${m?signed((f/ex-1)*100)+'%':'—'}</td></tr>`;}).join('')}</table>`;
     const tip=res.tip*MESH.P*MESH.L**3/(E*MESH.I),exact=MESH.P*MESH.L**3/(3*E*MESH.I);
     el.readout.innerHTML=`先端に ${MESH.P} N の静荷重：たわみ ${fx(tip,4)} mm（手計算 PL³/(3EI) = ${fx(exact,4)} mm）。要素数にかかわらず一致します。${fe?'':`<br><span class="warn">${N} 本・${c?'連成':'集中'}質量では、${i+1}次のモードを表す自由度がありません。</span>`}`;}},
@@ -181,7 +181,7 @@
     el.readout.innerHTML=`鉛直たわみ <b>${fx(Math.abs(r.dZ),2)} mm</b>（0° の ${fx(r.dZ/r0.dZ,2)} 倍）　横たわみ <b>${fx(Math.abs(r.dY),2)} mm</b>（0° の鉛直たわみの ${fx(Math.abs(r.dY/r0.dZ),2)} 倍）<br>根元の最大曲げ応力 <b>${fx(r.sig,1)} MPa</b>（0° の ${fx(r.sig/r0.sig,2)} 倍）`;},
    action(el,name,val){el.inputs[name].value=val;}},
   offset:{html:()=>box('offset',select('off','オフセット',[['1','あり（W3A = W3B = −310.）'],['0','なし']],'1')+slider('b','床の有効幅 b',500,3000,100,1000),
-    `床 厚さ ${SLAB.t} mm、梁 幅 ${SLAB.bw} × せい ${SLAB.hb} mm（床の下面から下）、同じ材料。曲げモーメント M = 100 kN·m をかけたときの断面の応力を、梁理論で計算しています。幅方向は縮めて描いています。`),
+    `床 厚さ ${SLAB.t} mm、梁 幅 ${SLAB.bw} × せい ${SLAB.hb} mm（床の下面から下）、同じ材料。曲げモーメント M = 100 kN·m をかけたときの断面の応力を、梁理論で計算しています。幅方向は縮めて描いています。左は計算上の断面、右は曲げ応力。zₙ は中立軸、B₀ の破線は実物の梁の位置です。オフセットなしでは梁の中心を床の中央面として計算し、ありでは床と梁を一体の断面として計算します。`),
    draw(el,v){const b=+v.b,on=v.off==='1',a=composite(b,on),other=composite(b,!on),ratio=composite(b,true).I/composite(b,false).I;el.out.b.textContent=fx(b)+' mm';
     el.plot.innerHTML=offsetFigure(b,on,a,Math.max(...[a,other].flatMap(q=>[q.top,q.bot,q.slabBot,q.beamTop].map(Math.abs))));
     el.readout.innerHTML=`断面二次モーメント：オフセットなし ${sg(composite(b,false).I/1e9,3)}×10⁹ mm⁴、あり ${sg(composite(b,true).I/1e9,3)}×10⁹ mm⁴（<b>${fx(ratio,2)} 倍</b>）。同じ荷重のたわみは ${fx(1/ratio,2)} 倍になります。<br>梁の下端の応力 ${fx(a.bot,2)} MPa、床の上面 ${fx(a.top,2)} MPa（−は圧縮）。`;}},
@@ -189,8 +189,8 @@
     `先端に 10 kN を受ける片持ち梁の先端たわみを、せん断変形を含めない値（曲げだけ）で割った比。PBARL の線は、断面から計算される K の目安として Cowper の式（H形 k = ${fx(SHEAR.h.k,3)}、長方形 k = ${fx(SHEAR.rect.k,3)}）を使っています。MSC Nastran が計算する値とは少し違うことがあります。`),
    draw(el,v){const s=SHEAR[v.sec],r=+v.r,rs=range(2,30,113);el.out.r.textContent=fx(r,1);
     const cases=[['PBAR（K 空欄）',0],['PBEAM（K = 1.0）',1],['PBARL（K 自動）',s.k]],top=Math.max(1.2,Math.ceil(shearRatio(s,2,s.k)*4)/4);
-    el.plot.innerHTML=chart({id:'shear',label:'細長さとせん断たわみ',x:[2,30],y:[1,top],xt:[2,5,10,15,20,25,30],yt:range(1,top,Math.round((top-1)/0.25)+1),yf:v=>v.toFixed(2),xl:'L/h',yl:'たわみ ÷ 曲げだけのたわみ',legend:true,
-     series:cases.map(([n,k],i)=>({pts:rs.map(x=>[x,shearRatio(s,x,k)]),name:n,strong:i===2,dash:DASH[i]})),marks:cases.map(([,k])=>[r,shearRatio(s,r,k)])});
+    el.plot.innerHTML=chart({id:'shear',label:'細長さとせん断たわみ',x:[2,30],y:[1,top],xt:[2,5,10,15,20,25,30],yt:range(1,top,Math.round((top-1)/0.25)+1),yf:v=>v.toFixed(2),xl:'L/h',yl:'δ/δb',legend:true,
+     series:cases.map(([n,k],i)=>({pts:rs.map(x=>[x,shearRatio(s,x,k)]),name:['PBAR','PBEAM','PBARL'][i],strong:i===2,dash:DASH[i]})),marks:cases.map(([,k])=>[r,shearRatio(s,r,k)])});
     const L=r*s.h,db=1e4*L**3/(3*E*s.sec.Is);
     el.readout.innerHTML=`L = ${fx(L)} mm、先端たわみ：${cases.map(([n,k])=>`${n} <b>${fx(db*shearRatio(s,r,k),3)} mm</b>`).join('、')}。PBAR は PBARL より ${fx((1-1/shearRatio(s,r,s.k))*100,1)}% 小さく出ます。`;}},
   release:{html:()=>box('release',`<label><input type="checkbox" data-lab-input="pb"> 梁1 の PB = 6</label><label><input type="checkbox" data-lab-input="pa"> 梁2 の PA = 6</label>`+select('v','v の向き',[['up','上向き（鉛直）'],['side','水平']],'up'),
@@ -210,14 +210,14 @@
   warp:{html:()=>box('warp',slider('L','長さ L',500,8000,100,2000)+select('show','立体図',[['beam','CBEAM（根元で反りを拘束）'],['bar','CBAR（反り自由）']],'beam'),
     `H形鋼 300×150×6.5×9 の片持ち梁の先端に、トルク ${WARP.T/1000} N·m。J = ${fx(H300.J)} mm⁴、Cw = ${sg(H300.Cw/1e11,3)}×10¹¹ mm⁶ は薄肉断面の公式による値です。グラフの実線が反りを拘束した場合（根元で dθ/dx = 0、先端は反り自由）、破線が反りを考えない場合（CBAR）。立体図のねじれは拡大しています。`),
    draw(el,v){const L=+v.L,xs=range(0,L,81),tf=twistFree(L),tr=twistRestrained(L,L),yt=ticks(tf/DEG);el.out.L.textContent=fx(L)+' mm';
-    el.plot.innerHTML=warpScene(L,v.show==='beam')+chart({id:'warp',label:'ねじれ角の分布',x:[0,L],y:[0,yt.top],xt:ticks(L,4).list,yt:yt.list,yf:v=>sg(v,2),xl:'固定端からの距離（mm）',yl:'ねじれ角 θ（°）',legend:true,
-     series:[{pts:xs.map(x=>[x,twistRestrained(x,L)/DEG]),name:'CBEAM（反り拘束）',strong:true,dash:''},{pts:xs.map(x=>[x,twistFree(x)/DEG]),name:'CBAR（反り自由）',dash:'7 4'}],marks:[[L,tr/DEG],[L,tf/DEG]]});
+    el.plot.innerHTML=warpScene(L,v.show==='beam')+chart({id:'warp',label:'ねじれ角の分布',x:[0,L],y:[0,yt.top],xt:ticks(L,4).list,yt:yt.list,yf:v=>sg(v,2),xl:'x (mm)',yl:'θ (°)',legend:true,
+     series:[{pts:xs.map(x=>[x,twistRestrained(x,L)/DEG]),name:'CBEAM',strong:true,dash:''},{pts:xs.map(x=>[x,twistFree(x)/DEG]),name:'CBAR',dash:'7 4'}],marks:[[L,tr/DEG],[L,tf/DEG]]});
     el.readout.innerHTML=`先端のねじれ角：CBAR <b>${fx(tf/DEG,2)}°</b>、反りを拘束した CBEAM <b>${fx(tr/DEG,2)}°</b>（CBAR の ${fx(tr/tf,2)} 倍）。反りの影響が届く長さの目安 1/λ = √(E·Cw/(G·J)) = ${fx(1/WARP.lam)} mm。`;}},
   taper:{html:()=>box('taper',slider('a','補強する長さ（根元から）',0,100,5,50)+select('n','補強した部分の EI',[['2','2倍'],['4','4倍'],['8','8倍']],'4'),
     '先端に集中荷重を受ける片持ち梁で、根元から一部だけ曲げ剛性 EI を大きくしたときの先端たわみ（補強なしを1とする）。曲げモーメントは根元ほど大きく、先端で0です。'),
    draw(el,v){const a=+v.a/100,n=+v.n,r=taperRatio(a,n),as=range(0,1,101);el.out.a.textContent=fx(a*100)+'%';
-    el.plot.innerHTML=taperFigure(a,n)+chart({id:'taper',label:'補強長さと先端たわみ',x:[0,100],y:[0,1],xt:[0,25,50,75,100],yt:[0,0.25,0.5,0.75,1],yf:v=>v.toFixed(2),xl:'補強する長さ（全長に対する %）',yl:'先端たわみ（補強なし = 1）',legend:true,
-     series:[2,4,8].map((k,i)=>({pts:as.map(x=>[x*100,taperRatio(x,k)]),name:`EI ${k}倍`,strong:k===n,dash:DASH[i]})),marks:[[a*100,r]]});
+    el.plot.innerHTML=taperFigure(a,n)+chart({id:'taper',label:'補強長さと先端たわみ',x:[0,100],y:[0,1],xt:[0,25,50,75,100],yt:[0,0.25,0.5,0.75,1],yf:v=>v.toFixed(2),xl:'a/L (%)',yl:'δ/δ0',legend:true,
+     series:[2,4,8].map((k,i)=>({pts:as.map(x=>[x*100,taperRatio(x,k)]),name:`EI × ${k}`,strong:k===n,dash:DASH[i]})),marks:[[a*100,r]]});
     const gain=(1-r)/(1-1/n);
     el.readout.innerHTML=`先端たわみ：補強なしの <b>${fx(r,3)} 倍</b>（全長を補強すると ${fx(1/n,3)} 倍）。全長を補強したときの減少のうち <b>${fx(gain*100,1)}%</b> を、長さ ${fx(a*100)}% の補強で得ています。`;}}
  };
@@ -237,21 +237,21 @@
   const P=(y,z,dy=0,dz=0)=>[(cx+(y*c-z*s)*k+dy*dk).toFixed(1),(cy-(y*s+z*c)*k-dz*dk).toFixed(1)].join(',');
   const poly=(dy,dz,cls)=>`<polygon points="${sec.poly.map(([y,z])=>P(y,z,dy,dz)).join(' ')}" class="${cls}"/>`+(sec.hole?`<polygon points="${sec.hole.map(([y,z])=>P(y,z,dy,dz)).join(' ')}" class="${cls==='b2-sec'?'b2-hole':cls}"/>`:'');
   const ex=cx+r.dY*dk,ey=cy-r.dZ*dk,arrow=Math.hypot(r.dY,r.dZ)*dk>6;
-  return `<svg class="beam-end" viewBox="0 0 ${w} ${h}" role="img" aria-label="先端から見た図"><text x="8" y="16" class="b2-title">先端から見る</text>`+
+  return `<svg class="beam-end" viewBox="0 0 ${w} ${h}" role="img" aria-label="先端から見た図">`+
    `<line x1="${cx}" y1="22" x2="${cx}" y2="${h-34}" class="b2-guide"/><line x1="12" y1="${cy}" x2="${w-12}" y2="${cy}" class="b2-guide"/><text x="${w-12}" y="${cy-5}" text-anchor="end" class="b2-small">Y</text><text x="${cx+5}" y="30" class="b2-small">Z</text>`+
    poly(0,0,'b2-ghost')+poly(r.dY,r.dZ,'b2-sec')+
    (arrow?`<line x1="${cx}" y1="${cy}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}" class="b2-move"/><circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="3.5" class="b2-moveDot"/>`:'')+
-   `<text x="${w/2}" y="${h-16}" text-anchor="middle" class="b2-small">横 ${fx(Math.abs(r.dY),1)} mm ／ 鉛直 ${fx(Math.abs(r.dZ),1)} mm</text></svg>`;}
+   `</svg>`;}
  function offsetFigure(b,on,a,smax){const W=360,H=262,x0=24,sw=140,kz=0.24,top=76,mid=top+SLAB.t/2*kz,bwpx=Math.max(12,sw*SLAB.bw/b),cxs=x0+sw/2;
   const realTop=top+SLAB.t*kz,modelTop=on?realTop:mid-SLAB.hb/2*kz,F=v=>v.toFixed(1);
   let s=`<svg class="theory-lab-svg beam-offset-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="床と梁の断面と応力">`;
-  s+=`<text x="${x0}" y="16" class="b2-title">断面（計算上の位置）</text><text x="236" y="16" class="b2-title">曲げ応力</text>`;
+  s+=`<text x="${x0}" y="16" class="b2-title">y–z</text><text x="236" y="16" class="b2-title">σx (MPa)</text>`;
   s+=`<rect x="${x0}" y="${top}" width="${sw}" height="${F(SLAB.t*kz)}" class="b2-slab"/>`;
-  if(!on)s+=`<rect x="${F(cxs-bwpx/2)}" y="${F(realTop)}" width="${F(bwpx)}" height="${F(SLAB.hb*kz)}" class="b2-real"/><text x="${F(cxs+bwpx/2+5)}" y="${F(realTop+SLAB.hb*kz-8)}" class="b2-small">実物の梁</text>`;
+  if(!on)s+=`<rect x="${F(cxs-bwpx/2)}" y="${F(realTop)}" width="${F(bwpx)}" height="${F(SLAB.hb*kz)}" class="b2-real"/><text x="${F(cxs+bwpx/2+5)}" y="${F(realTop+SLAB.hb*kz-8)}" class="b2-small">B₀</text>`;
   s+=`<rect x="${F(cxs-bwpx/2)}" y="${F(modelTop)}" width="${F(bwpx)}" height="${F(SLAB.hb*kz)}" class="${on?'b2-beam':'b2-beam ghosted'}"/>`;
-  s+=`<line x1="${x0-6}" y1="${F(mid)}" x2="${x0+sw+8}" y2="${F(mid)}" class="b2-ref"/><text x="${x0+sw+10}" y="${F(mid+4)}" class="b2-small">GA・GB</text>`;
+  s+=`<line x1="${x0-6}" y1="${F(mid)}" x2="${x0+sw+8}" y2="${F(mid)}" class="b2-ref"/><text x="${x0+sw+10}" y="${F(mid+4)}" class="b2-small">GA / GB</text>`;
   if(on){const bc=realTop+SLAB.hb/2*kz;s+=`<line x1="${F(cxs-bwpx/2-14)}" y1="${F(bc)}" x2="${F(cxs+bwpx/2+14)}" y2="${F(bc)}" class="b2-ref"/><line x1="${x0+12}" y1="${F(mid)}" x2="${x0+12}" y2="${F(bc)}" class="b2-dim"/><text x="${x0+16}" y="${F((mid+bc)/2+4)}" class="b2-small">e = ${SLAB.e}</text>`;}
-  const na=mid+a.zbar*kz;s+=`<line x1="${x0-6}" y1="${F(na)}" x2="${x0+sw+8}" y2="${F(na)}" class="b2-na"/><text x="${x0+sw+10}" y="${F(na+(on?4:18))}" class="b2-naText">中立軸</text>`;
+  const na=mid+a.zbar*kz;s+=`<line x1="${x0-6}" y1="${F(na)}" x2="${x0+sw+8}" y2="${F(na)}" class="b2-na"/><text x="${x0+sw+10}" y="${F(na+(on?4:18))}" class="b2-naText">zₙ</text>`;
   // 応力図：横軸が応力、縦は断面の位置にそろえる
   const zx=286,ks=56/smax,st=v=>F(zx+v*ks),slabTopY=top,slabBotY=top+SLAB.t*kz,beamTopY=modelTop,beamBotY=modelTop+SLAB.hb*kz;
   s+=`<line x1="${zx}" y1="${top-8}" x2="${zx}" y2="${H-18}" class="b2-guide"/>`;
@@ -260,8 +260,8 @@
   if(zb0<0&&a.bot>0)s+=`<polygon points="${zx},${F(beamTopY)} ${st(zb0)},${F(beamTopY)} ${zx},${F(yz)}" class="b2-comp"/><polygon points="${zx},${F(yz)} ${st(a.bot)},${F(beamBotY)} ${zx},${F(beamBotY)}" class="b2-ten"/>`;
   else s+=`<polygon points="${zx},${F(beamTopY)} ${st(zb0)},${F(beamTopY)} ${st(a.bot)},${F(beamBotY)} ${zx},${F(beamBotY)}" class="${a.bot>0?'b2-ten':'b2-comp'}"/>`;
   s+=`<text x="${st(a.top)}" y="${F(slabTopY-4)}" text-anchor="middle" class="b2-small">${fx(a.top,2)}</text><text x="${st(a.bot)}" y="${F(beamBotY+13)}" text-anchor="middle" class="b2-small">${fx(a.bot,2)}</text>`;
-  if(!on)s+=`<text x="${x0}" y="${H-6}" class="b2-small">オフセットなし：梁は床の中央面にあるものとして計算される</text>`;
-  else s+=`<text x="${x0}" y="${H-6}" class="b2-small">オフセットあり：床と梁が1つの断面として曲がる</text>`;
+  if(!on)s+=`<text x="${x0}" y="${H-6}" class="b2-small"></text>`;
+  else s+=`<text x="${x0}" y="${H-6}" class="b2-small"></text>`;
   return s+'</svg>';}
  function releaseFigure(pb,pa,up,eff){const W=360,H=250,xa=24,xb=180,xc=336,yb=82,sp=xc-xb,F=v=>v.toFixed(1),dk=24/(5/384);
   let s=`<svg class="theory-lab-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="2径間の梁の曲げモーメント"><text x="${xa}" y="16" class="b2-small">w = ${SPAN.w} kN/m</text>`;
@@ -303,7 +303,7 @@
    {w:360,h:190,label:'ねじれたH形鋼の立体図',cam:camera(-52,26)});}
  function taperFigure(a,n){const W=360,H=78,x0=34,x1=330,y=40,t0=5,t1=t0*Math.cbrt(n),xr=x0+(x1-x0)*a,F=v=>v.toFixed(1);
   let s=`<svg class="theory-lab-svg beam-taper-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="補強した片持ち梁"><rect x="${x0-12}" y="${y-26}" width="12" height="52" class="b2-wallFill"/>`;
-  s+=`<polygon points="${x0},${y-26} ${x1},${y} ${x0},${y}" class="b2-mfill"/><text x="${x0+6}" y="${y-28}" class="b2-small">曲げモーメント</text>`;
+  s+=`<polygon points="${x0},${y-26} ${x1},${y} ${x0},${y}" class="b2-mfill"/><text x="${x0+6}" y="${y-28}" class="b2-small">M(x)</text>`;
   if(a>0)s+=`<rect x="${x0}" y="${F(y-t1)}" width="${F(xr-x0)}" height="${F(2*t1)}" class="b2-reinf"/>`;
   s+=`<rect x="${F(xr)}" y="${y-t0}" width="${F(x1-xr)}" height="${2*t0}" class="b2-beam"/><line x1="${x1}" y1="${y+8}" x2="${x1}" y2="${y+28}" class="b2-loadBold"/><polygon points="${x1},${y+7} ${x1-4.5},${y+16} ${x1+4.5},${y+16}" class="b2-loadHead" transform="rotate(180 ${x1} ${y+11.5})"/><text x="${x1-8}" y="${y+28}" text-anchor="end" class="b2-loadText">P</text>`;
   return s+'</svg>';}
@@ -314,7 +314,7 @@
    const ex=extrude(sec,{L,n:6,ds:1,rgb:[170,192,214]});ex.items.forEach(it=>{it.op=0.92;});
    return `<figure class="element-figure beam-fig">${render3d([
     {k:'poly',back:true,c:'b3-plane1',p:[[0,0,0],[L,0,0],[L,0,2.3],[0,0,2.3]]},{k:'poly',back:true,c:'b3-plane2',p:[[0,0,0],[L,0,0],[L,-2.3,0],[0,-2.3,0]]},
-    {k:'text',back:true,c:'b3-plane1Text',p:[[L*0.55,0,2.0]],s:'面1（x–y）'},{k:'text',back:true,c:'b3-plane2Text',p:[[L*0.58,-2.15,0]],s:'面2（x–z）',dy:12},
+    {k:'text',back:true,c:'b3-plane1Text',p:[[L*0.55,0,2.0]],s:'1: x–y'},{k:'text',back:true,c:'b3-plane2Text',p:[[L*0.58,-2.15,0]],s:'2: x–z',dy:12},
     ...ex.items,{k:'dot',c:'b3-node',p:[[0,0,0]]},{k:'dot',c:'b3-node',p:[[L,0,0]]},{k:'text',c:'b3-nodeText',p:[[0,0,0]],s:'GA',dx:-8,dy:16,a:'end'},{k:'text',c:'b3-nodeText',p:[[L,0,0]],s:'GB',dx:6,dy:16},
     {k:'arrow',c:'b3-v',p:[[0,0,0],v]},{k:'text',c:'b3-vText',p:[v],s:'v',dx:5,dy:-2},{k:'line',c:'b3-ghost',p:[v,[v[0],0,0]]},{k:'line',c:'b3-ghost',p:[v,[0,0,v[2]]]},
     {k:'arrow',c:'b3-axis',p:[[L,0,0],[L+1.6,0,0]]},{k:'text',c:'b3-axisText',p:[[L+1.6,0,0]],s:'x',dx:4,dy:4},
@@ -327,9 +327,9 @@
     s+=`<line x1="${F(cx)}" y1="${F(y-10)}" x2="${F(cx)}" y2="${F(y+h+10)}" class="b2-guide"/><line x1="${F(x-10)}" y1="${F(cy)}" x2="${F(x+w+10)}" y2="${F(cy)}" class="b2-guide"/>`;
     const pts=[['C',1,1],['D',-1,1],['E',-1,-1],['F',1,-1]];
     if(filled)for(const [n,sy,sz] of pts){const px=cx+sz*w/2,py=cy-sy*h/2,val=sy*s1+sz*s2;s+=`<circle cx="${F(px)}" cy="${F(py)}" r="4" class="b2-pt"/><text x="${F(px+(sz>0?7:-7))}" y="${F(py+(sy>0?-6:14))}" text-anchor="${sz>0?'start':'end'}" class="b2-small">${n} ${signed(val,1)}</text>`;}
-    else{s+=`<circle cx="${F(cx)}" cy="${F(cy)}" r="4" class="b2-pt"/><text x="${F(cx+8)}" y="${F(cy-6)}" class="b2-small">C・D・E・F</text><text x="${F(cx+8)}" y="${F(cy+14)}" class="b2-small">すべて 0.0</text>`;}
+    else{s+=`<circle cx="${F(cx)}" cy="${F(cy)}" r="4" class="b2-pt"/><text x="${F(cx+8)}" y="${F(cy-6)}" class="b2-small">C,D,E,F</text><text x="${F(cx+8)}" y="${F(cy+14)}" class="b2-small">σb = 0.0</text>`;}
     return s;};
-   return `<figure class="element-figure beam-fig"><svg class="theory-lab-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="応力を求める点"><text x="16" y="18" class="b2-title">C〜F を角に入力（MPa）</text><text x="206" y="18" class="b2-title">C〜F を空欄（既定 0.0）</text>${panel(66,true)}${panel(236,false)}</svg>
+   return `<figure class="element-figure beam-fig"><svg class="theory-lab-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="応力を求める点"><text x="16" y="18" class="b2-title">C–F: (±${hy/2}, ±${bz/2})</text><text x="206" y="18" class="b2-title">C–F: (0, 0)</text>${panel(66,true)}${panel(236,false)}</svg>
     <figcaption>幅 ${bz} mm × 高さ ${hy} mm の断面に、面1 の曲げ M1 = 1.0 kN·m と面2 の曲げ M2 = 0.2 kN·m が同時にかかった例。色は曲げ応力の分布で、赤が引張、青が圧縮（モーメントの向きで入れ替わります）。左は四隅で最大 ${fx(s1+s2,1)} MPa。右は4点がすべて図心 (0, 0) にあるので、曲げ応力の出力は 0 になります。</figcaption></figure>`;}
  };
 
