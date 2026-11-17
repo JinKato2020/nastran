@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>各要素理論 — FEM Guide</title><link rel="stylesheet" href="bulk.css"><link rel="stylesheet" href="analysis.css"><link rel="stylesheet" href="theory.css"><link rel="stylesheet" href="elements.css"><link rel="stylesheet" href="lesson-diagrams.css"><link rel="stylesheet" href="learning.css"></head><body data-learning-page="elements.html">
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>各要素理論 — FEM Guide</title><link rel="stylesheet" href="bulk.css"><link rel="stylesheet" href="analysis.css"><link rel="stylesheet" href="theory.css"><link rel="stylesheet" href="elements.css"><link rel="stylesheet" href="element-labs.css"><link rel="stylesheet" href="lesson-diagrams.css"><link rel="stylesheet" href="learning.css"></head><body data-learning-page="elements.html">
 <header class="topbar"><a class="brand" href="index.html#home">FEM Guide</a><nav><a href="theory.html#static">解析の理論</a></nav></header>
 <main class="analysis-main theory-main elements-main"><label class="analysis-selector" for="element-picker">要素の種類<select id="element-picker" aria-label="要素の種類"></select></label>
 
@@ -8,6 +8,7 @@
 <p>節点の成分どうしをつなぐ CELAS と、要素座標を持つ CBUSH を比較します。剛性の値が同じでも、接続位置と成分が違うと結果は変わります。</p></div>
 
 
+<div class="el-intro"><h2>この記事で分かること</h2><p>相対変位から力とエネルギーを求める。直列・並列・方向・節点のずれを比較する。CELASとCBUSHを状況で選ぶ。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html#points">GRID・SPOINT</a>、<a href="coordinates.html">位置と変位の座標</a></p><p><strong>ばねの力は「距離」ではなく「選んだ自由度の差」から決まる。</strong></p><p><strong>3行の要点</strong></p><ol><li>Kだけを与えるモデルでは、応力分布や実物の形は自動では求まらない。</li><li>自由度、座標系、力の作用線をセットで確認する。</li><li>変位・力のつり合い・エネルギーを手計算で確かめる。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
 <ul class="element-toc" aria-label="この解説の目次">
 <li><button type="button" data-jump="scalar-overview">要素ファミリーの全体像</button></li>
 <li><button type="button" data-jump="scalar-concept">形を持たない要素</button></li>
@@ -23,7 +24,7 @@
 
 <section class="theory-section" id="scalar-overview"><h2>1. MSC Nastran の要素ファミリーの全体像</h2>
 <p>要素は形をどこまでモデルに残すかで選びます。スカラーは自由度の関係、梁は線と断面、シェルは面と厚さ、ソリッドは体積を表します。</p>
-<figure class="element-figure"><div data-element-sketch="families" data-description="左から、点と点をつなぐばね（0次元）、線の梁（1次元）、四角い板（2次元）、立方体のソリッド（3次元）が並ぶ。右へ行くほど形の情報が増える"></div><figcaption>要素ファミリーは「何の上で性質を定義するか」で分かれます。スカラー要素は形を持たず、自由度と自由度を直接つなぎます。</figcaption></figure>
+
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>ファミリー</th><th>代表的な要素</th><th>性質の決まり方</th><th>典型的な用途</th><th>解説記事</th></tr></thead>
 <tbody>
@@ -50,11 +51,12 @@
 </section>
 
 <section class="theory-section" id="scalar-concept"><h2>2. スカラー要素 — 形を持たない要素</h2>
+<figure data-element-lab="relative"></figure>
 <p>スカラー要素は、モデルの中の<strong>2つの自由度</strong>、または<strong>1つの自由度と地面</strong>をつなぐ要素です。つなげる自由度は、節点（GRID）の6成分（3つの並進と3つの回転）のどれか、またはスカラー点（<a href="bulk.html#SPOINT">SPOINT</a>）の1成分です。ばね（CELAS）、質量（CMASS）、粘性ダンパー（CDAMP）があり、静解析で主に使うのはばねです。ダンパーは静解析では使いません。</p>
 <h3>長さを使わず、何を表すのか</h3>
 <p>CELAS は、選んだ2つの自由度の<strong>変位差と伝わる力の関係</strong>を、ばね定数 K で直接表します。たとえば防振ゴムの圧縮試験で、荷重を 30 N 増やすと 0.30 mm 縮んだとします。その範囲を線形とみなせるなら、荷重の増分を縮みの増分で割った <strong>K = 100 N/mm</strong> を使えます。構造全体を解析するとき、ゴムや継ぎ手をばねとして扱えば、支持部の変位やそこを伝わる力を求められます。</p>
 <p>棒要素は、伸び Δu を元の長さ L で割ってひずみ ε = Δu/L を求めます。一定断面の直線棒を軸方向に引く場合、その力と伸びの関係だけなら K = EA/L に置き換えられます。CELAS はこの関係を最初から K として受け取るので、長さ・断面・要素座標系を持ちません。ゴムの内部や継ぎ手の周囲などのひずみ・局所応力を知りたい場合は、形状と材料を持つモデルを使います。</p>
-<figure class="element-figure"><div data-element-sketch="spring"></div></figure>
+
 <h3>両端が動く場合：1本のばねに2つの自由度</h3>
 <p>端1と端2で同じ正方向を選んだ並進ばねを考えます。u₁ と u₂ は各端で選んだ方向の変位です。端1を端2より 0.30 mm 正方向へ動かすと、K = 100 N/mm のばねには 30 N の力が生じます。両端を保つ力 f₁・f₂ は、大きさが同じで向きは逆です。</p>
 <div class="element-formula">端1：f₁ = K(u₁ − u₂) = Ku₁ − Ku₂
@@ -87,7 +89,7 @@
 <h3>節点・スカラー点・接地の違い</h3>
 <p><strong>節点（GRID）</strong>には空間上の位置があります。構造解析では並進3成分と回転3成分があり、ばね1本でつなぐときは、そのうち1成分を選びます。たとえば成分1なら、節点の変位座標系における第1方向の並進です。</p>
 <p><strong>スカラー点（SPOINT）</strong>には座標も軸もなく、1つの自由度を持ちます。下図のように2本のばねを直列につなぐとき、中間の位置や向きが不要なら、SPOINT で中間の変位 q を表せます。q は両方のばねの力がつり合うように解析で求まります。地面につないだ端の変位は、最初からゼロです。</p>
-<figure class="element-figure" id="scalar-spring-points"><div data-element-sketch="springPoints"></div></figure>
+<figure data-element-lab="network" id="scalar-spring-points"></figure>
 <p>たとえば <a href="bulk.html#CELAS1">CELAS1</a> の端を入力するときは、点番号 G と成分 C を区別します。下表は第2端の例です。</p>
 <div class="element-table-wrap"><table class="element-table narrow">
 <thead><tr><th scope="col">つなぐ先</th><th scope="col">G2（点番号）</th><th scope="col">C2（成分）</th></tr></thead>
@@ -121,13 +123,14 @@
 </section>
 
 <section class="theory-section" id="scalar-dof"><h2>5. 自由度の指定と「内部拘束」</h2>
+<figure data-element-lab="gap"></figure>
 <h3>成分番号は節点の変位座標系で決まる</h3>
 <p>成分1〜3の向きは各節点の変位座標系（GRIDのCD）で決まります。CDが基本座標なら基本X・Y・Zです。節点が離れているときは、成分の向きと力の作用線を両方確認します。</p>
 <p>2つの節点の変位座標系が違う向きなら、「節点Aの成分1」と「節点Bの成分1」は空間で違う方向を指します。それでも CELAS は何も言わずにその2つをつなぎます。形がないので、向きのくい違いを検出できないのです。</p>
 <h3 id="scalar-offset">ずれた節点を CELAS でつなぐと何が起きるか</h3>
 <p class="element-key"><strong>CELAS が力の計算に使うのは、選んだ方向の変位差です。</strong>上下に離れた2点の X 成分をつなぐと、距離を保ったまま一体で回転しても X 変位に差が出て、本来は自由な回転にばねが抵抗します。</p>
 <p>A を下、B をその真上に置き、両方の変位座標系を基本座標系にします。CELAS でつなぐのは、A と B の<strong>成分1（X 方向）</strong>です。図の A–B 間の線は2点の位置関係を示します。</p>
-<figure class="element-figure"><div data-element-sketch="offsetSpring"></div></figure>
+
 <ol>
 <li><strong>2点が同じだけ右へ動く → ばね力はゼロ。</strong>たとえば A も B も ＋1 mm なら、X 変位差は 0 mm です。</li>
 <li><strong>A のまわりに一体で回る → B の X 変位が生じる。</strong>2点間の距離は同じでも、A の X 変位は 0、B の X 変位は負です。CELAS では、この X 変位差をばねの変形として扱います。</li>
@@ -139,13 +142,14 @@
 </section>
 
 <section class="theory-section" id="scalar-cbush"><h2>6. CBUSH — 要素座標を持つばね・ダンパー</h2>
+<figure data-element-lab="direction"></figure>
 <p><a href="bulk.html#CBUSH">CBUSH</a> は、ばねとダンパーをまとめた一般化した要素です。CELAS と違い、これを「構造的なスカラー要素」と位置づけています。2つの節点の位置を知っていて、<strong>要素座標系</strong>を持ち、剛体として動いた時に力が出ない（剛体の釣合いを満たす）ように作られています。CELAS の機能をすべて持ちながら、前節の内部拘束の問題を避けられる要素です。</p>
 <p>CBUSH は1枚のカードで6方向（並進3つと回転3つ）のばねを同時に表します。つなぐのは「節点の成分」ではなく「節点そのもの」なので、ばね6本を6行で書く CELAS より入力がずっと短くなります。</p>
 <h3 id="cbush-orientation">断面を入力しないばねに、なぜ向きが必要か</h3>
 <p class="element-key"><strong>CBUSH の向きベクトルは、方向別に与えたばね定数を、実物のどの方向に効かせるかを決める目印です。</strong></p>
 <p>梁では、長方形の断面を縦に置くか横に置くかで、同じ荷重に対する曲がりやすさが変わります。CBUSH と CELAS では、断面寸法を入力せず、ばね定数を直接与えます。実物のゴムブッシュの形や材質による硬さの違いは、試験や部品の詳細解析で求めた剛性値に含めます。CBUSH の場合は <a href="bulk.html#PBUSH">PBUSH</a> の K1・K2・K3 が、それぞれ要素座標の x・y・z 方向の並進剛性です。</p>
 <p>離れた2節点 GA・GB を結ぶ線を局所 x 軸にする指定では、その線だけでは周りにいくらでも軸を回せます。向きベクトル v を与えると x–y 面が決まり、v のうち x に垂直な成分が局所 y の正方向になります。局所 z は右手の法則で決まります。</p>
-<figure class="element-figure"><div data-element-sketch="cbushOrientation"></div></figure>
+
 <p>例では局所 y の K2 を 100 N/mm、局所 z の K3 を 1,000 N/mm とします。ばね位置で基本座標の ＋Z 方向に 1 mm の相対並進を与え、他の成分はゼロとします。軸を90°回すと ＋Z に対応する剛性が K3 から K2 に変わり、必要な力は 1,000 N から 100 N になります。K2 と K3 が同じなら、この比較では力は変わりません。</p>
 <p>CELAS では接続する各節点で1成分を選びます。たとえば両端で基本 X 方向を選んだ場合は、その X 変位の差から力を求めます。この成分選択で、ばねが受ける動きが決まります。</p>
 <h3>入力するもの</h3>
@@ -160,7 +164,7 @@
 <tr><td>OCID, S1, S2, S3</td><td>ばねの位置を座標で与える</td><td>OCID ≥ 0 なら S を無視して S1〜S3 を使う</td></tr>
 </tbody></table></div>
 <h3>要素座標系の決まり方</h3>
-<figure class="element-figure"><div data-element-sketch="cbush" data-description="節点GAからGBへ要素x軸。GAから距離S·lの位置にばねがあり、両端の節点と剛なリンクで結ばれる。向きベクトルvとx軸の作る面にy軸"></div><figcaption>GA≠GB で CID を空欄にした場合。GA→GB が要素 x 軸、x 軸と向きベクトル v を含む面に y 軸、z 軸は右手の法則。ばねは GA から S·l の位置にあり、両端の節点とは内部の剛なリンクで結ばれます。</figcaption></figure>
+
 <p>要素座標系の作り方は、次の3通りです。どれを選ぶかで、PBUSH の K1〜K6 がどの方向の剛さになるかが決まります。</p>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>指定</th><th>要素座標系</th><th>使える条件</th></tr></thead>
@@ -191,6 +195,8 @@
 <p>K に入れる値は、すべて要素座標系での剛さです。同じ K2 でも、前節の要素座標系の決め方を間違えると、剛さが違う方向に向いてしまいます。0 の方向はばねがない（自由）という意味なので、拘束不足（特異）にならないよう、ほかの要素で支えられているかを確かめる必要があります。</p>
 <p>COINL は、2点が一致したブッシュに熱膨張などで長さが必要な時のための値です。</p>
 <p class="element-note">物性に PBUSHT を使った場合、CBUSH は残余構造（部分構造に分けない本体部分）にしか置けず、縮約で消す自由度（omit）にもつなげない、という制限が書かれています。PBUSHT の中身（周波数や荷重に応じて剛さを変える機能）はこの章には説明がなく、ここでは未確認です。</p>
+
+<h3>速度が変わると、粘性力は何倍になるか</h3><p>変位u = U sin(ωt)を微分すると速度はu̇ = ωU cos(ωt)。並列のばね・粘性ダンパの力はF = Ku + cu̇です。ばね力は変位と同じ位相、粘性力は変位より90°進みます。1周期の仕事∮F duでは、ばねの分は戻り、粘性の分πcωU²が失われます。</p><figure data-element-lab="kelvin"></figure><p>PBUSHのKはN/mm、BはN·s/mm（回転ならN·mm/radとN·mm·s/rad）。GEは無次元の構造減衰です。振動数を固定した1成分で比べるとcωとGE·Kを対応させられますが、全周波数で同じ値にはなりません。<a href="theory.html#damping">減衰の理論へ</a>。</p>
 </section>
 
 <section class="theory-section" id="scalar-bushweld"><h2>8. 検算：離れた節点をつなぐ</h2>
@@ -223,8 +229,11 @@
 </ul>
 </section>
 
+<section class="theory-section el-checks" id="scalar-quiz"><h2>自分で確かめる</h2><details><summary>K = 100 N/mm。u₁ = u₂ = 0.7 mmなら、力と蓄積エネルギーは？</summary><p>変位差は0なので、どちらも0。両端が動くことと、ばねが変形することは別です。</p></details><details><summary>K₁ = 120、K₂ = 80 N/mm、P = 48 N。直列のuとq、並列のuは？</summary><p>直列はK = 48、u = 1.00 mm、地面側がK₂ならq = 0.60 mm。並列はK = 200、u = 0.24 mm、力は28.8 Nと19.2 N。</p></details><details><summary>離れたCELASの節点間隔だけを2倍にすると、同じ微小回転に対するモーメントは？</summary><p>変位差が2倍、力が2倍、腕の長さも2倍なので4倍。K回転 = Kd²です。</p></details><details><summary>同じ振幅で、強制変位の周波数を2倍にすると粘性力と1周期の損失は？</summary><p>速度振幅ωUが2倍なので粘性力も2倍。πcωU²も2倍。ばね力の振幅KUは変わりません。</p></details></section>
 <section class="theory-section" id="scalar-sources"><h2>仕様を調べる</h2>
 <p>各カード名からInputデータの書式・適用条件を確認できます。計算例は手計算用の条件です。</p>
+
+<p>仕様の照合：<a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=77" target="_blank" rel="noopener">MSC Nastran 2025.1 線形静解析ガイド 第4章（PDF 77ページから）</a>。図・対話計算は独自作成。個々の欄・既定値はInputデータへ移動して確認してください。</p>
 </section>
 </article>
 
@@ -325,7 +334,7 @@
 <tr><td>成分</td><td>CBAR</td><td>10</td><td>20</td><td>1</td><td>2</td><td>0.</td><td>0.</td><td>1.</td><td>GGG</td></tr>
 <tr><td>G0</td><td>CBAR</td><td>10</td><td>20</td><td>1</td><td>2</td><td>90</td><td>空欄</td><td>空欄</td><td>GGG</td></tr>
 </tbody></table></div>
-<p>2行は同じ梁の別の書き方です。GRID 1 が (0, 0, 0)、GRID 90 が (0, 0, 100) なら、どちらも v は＋Z です。G0 は複数の梁で使い回せますが、梁ごとに GA→G0 の向きが変わるので、全部の梁で意図した向きになるかを図で確かめます。構造につながない向き専用の GRID にしておくと、構造の節点を動かしたときに断面の向きが勝手に変わりません。PBARL・PBEAML で断面を寸法で入れる場合も、寸法の「高さ」がどの軸に乗るかは v で決まります（<a href="#beam-pbarl">§5</a>）。</p>
+<p>2行は同じ梁の別の書き方です。GRID 1 が (0, 0, 0)、GRID 90 が (0, 0, 100) なら、どちらも v は＋Z です。G0 は複数の梁で使い回せますが、梁ごとに GA→G0 の向きが変わるので、全部の梁で意図した向きになるかを図で確かめます。向き専用の GRID を使っても、GA を動かせば GA→G0 は変わります。位置を変更した後は再確認し、一定方向を保ちたい場合は X1〜X3 を適切な座標系で指定します。PBARL・PBEAML で断面を寸法で入れる場合も、寸法の「高さ」がどの軸に乗るかは v で決まります（<a href="#beam-pbarl">§5</a>）。</p>
 </section>
 
 <section class="theory-section" id="beam-offset"><h2>4. オフセット — 床と梁を一緒に曲げると、剛さは約3倍</h2>
@@ -587,6 +596,7 @@
 <p>薄肉部材を面で表します。中立面、法線、板厚、材料方向が、力と表裏の応力にどう表れるかを追います。</p></div>
 
 
+<div class="el-intro"><h2>この記事で分かること</h2><p>板厚の効果、法線の反転、材料軸、要素のゆがみ、サンドイッチ構造を図で比較する。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html#elements">要素の向き</a>、<a href="coordinates.html#signs">応力方向</a></p><p><strong>基準面と板厚で、膜力・曲げ・表裏の応力をつなぐ。</strong></p><p><strong>3行の要点</strong></p><ol><li>板厚は膜剛性に1乗、曲げ剛性に3乗で効く。</li><li>Z1・Z2の名前だけでなく、実物のどちらの面かを確認する。</li><li>材料の向きを変える操作と、結果の表示軸を変える操作を区別する。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
 <ul class="element-toc" aria-label="この解説の目次">
 <li><button type="button" data-jump="shell-overview">全体像</button></li>
 <li><button type="button" data-jump="shell-when">シェルが使える条件</button></li>
@@ -669,11 +679,12 @@
 </section>
 
 <section class="theory-section" id="shell-theory"><h2>3. 板の理論の土台 — 膜・曲げ・横せん断・連成</h2>
+<figure data-element-lab="thickness"></figure>
 <p class="element-note">この節の式は板理論の教科書にある一般的な内容の補足です。</p>
 <p>シェルの変形は、厚さ方向の中央の面（基準面）の動きと、法線の傾きだけで表します。基準面から z の位置の面内変位は、中央面の変位に「z × 法線の傾き」を足したものです（式4-5、4-6）。これを微分すると、ひずみは次の形になります。</p>
 <div class="element-formula">ε(z) = ε⁰ + z·κ　（Nastran の出力の符号では ε(z) = ε⁰ − z·κ。下の strain2 の例題で確認）
 ε⁰：中央面のひずみ（膜ひずみ）、κ：曲率</div>
-<figure class="element-figure"><div data-element-sketch="shellStress" data-description="板厚方向の応力分布。膜成分は一定、曲げ成分は直線、合計は一定と直線の和。下面がZ1、上面がZ2"></div><figcaption>面内の応力は「厚さ方向に一定の膜成分」と「直線で変わる曲げ成分」の和です。Nastran はこの直線上の2点 Z1（既定は −T/2）と Z2（既定は +T/2）で応力を出力します。</figcaption></figure>
+
 <h3>4種類の剛さ</h3>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>成分</th><th>受け持つ力</th><th>PSHELLの材料</th><th>等方性・均質な板の剛さ（一般論）</th></tr></thead>
@@ -723,19 +734,14 @@
 
 <h3>最もよく使う形：等方性の薄い板</h3>
 <p>等方性の薄板で膜と曲げを扱う一例は、MID1 と MID2 に同じ <a href="bulk.html#MAT1">MAT1</a> の番号を書き、他の欄（MID3・MID4 など）は空欄にすることです。厚い板では MID3 にも同じ MAT1 を書くとよいとされています。異方性の板では材料定義と材料方向を確認します（<a href="bulk.html#MAT2">MAT2</a>、<a href="bulk.html#MAT8">MAT8</a> など）。</p>
-<h3>12I/T³ と TS/T を使う例：サンドイッチ板（自作の数値例）</h3>
-<p class="element-note">各欄の役割を確かめる計算例です。</p>
-<p>表と裏に厚さ 1 mm のアルミの面板、間に厚さ 10 mm の柔らかい芯材があるパネルを考えます。面内の力と曲げは主に面板が受け持ち、芯材は面板を離して保つ役目です。</p>
-<div class="element-formula">膜の板厚 T = 面板2枚の合計 = 2 mm（芯材の面内剛さは無視）
-曲げの I（幅1あたり）= 2 × [1³/12 + 1 × 5.5²] ≈ 60.67 mm⁴/mm（5.5 は中央から面板の中心まで）
-均質な板なら T³/12 = 8/12 ≈ 0.667　→　12I/T³ ≈ 60.67/0.667 ≈ 91
-Z1 = −6、Z2 = +6（面板の外面で応力を見る）</div>
-<p>このように 12I/T³ を大きくすると、少ない材料で曲げに強いサンドイッチの性質を1枚のシェルで表せます。Z1・Z2 を既定の ±T/2（±1 mm）のままにすると、応力を芯材の中で評価してしまい、面板の応力を約6分の1に過小評価します。横せん断は芯材が受け持つので、MID3 に芯材のせん断の性質を与え、TS/T で芯材の厚さを反映させる、というのが一般的な考え方です。</p>
-</section>
+<h3>表皮を離すと、なぜ曲げ剛性が増えるか</h3><p>中立面から距離ziにある層の断面二次モーメントは、平行軸の定理でIi + Ai zi²です。各層のEiを掛けて足したB = ΣEi(Ii + Ai zi²)が、細帯の曲げ剛性になります。</p><figure data-element-lab="sandwich"></figure><p>対称積層の膜剛性はΣEi ti、曲げ剛性は上のB、質量はΣρi tiで別々に計算します。板厚1個だけを変えて3つとも合わせられるとは限りません。PSHELLのMID1・MID2・MID3や12I/T³は役割を分けて設定します。積層の材料ごとの応力が必要ならPCOMPなどの層情報を持つ定義を検討します。Z1・Z2だけを外面に移しても、層ごとの材料則が追加されるわけではありません。</p></section>
 
 <section class="theory-section" id="shell-axes"><h2>6. 節点順・法線・材料方向</h2>
+<figure data-element-lab="surfaces"></figure>
 <div class="analysis-links"><a href="coordinates.html#elements">最初に学ぶ「要素の向き」へ →</a></div>
-<figure class="element-figure"><div data-element-sketch="shellOrder" data-description="左は反時計回りの節点順で正法線が手前。右は逆順で正法線が奥。物理的に同じ観測面のZの符号が変わる。"></div><figcaption>同じ長方形の節点順だけを反転。表裏と荷重の表示を確認し、実空間で同じ面と方向を比較します。</figcaption></figure><p>右手の指を節点順に回したとき、親指が局所＋zを示します。Z1・Z2は要素基準面からの符号付き距離です。既定の対称断面では−z側と＋z側に対応します。オフセットや出力点を指定した場合は距離を確認します。</p><p>要素xは、四辺形では一般にG1→G2と一致するとは限りません。三角形と四辺形で面内軸の決め方が異なります。一方、THETAで指定する材料方向はG1→G2を基準に法線まわりに回します。MCIDを使う場合は指定座標系のx軸を要素面へ投影します。投影が小さくなる向きは避けます。</p><figure class="element-figure"><div data-element-sketch="shellAngle" data-description="長方形シェルを正法線側から見る。G1からG2への基準線から反時計回りの角度で材料1軸を指定。"></div><figcaption>THETAの正方向は＋z側から見て反時計回りです。材料方向と、出力を読む座標系の設定を確認します。</figcaption></figure><p>圧力はプリプロセッサの矢印と合反力で実空間の向きを確認します。座標系を変えると、等方材でも出力する応力成分の表示が変わる場合があります。隣接要素のNORMAL-Xを比べる前に、共通の方向へそろえます。</p>
+<p>右手の指を節点順に回したとき、親指が局所＋zを示します。Z1・Z2は要素基準面からの符号付き距離です。既定の対称断面では−z側と＋z側に対応します。オフセットや出力点を指定した場合は距離を確認します。</p><p>要素xは、四辺形では一般にG1→G2と一致するとは限りません。三角形と四辺形で面内軸の決め方が異なります。一方、THETAで指定する材料方向はG1→G2を基準に法線まわりに回します。MCIDを使う場合は指定座標系のx軸を要素面へ投影します。投影が小さくなる向きは避けます。</p><p>圧力はプリプロセッサの矢印と合反力で実空間の向きを確認します。座標系を変えると、等方材でも出力する応力成分の表示が変わる場合があります。隣接要素のNORMAL-Xを比べる前に、共通の方向へそろえます。</p>
+
+<h3>膜力から表裏の応力へ</h3><p>一様な膜応力はNx = ∫σ dz = σ膜tからσ膜 = Nx/t。直線分布をσ曲げ = C zと置くと、M* = ∫zσ曲げ dz = C t³/12。よってC = 12M*/t³、表裏z = ±t/2でσ = Nx/t ± 6M*/t²です。法線を反転するとzとM*が同時に反転するため、同じ物理的な面の応力は変わりません。</p>
 </section>
 
 <section class="theory-section" id="shell-output"><h2>7. 力と応力の出力の読み方</h2>
@@ -776,6 +782,7 @@ VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</div>
 </section>
 
 <section class="theory-section" id="shell-k6rot"><h2>8. 法線まわりの回転（第6自由度）と K6ROT</h2>
+<figure data-element-lab="drilling"></figure>
 <p>CQUAD4・CTRIA3 は、各節点の6自由度のうち5つにだけ剛さを持ちます。面に垂直な軸まわりの回転（ドリリング回転と呼ばれます）には、直接の剛さがありません。板の理論に、面の中で板を回す回転に抵抗する仕組みがないためです。</p>
 <p>そのため、平らに並んだ CQUAD4 だけにつながる節点では、法線まわりの回転の剛さがゼロになり、剛性行列が特異（解けない状態）になって計算が止まります。曲面のシェルでは、隣の要素の法線が少しずつ傾いているので、他の要素の曲げの剛さがこの方向にも少し入り、特異になりにくくなります。</p>
 <h3>既定の対策と、自分で確かめる方法</h3>
@@ -798,6 +805,7 @@ VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</div>
 <section class="theory-section" id="shell-small"><h2>11. 小変形の仮定</h2><p>線形解析では元の形状を使って剛性と荷重方向を評価します。たわみが増えると、板の傾きや面内の伸びによって荷重とたわみが比例しなくなることがあります。周囲を拘束した板では膜力、自由端を持つ板では断面の回転と荷重の作用方向にも着目します。</p><p>判断に迷うときは、荷重を段階的に増やしたときの変位と反力を線形・幾何学的非線形で比較します。変形表示倍率を1に戻して、実際の傾きも確認します。<a href="theory.html#large-deformation">大変形の理論</a></p></section>
 
 <section class="theory-section" id="shell-quad8"><h2>12. CQUAD8・CTRIA6 と、要素の形の注意</h2>
+<p>次数を増やす前に、要素が正しく領域を覆っているかを確認します。まず4つの隅を持つ単純な写像で、ゆがみと反転を区別します。</p><figure data-element-lab="quad"></figure>
 <p><a href="bulk.html#CQUAD8">CQUAD8</a>・<a href="bulk.html#CTRIA6">CTRIA6</a> は、CQUAD4・CTRIA3 の機能に加えて、辺の中点の節点と曲がった辺を持てる要素です。物性は同じ PSHELL で、CQUAD4 で説明した機能はすべてそのまま使えます。</p>
 <div class="element-table-wrap"><table class="element-table narrow">
 <thead><tr><th>項目</th><th>内容</th></tr></thead>
@@ -826,6 +834,7 @@ VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</div>
 </section>
 
 <section class="theory-section" id="shell-omid"><h2>13. 材料座標で結果を出す（PARAM,OMID）</h2>
+<figure data-element-lab="material"></figure>
 <p>CQUAD4・CTRIA3・CQUAD8・CTRIA6 では、<a href="bulk.html#PARAM_OMID">PARAM,OMID</a>,YES とすると、要素の力・応力・ひずみを、THETA／MCID で決めた材料座標で出力できます（既定は NO で要素座標）。中心も角も材料座標になります。</p>
 <p>要素座標はメッシュの切り方の産物で、ふつう物理的な意味がありません。一方、利用者が決めた共通の座標で出せば、多くの要素の結果を同じ向きで見比べられ、設計の公式に入れる前に座標を変換する手間もなくなります。</p>
 <h3>応力軸を回したときの検算</h3><p>要素x方向だけに80 MPaの引張応力がある場合、軸を＋45°回すと、回転後の垂直応力は両方向とも40 MPa、せん断応力は−40 MPaです。主応力は80 MPaと0 MPaのままです。成分が変わっても、物理的な応力状態が変わったわけではありません。</p><h3>使うときの注意</h3>
@@ -834,6 +843,8 @@ VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</div>
 <li>材料座標の結果は印刷（.f06）とパンチ（.pch）にだけ出て、.op2・.xdb には書かれません。.op2 には、要求すればいつもの要素座標の結果が書かれます（<a href="bulk.html#PARAM_POST">PARAM,POST</a>）。</li>
 <li>パンチ出力には「材料座標」の表示が付かないので、 OMID の値をジョブの TITLE に入れておくよう勧めています。力の印刷出力には「RESULTS IN MATERIAL COORD SYSTEM」という見出しが付きます。</li>
 </ul>
+
+<h3>表示軸と材料の向きを分けて考える</h3><p>一軸応力σXを角度θの軸で表すと、σ₁ = σX cos²θ、σ₂ = σX sin²θ、τ₁₂ = −σX sinθ cosθ。これは同じ応力を別の軸で書く変換です。材料を回す場合は、これらに材料の柔らかさを掛けてε₁ = σ₁/E₁ − ν₁₂σ₂/E₁、ε₂ = σ₂/E₂ − ν₁₂σ₁/E₁、γ₁₂ = τ₁₂/G₁₂を求め、元の軸へ戻します。等方性なら変形は変わらず、異方性なら変形も変わる理由です。</p>
 </section>
 
 <section class="theory-section" id="shell-quadr"><h2>14. CQUADR・CTRIAR — 法線まわりの回転を使う要素</h2>
@@ -849,7 +860,7 @@ VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</div>
 </section>
 
 <section class="theory-section" id="shell-shear"><h2>15. せん断パネル CSHEAR</h2>
-<figure class="element-figure"><div data-element-sketch="shearPanel" data-description="周囲を棒で補強した四角いパネル。パネルの辺に沿ってせん断流qが流れ、棒が軸力を受け持つ"></div><figcaption>せん断パネルの考え方。パネルは辺に沿ったせん断流 q（単位長さあたりのせん断力）だけを受け持ち、伸び縮みは周囲の棒が受け持ちます。</figcaption></figure>
+
 <p><a href="bulk.html#CSHEAR">CSHEAR</a> は4節点の四角形の要素で、座屈した薄い板を表します。内部でせん断応力を受け持ち、隣り合う節点の間の伸びの力も受け持てます。板の曲げの剛さと面内の軸方向の剛さが無視できる状況で使うとし、そのような状況で CQUAD4 を使うと硬すぎるモデルになると説明しています。</p>
 <h3>なぜ「座屈した板」なのか</h3>
 <p>航空機の外板のような非常に薄い板は、圧縮やせん断で早くにしわ（座屈）が寄ります。しわが寄った板は、圧縮の方向にはもう力をほとんど支えられませんが、しわに沿った斜めの引張りでせん断を伝え続けます（張力場と呼ばれる考え方。一般論）。CQUAD4 は座屈前の健全な板として面内のあらゆる方向に剛さを持つので、こうした板を表すと剛さを過大に評価します。そこで「せん断だけを受け持つ板＋軸力を受け持つ棒（ロッドや梁）」という組み合わせでモデル化するのが、薄肉補強構造の古典的な方法です。補強材が伸びの荷重を、CSHEAR が面内のせん断を受け持つ使い方を最も重要な用途として挙げ、実際のパネルが座屈しているときや曲がっているときに特に当てはまるとしています。</p>
@@ -932,8 +943,11 @@ F2 も辺 2-3・1-4 について同様</div>
 <div class="analysis-links"><a href="coordinates.html#elements">要素座標と応力の向き →</a><a href="elements.html#beam-compare">梁・板・ソリッドの比較 →</a><a href="modeling.html">片持ち梁をばね・梁・立体で比べる →</a></div>
 </section>
 
+<section class="theory-section el-checks" id="shell-quiz"><h2>自分で確かめる</h2><details><summary>同じ材料で板厚を2倍。膜剛性、曲げ剛性、質量は？</summary><p>膜は2倍、曲げは8倍、質量は2倍。同じ荷重なら変形はそれぞれ逆数になります。</p></details><details><summary>t = 4 mm、Nx = 100 N/mm、M* = 100 N。表裏の応力は？</summary><p>膜は25 MPa、曲げは±37.5 MPa。上面62.5 MPa、下面−12.5 MPa。法線を反転しても、実物の面ごとの値は変わりません。</p></details><details><summary>一軸100 MPaを45°の軸で見ると？</summary><p>σ₁ = σ₂ = 50 MPa、τ₁₂ = −50 MPa。主応力100、0 MPaは変わらず、変換で応力状態が増えたわけではありません。</p></details><details><summary>det Jが正なら、要素の精度は確認済み？</summary><p>いいえ。反転していないことと、精度が十分なことは別です。細長さ、曲面・荷重の表現、分割を変えた結果も確認します。</p></details></section>
 <section class="theory-section" id="shell-sources"><h2>仕様を調べる</h2>
 <p>各カード名からInputデータの書式・適用条件を確認できます。計算例は手計算用の条件です。</p>
+
+<p>仕様の照合：<a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=153" target="_blank" rel="noopener">MSC Nastran 2025.1 線形静解析ガイド 第4章（PDF 153ページから）</a>。図・対話計算は独自作成。個々の欄・既定値はInputデータへ移動して確認してください。</p>
 </section>
 </article>
 <article id="solid" data-element="solid" data-title="ソリッド要素（CHEXA・CTETRAほか）">
@@ -941,6 +955,7 @@ F2 も辺 2-3・1-4 について同様</div>
 <p>立体内部の変位・応力を求める要素です。節点順、面にかかる荷重、他の要素との接続、比較する応力の位置を確認します。</p></div>
 
 
+<div class="el-intro"><h2>この記事で分かること</h2><p>横拘束、1次・2次補間、要素のつぶれ、モーメントの伝達、圧力とせん断を比較する。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html">座標</a>、<a href="coordinates.html#signs">応力方向</a>、<a href="elements.html#shell">シェルが使える範囲</a></p><p><strong>立体の節点変位から、3次元のひずみと応力を読む。</strong></p><p><strong>3行の要点</strong></p><ol><li>ソリッドの剛性に直接つながるのは節点の並進で、回転は周囲の並進で表す。</li><li>中間節点と細分化はひずみの変化を表す手段。要素数だけで精度を決めない。</li><li>最大応力を比べる前に座標・位置・平均化・拘束条件をそろえる。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
 <ul class="element-toc" aria-label="この解説の目次">
 <li><button type="button" data-jump="solid-overview">全体像</button></li>
 <li><button type="button" data-jump="solid-nodes">節点の並びと中間節点</button></li>
@@ -955,6 +970,7 @@ F2 も辺 2-3・1-4 について同様</div>
 </ul>
 
 <section class="theory-section" id="solid-overview"><h2>1. 3次元要素の全体像</h2>
+<figure data-element-lab="poisson"></figure>
 <p>ソリッド要素は、立体を小さなブロックに分け、各ブロックの角（と辺の途中）の節点の動きから内部の変形を求める要素です。梁は「断面は平面のまま」、板は「厚さ方向の直線は直線のまま」という仮定で自由度を減らしていますが、ソリッドにはそうした仮定がありません。そのかわり、厚さ方向の応力の変化を見たければ、厚さ方向にも要素を何層か並べる必要があり、モデルは大きくなります。</p>
 <p>使い分けを、エンジンブロックのような本当に立体的な部品にはソリッド、自動車のボンネットのような薄い部品には板要素、と説明しています。ボンネットをソリッドで作ると、薄い方向に要素を何層も並べることになり、規模が大きいうえ形のゆがんだ要素ができやすくなります。</p>
 <div class="element-table-wrap"><table class="element-table">
@@ -969,11 +985,14 @@ F2 も辺 2-3・1-4 について同様</div>
 </tbody></table></div>
 <p class="element-note">CPENTA・CPYRAM・CTETRA の節点数は、各要素の「角の数＋辺の数」から一般的に数えたものです。</p>
 <p class="element-key">要点：CHEXA・CPENTA・CPYRAM・CTETRA は「面の数と節点の数が違うだけの同じ仲間」で、物性はどれも <a href="bulk.html#PSOLID">PSOLID</a> で与えます。基本は CHEXA、つなぎに CPENTA・CPYRAM、自動分割なら CTETRA（10節点）と覚えるとよいでしょう。</p>
+
+<h3>拘束が材料の硬さに見える理由</h3><p>等方弾性の式εy = [σy−ν(σx+σz)]/Eと、対称性σy = σzから、横拘束εy = εz = 0ではσy = νσx/(1−ν)。これをεx = [σx−ν(σy+σz)]/Eへ代入すると、σx/εx = E(1−ν)/[(1+ν)(1−2ν)]になります。Eそのものを増やしたのではなく、横応力も軸変形に効いています。</p>
 </section>
 
 <section class="theory-section" id="solid-nodes"><h2>2. 節点の並びと中間節点</h2>
-<figure class="element-figure"><div data-element-sketch="hexaNodes" data-description="CHEXAの節点番号。下面G1〜G4、上面G5〜G8、辺の中点G9〜G20。G12はG1とG4の間にある"></div><figcaption>CHEXA の節点の並び。G9〜G12 は下面の辺、G13〜G16 は縦の辺、G17〜G20 は上面の辺の中点です。たとえば G12 は必ず G1 と G4 の間に置きます。</figcaption></figure>
-<h3>並び順を守る理由</h3>
+<figure data-element-lab="interpolation"></figure>
+
+<figure data-element-lab="hexa"></figure><h3>並び順を守る理由</h3>
 <p>Nastran は、カードに書かれた順番から「どの節点がどの角か」「どの辺の途中か」を決め、要素の内部の形を表す関数（形状関数）を組み立てます。並び順を間違えると、要素が裏返ったりねじれたりした形として計算されます。順番を外れると致命的エラーになるか、<strong>もっと悪い場合はエラーにならずに間違った答えが出る</strong>と警告しています。プリプロセッサの出力をそのまま使う場合でも、手で節点を書き換えたときは特に注意が必要です。</p>
 <h3>中間節点（2次要素）</h3>
 <p>CHEXA は角の8節点が必須で、辺の中点の12節点は省略できます。中間節点を置くと、要素の中で変位が曲線的に変われるようになり（2次要素）、曲げや応力の変化をより少ない要素数で表せます。</p>
@@ -988,8 +1007,9 @@ F2 も辺 2-3・1-4 について同様</div>
 </section>
 
 <section class="theory-section" id="solid-dof"><h2>3. 回転自由度を持たないことと、その影響</h2>
+<figure data-element-lab="couple"></figure>
 <p>ソリッド要素の剛さは、各節点の<strong>並進3方向（T1・T2・T3）だけ</strong>にあります。立体の回転は、隣り合う節点が違う量だけ動くことで自然に表されるので、節点に回転の自由度を持たせる必要がないからです。ところが Nastran の節点（<a href="bulk.html#GRID">GRID</a>）は、もともと6自由度（並進3・回転3）を持っています。ソリッドだけにつながる節点では、回転の3自由度がどの剛性ともつながらず、剛性マトリクスが特異（逆行列が作れない状態）になります。</p>
-<figure class="element-figure"><div data-element-sketch="solidRotation" data-description="ソリッドの節点は並進3自由度だけ。そこに梁をつなぐと、梁の曲げモーメントを受け止める剛性がなく、ピンのように回ってしまう"></div><figcaption>梁や板（回転を持つ要素）を1点だけでソリッドにつなぐと、その点の回転を止めるものがありません。曲げは伝わらず、ヒンジのような結合になります。</figcaption></figure>
+
 <h3>特異な回転自由度の処理</h3>
 <ul>
 <li>手で拘束する方法：ソリッドだけにつながる節点の 456 を SPC などで止めます（GRID の永久拘束欄に 456 を書くのが手軽です）。</li>
@@ -1003,6 +1023,7 @@ F2 も辺 2-3・1-4 について同様</div>
 </section>
 
 <section class="theory-section" id="solid-psolid"><h2>4. PSOLID ― 材料の向き・積分法・応力の出力位置</h2>
+<figure data-element-lab="pressure"></figure>
 <div class="element-table-wrap"><table class="element-table narrow">
 <thead><tr><th>欄</th><th>項目</th><th>意味と使い方</th></tr></thead>
 <tbody>
@@ -1025,10 +1046,13 @@ F2 も辺 2-3・1-4 について同様</div>
 
 <h3>積層材</h3>
 <p>CHEXA・CPENTA が PCOMPLS を参照すると、積層した複合材のシェルやソリッドとして解析できます（詳しくは第5章「材料特性と複合材」）。</p>
+
+<h3>体積と形の変化を分ける</h3><p>体積弾性率K = E/[3(1−2ν)]、せん断弾性係数G = E/[2(1+ν)]。圧力pではεv = εx+εy+εz = −p/K、せん断τではγ = τ/Gです。νが0.5に近い材料で変位要素が過度に硬くなる体積ロッキングと、実際の横拘束による硬化は別問題です。材料・境界条件・要素定式化・メッシュを分けて調べます。</p><p>von Misesは応力差から求めるため、全方向に同じ圧縮を加えても変わりません。主応力・圧力・せん断を併せて確認し、色の最大値だけで判断しないようにします。</p>
 </section>
 
 <section class="theory-section" id="solid-axes"><h2>5. 要素座標系 ― ゆがみに強い決め方</h2>
-<figure class="element-figure"><div data-element-sketch="distortedHexa" data-description="ゆがんだCHEXAの向かい合う面の中心どうしを結んでR・S・Tの3本のベクトルを作る"></div><figcaption>R は面 G4-G1-G5-G8 と面 G3-G2-G6-G7 の中心、S は面 G1-G2-G6-G5 と面 G4-G3-G7-G8 の中心、T は下面 G1〜G4 と上面 G5〜G8 の中心を結びます。</figcaption></figure>
+<figure data-element-lab="tetra"></figure>
+
 <p>CHEXA の要素座標系は、まず向かい合う面の中心を結ぶ3本のベクトル R・S・T を作ります。原点は3本の交点です。ゆがんだ要素では R・S・T は互いに直角ではないので、固有値解析によって直交する3本 R′・S′・T′ を作り、要素の x・y・z 軸はそれぞれ R′・S′・T′ と同じ面の組に向けられます。</p>
 <p>軸はG1→G2の一辺だけで決まるわけではありません。節点順が面の組を決めるため、対応する面と節点順を確認します。そのため後処理で一貫したデータが得られます。一方で、実際の軸の向きは出力されません。</p>
 <p class="element-key">要点：要素座標系の向きは利用者には見えにくいので、応力を要素座標系で出さないよう勧めています。PSOLID の第4欄（CORDM）に基本座標系か自分で定義した座標系の番号を書けば、その向きで応力が出ます。既定は基本座標系です。</p>
@@ -1036,14 +1060,17 @@ F2 も辺 2-3・1-4 について同様</div>
 </section>
 
 <section class="theory-section" id="solid-taper"><h2>6. 検算：厚さ方向の分割と曲げ</h2>
-<figure class="element-figure"><div data-element-sketch="couple" data-description="梁の曲げモーメントを立体端面の上下の反対向きの軸力に置き換える。"></div><figcaption>曲げモーメントは離れた位置で逆向きに働く力の組で伝えられます。赤が作用力、青が比較に使う基本軸です。</figcaption></figure><p>端面で240 N·mmの純曲げを与えるなら、上下の荷重群の作用線を12 mm離し、各群に20 Nずつ逆向きの力を分配します。合力は0です。単一節点の回転成分にモーメントを与えると、並進を持つソリッドの応答として適切に伝わりません。</p><div class="element-formula">曲げモーメント：20 × 12 = 240 N·mm<br>幅20 mm・厚さ12 mmの矩形断面：I = 20 × 12³/12 = 2,880 mm⁴<br>荷重点・固定端から離れた断面の表面公称応力：240 × 6/2,880 = 0.50 MPa</div><p>厚さ方向1、2、4層で、同一断面の軸方向応力と先端変位を照合します。層数を増やしても角の最大値だけが変わり続ける場合は、荷重点・拘束端の特異性と、メッシュによる全体応答の収束を分けて判断します。積分点・角・節点平均を混ぜて比べないようにします。</p>
+<p>端面で240 N·mmの純曲げを与えるなら、上下の荷重群の作用線を12 mm離し、各群に20 Nずつ逆向きの力を分配します。合力は0です。単一節点の回転成分にモーメントを与えると、並進を持つソリッドの応答として適切に伝わりません。</p><div class="element-formula">曲げモーメント：20 × 12 = 240 N·mm<br>幅20 mm・厚さ12 mmの矩形断面：I = 20 × 12³/12 = 2,880 mm⁴<br>荷重点・固定端から離れた断面の表面公称応力：240 × 6/2,880 = 0.50 MPa</div><p>厚さ方向1、2、4層で、同一断面の軸方向応力と先端変位を照合します。層数を増やしても角の最大値だけが変わり続ける場合は、荷重点・拘束端の特異性と、メッシュによる全体応答の収束を分けて判断します。積分点・角・節点平均を混ぜて比べないようにします。</p>
 </section>
 
 <section class="theory-section" id="solid-triax"><h2>7. CTRIAX6 ― 軸対称の回転体</h2>
+<figure data-element-lab="cylinder"></figure>
 <p><a href="bulk.html#CTRIAX6">CTRIAX6</a> は、三角形の断面を軸のまわりに1周させた「回転体」の要素です。角の3節点が必須で、辺の中点の3節点を任意で追加できます。断面だけをメッシュすれば、円筒・円板・圧力容器のような回転体全体を表せるので、立体でモデル化するよりずっと小さな規模で済みます。</p>
 <p class="element-key">要点：CTRIAX6 が使えるのは「構造が軸対称」で「荷重も軸対称」な場合だけです。片側から押す、曲げる、のように周方向に変わる荷重は扱えません。</p>
 <p>これを巡回対称（サイクリックシンメトリ）の機能と混同しないよう注意しています。巡回対称の機能は、同じ形の部分が周方向に繰り返す構造を扱うもので、軸対称でない荷重も扱えます。「形が回転体だから CTRIAX6」と決めず、荷重まで軸対称かを確かめてから選びます。</p>
 
+
+<h3>境界条件から円筒の応力を確かめる</h3><p>外圧0のLamé解は、A = pa²/(b²−a²)、B = pa²b²/(b²−a²)、σr = A−B/r²、σθ = A+B/r²。r = aでσr = −p、r = bでσr = 0となり、表面の圧力条件を満たします。閉端の軸応力は、内圧の軸力pπa²と肉厚断面積π(b²−a²)のつり合いからσz = Aです。これは全周一様な理論値で、ノズルや固定端の局部応力を含みません。</p>
 </section>
 
 <section class="theory-section" id="solid-crack"><h2>8. CRAC3D ― き裂先端の立体要素</h2>
@@ -1100,8 +1127,11 @@ F2 も辺 2-3・1-4 について同様</div>
 <div class="analysis-links"><a href="elements.html#beam">梁要素とテーパー梁 →</a><a href="modeling.html">片持ち梁をばね・梁・立体で比べる →</a><a href="coordinates.html#elements">要素座標と応力の向き →</a></div>
 </section>
 
+<section class="theory-section el-checks" id="solid-quiz"><h2>自分で確かめる</h2><details><summary>ν = 0.3で横2方向を止めると、見かけの軸剛性はEの何倍？</summary><p>(1−0.3)/[(1+0.3)(1−0.6)] = 1.346倍。ν = 0.49では約17.1倍です。</p></details><details><summary>1,000 N·mmを上下40 mm離れた2点の偶力で渡す。各点の力は？</summary><p>±25 N。合力0、モーメント25×40 = 1,000 N·mm。4点に対称に配れば各点±12.5 Nです。</p></details><details><summary>u = δ(x/L)²を端点だけで補間。分割数を2倍にすると最大変位誤差は？</summary><p>δ/(4n²)なので1/4。ひずみの誤差は微分で別の挙動となるため、変位の収束だけで応力の収束を判断しません。</p></details><details><summary>p = 50 MPa、τ = 20 MPa。von Misesは？ pだけ2倍にしたら？</summary><p>√3×20 = 約34.6 MPa。pだけ増やしても変わりません。主応力と体積ひずみは変わります。</p></details></section>
 <section class="theory-section" id="solid-sources"><h2>仕様を調べる</h2>
 <p>各カード名からInputデータの書式・適用条件を確認できます。計算例は手計算用の条件です。</p>
+
+<p>仕様の照合：<a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=172" target="_blank" rel="noopener">MSC Nastran 2025.1 線形静解析ガイド 第4章（PDF 172ページから）</a>。図・対話計算は独自作成。個々の欄・既定値はInputデータへ移動して確認してください。</p>
 </section>
 </article>
 <article id="connector" data-element="connector" data-title="結合要素（CWELD・CFAST・CSEAM）">
@@ -1921,4 +1951,4 @@ J = 2I ≈ 0.04692 in⁴</div>
 </section>
 </article>
 </main>
-<script src="lesson-diagrams.js"></script><script src="element-visuals.js"></script><script src="beam-labs.js"></script><script src="elements.js"></script><script src="teaching-diagrams.js"></script><script src="home-visuals.js"></script><script src="learning-data.js"></script><script src="learning.js"></script></body></html>
+<script src="lesson-diagrams.js"></script><script src="element-visuals.js"></script><script src="beam-labs.js"></script><script src="element-labs.js"></script><script src="elements.js"></script><script src="teaching-diagrams.js"></script><script src="home-visuals.js"></script><script src="learning-data.js"></script><script src="learning.js"></script></body></html>

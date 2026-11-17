@@ -57,11 +57,14 @@
    ]}
  };
 
+ if(window.AnalysisModeQuiz)DATA.modes=window.AnalysisModeQuiz.data;
+ DATA.static.links=[['bulk.html#SPC1','SPC1'],['bulk.html#FORCE','FORCE'],['bulk.html#PBEAM','PBEAM']];
+ if(DATA.modes)DATA.modes.links=[['bulk.html#MAT1','MAT1'],['bulk.html#CASE_METHOD','METHOD'],['bulk.html#EIGRL','EIGRL'],['bulk.html#CONM2','CONM2'],['theory.html#modes','実固有値の理論']];
  function render(key){
   const d=DATA[key];if(!d)return '';
   const letters='ABCD';
-  return `<div class="aq" data-quiz="${esc(key)}"><p class="aq-intro">${esc(d.intro)}</p><p class="aq-score" aria-live="polite">${d.questions.length}問中 0問に回答</p>`+
-   d.questions.map((q,n)=>`<article class="aq-q" data-n="${n}"><h4>問${n+1}　${esc(q.title)}</h4><pre class="aq-line"><code>${line(q.line)}</code></pre><p class="aq-ask">${esc(q.ask)}</p>`+
+  return `<div class="aq" data-quiz="${esc(key)}"><p class="aq-intro">${esc(d.intro)}</p><div class="analysis-links">${(d.links||[]).map(([href,label])=>`<a href="${esc(href)}">${esc(label)} →</a>`).join('')}</div>${d.experiment?d.experiment():''}<p class="aq-score" aria-live="polite">${d.questions.length}問中 0問に回答（正解数は初回回答で集計）</p>`+
+   d.questions.map((q,n)=>`<article class="aq-q" data-n="${n}"><h4>問${n+1}　${esc(q.title)}</h4><pre class="aq-line"><code>${q.code?esc(q.code):line(q.line)}</code></pre><p class="aq-ask">${esc(q.ask)}</p>`+
     `<div class="aq-options" role="group" aria-label="問${n+1}の選択肢">${q.options.map(([label],i)=>`<button type="button" class="aq-opt" data-i="${i}"><span class="aq-letter">${letters[i]}</span><span>${esc(label)}</span></button>`).join('')}</div>`+
     `<div class="aq-feedback" hidden><p class="aq-result" aria-live="polite"></p><ul class="aq-why">${q.options.map(([label,why],i)=>`<li data-i="${i}"${i===q.answer?' class="right"':''}><b>${letters[i]}　${esc(label)}</b>${i===q.answer?'（正解）':''}<br>${esc(why)}</li>`).join('')}</ul>`+
     `<section class="aq-verify"><h5>手計算で確かめる：${esc(q.verify.title)}</h5><ol>${q.verify.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol><p class="aq-note">${esc(q.verify.note)}</p>`+
@@ -70,6 +73,7 @@
  function diagnose(raw,c){
   const v0=Number(String(raw).normalize('NFKC').replace(/[−–—]/g,'-').replace(/,/g,'').trim());
   if(String(raw).trim()===''||!isFinite(v0))return ['warn','数値を入れてください（例 -6.171E+00）。'];
+  if(c.integer&&!Number.isInteger(v0))return ['warn','モード数は整数で入力してください。'];
   const v=c.abs?Math.abs(v0):v0,ex=c.abs?Math.abs(c.expect):c.expect,r=v/ex;
   for(const [k,msg] of c.diag){if(k===0?Math.abs(v)<=1e-6*Math.abs(ex):Math.abs(r/k-1)<0.03)return [k===1?'ok':'warn',`手計算 ${num(ex,4)} に対して ${num(r,3)} 倍。${msg}`];}
   return ['warn',`手計算 ${num(ex,4)} に対して ${num(r,3)} 倍です。単位系、断面の値、荷重の向きと大きさを順に見直します。`];
@@ -77,7 +81,8 @@
  function bind(root){
   for(const quiz of root.querySelectorAll('.aq')){
    const d=DATA[quiz.dataset.quiz],score=quiz.querySelector('.aq-score'),done=new Map();
-   const update=()=>{score.textContent=`${d.questions.length}問中 ${done.size}問に回答、正解 ${[...done.values()].filter(Boolean).length}問`;};
+   if(d.bind)d.bind(quiz);
+   const update=()=>{score.textContent=`${d.questions.length}問中 ${done.size}問に回答、初回の正解 ${[...done.values()].filter(Boolean).length}問`;};
    quiz.querySelectorAll('.aq-q').forEach(card=>{
     const q=d.questions[+card.dataset.n],fb=card.querySelector('.aq-feedback');
     card.querySelectorAll('.aq-opt').forEach(btn=>btn.addEventListener('click',()=>{

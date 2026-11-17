@@ -1,0 +1,32 @@
+/* Engineering diagrams share the beam article's palette and projection. */
+.element-lab{padding:14px 10px;overflow:hidden}
+.element-lab .theory-lab-controls{margin-bottom:12px}
+.element-lab .theory-lab-controls label{min-width:0;max-width:100%}
+.element-lab .theory-lab-controls output{font-variant-numeric:tabular-nums;color:#244f7e;font-weight:650;min-width:3em}
+.element-lab select{max-width:100%;min-height:42px}
+.element-lab .theory-lab-readout{padding:10px 0;line-height:1.85}
+.element-lab .theory-lab-readout b{color:#174b79}
+.element-lab figcaption{margin-top:8px;border-top:1px solid #d4dfe9;padding-top:10px;line-height:1.8}
+.element-lab .el-plot{max-width:520px;margin:auto;direction:ltr}
+.el-svg{display:block;width:100%;height:auto;direction:ltr;overflow:hidden}
+.el-svg text{font:13px system-ui,sans-serif;fill:#294762;direction:ltr;unicode-bidi:isolate}
+.el-edge{fill:none;stroke:#365b80;stroke-width:2}
+.el-ghost{fill:none;stroke:#8c9eaf;stroke-width:1.3;stroke-dasharray:6 4}
+.el-grid{fill:none;stroke:#a5b8c9;stroke-width:1}
+.el-node{fill:#315b87;stroke:white;stroke-width:1.4}
+.el-node-mid{fill:white;stroke:#315b87;stroke-width:1.8}
+.el-force{stroke:#b34842;stroke-width:2.4;fill:none}.el-force-head{fill:#b34842}
+.el-motion{stroke:#227353;stroke-width:2.4;fill:none}.el-motion-head{fill:#227353}
+.el-axis{stroke:#315b87;stroke-width:1.5;fill:none}.el-axis-head{fill:#315b87}
+.el-fill{fill:#b8ccdf;stroke:#456882;stroke-width:1.3}
+.el-soft{fill:#e0e8ef;stroke:#7892aa;stroke-width:1.1}
+.el-warn{color:#8b3c19;font-weight:650}
+.el-equation{font-variant-numeric:tabular-nums;font-size:15px;padding:8px 10px;background:#f1f5f9;border-left:3px solid #477397;overflow-x:auto;white-space:normal}
+.el-intro{padding:16px;background:#f2f6fb;border:1px solid #c9d8e8;border-radius:10px;margin:16px 0}
+.el-intro h2{font-size:18px;margin:0 0 8px}.el-intro p{margin:8px 0}
+.el-checks details{border-top:1px solid #cbd7e3;padding:12px 0}.el-checks summary{cursor:pointer;font-weight:650;line-height:1.65}
+.element-lab .theory-lab-table{width:100%;font-variant-numeric:tabular-nums}
+@media(max-width:380px){.element-lab{padding:12px 6px}.el-intro{padding:12px}.element-lab .theory-lab-controls{display:grid;grid-template-columns:1fr}}
+
+.el-node-hidden{fill:#f2f6fb;stroke:#315b87;stroke-width:1.6;stroke-dasharray:2 2}
+.el-motion{stroke-dasharray:5 3}

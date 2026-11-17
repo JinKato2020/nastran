@@ -348,6 +348,6 @@
    draw();
   }
  }
- window.BeamLabs={connect,labs,figs,core:{cantilever,orient,ORIENT,composite,shearRatio,SHEAR,twistFree,twistRestrained,WARP,taperRatio,CH,H300,MESH,BETA}};
+ window.BeamLabs={connect,labs,figs,graphics:{render3d,camera,chart,extrude,wall},core:{cantilever,orient,ORIENT,composite,shearRatio,SHEAR,twistFree,twistRestrained,WARP,taperRatio,CH,H300,MESH,BETA}};
  if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',()=>connect(document));
 })();

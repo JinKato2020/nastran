@@ -91,6 +91,8 @@
    const heading=section?.querySelector('h1,h2');
    if(!heading)continue;
    if(document.body.dataset.learningPage==='elements.html'){
+    // Rebuilt element articles use deliberate, language-neutral experiments.
+    if(section.closest('article[data-element=scalar],article[data-element=shell],article[data-element=solid]'))continue;
     // Existing specialist illustrations take precedence over generic sketches.
     if(section.querySelector('.element-figure,.ev-diagram'))continue;
     const key=window.ElementSectionVisuals?.[id];

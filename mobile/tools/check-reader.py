@@ -154,7 +154,7 @@ with sync_playwright() as p:
     for n,right in enumerate([1,2,3]):
         page.locator(f'.aq-q[data-n="{n}"] .aq-opt[data-i="{right}"]').click()
         assert page.locator(f'.aq-q[data-n="{n}"] .aq-result').inner_text()=='正解です。'
-    assert '3問中 3問に回答、正解 3問' in page.locator('.aq-score').inner_text()
+    assert '3問中 3問に回答、初回の正解 3問' in page.locator('.aq-score').inner_text()
     card=page.locator('.aq-q[data-n="1"]')
     card.locator('.aq-check input').fill('-0.1714')
     card.locator('.aq-run').click()
@@ -165,7 +165,21 @@ with sync_playwright() as p:
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
     page.evaluate("location.hash='#modes/baseline'")
     page.locator('[data-analysis-tab="model"]').wait_for()
-    assert page.locator('[data-analysis-tab="quiz"]').count()==0  # questions exist only where they have been written
+    assert page.locator('[data-analysis-tab="quiz"]').count()==1
+    page.locator('[data-analysis-tab="quiz"]').click()
+    assert page.locator('.aq-q').count()==5
+    assert page.locator('.aq-mode-lab svg').is_visible()
+    for i, answer in enumerate(page.evaluate('AnalysisQuiz.data.modes.questions.map(q=>q.answer)')):
+        card=page.locator('.aq-q').nth(i)
+        card.locator('.aq-opt').nth(answer).click()
+        assert card.locator('.aq-result').inner_text()=='正解です。'
+    count=page.locator('.aq-q').nth(2)
+    count.locator('.aq-check input').fill('12.5')
+    count.locator('.aq-run').click()
+    assert '整数' in count.locator('.aq-diag').inner_text()
+    page.evaluate("location.hash='#complex-modes/undamped'")
+    page.locator('[data-analysis-tab="model"]').wait_for()
+    assert page.locator('[data-analysis-tab="quiz"]').count()==0  # no unwritten quizzes
     page.close()
     page=reader('modeling.html')
     page.locator('[data-model="detailed"]').click()
