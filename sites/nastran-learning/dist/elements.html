@@ -241,7 +241,7 @@
 <li><button type="button" data-jump="beam-axes">向きベクトル</button></li>
 <li><button type="button" data-jump="beam-cbar-example">検算：断面を90°回す</button></li>
 <li><button type="button" data-jump="beam-pbarl">断面寸法で入力</button></li>
-<li><button type="button" data-jump="beam-pin">ピン（端の解放）</button></li>
+<li><button type="button" data-jump="beam-pin">端部自由度の解放</button></li>
 <li><button type="button" data-jump="beam-cbeam">CBEAM</button></li>
 <li><button type="button" data-jump="beam-taper">検算：断面が変わる梁</button></li>
 <li><button type="button" data-jump="beam-compare">梁・シェル・ソリッドの比較</button></li>
@@ -424,8 +424,8 @@
 </ul>
 <h3>断面寸法と座標をセットで確認する</h3><p>矩形の寸法を入れ替えると曲げ剛性が入れ替わります。断面の表示と梁の局所y・zを同時に出し、荷重方向に対する高さを確認します。</p></section>
 
-<section class="theory-section" id="beam-pin"><h2>8. 端の結合を外す（ピンフラグ PA・PB）</h2>
-<p><a href="bulk.html#CBAR">CBAR</a> の <code>PA</code>・<code>PB</code> は、指定した梁端の自由度を接続節点から解放する入力です。その自由度に対応する<strong>梁端の力またはモーメントがゼロ</strong>になります。<code>PA</code> は GA 側の端A、<code>PB</code> は GB 側の端Bに使います。曲げだけを解放するのか、ねじりも解放するのかを数字で選びます。</p>
+<section class="theory-section" id="beam-pin"><h2>8. 端部自由度の解放（PA・PB）</h2>
+<p><a href="bulk.html#CBAR">CBAR</a> の <code>PA</code>・<code>PB</code> は、指定した梁端の自由度を接続節点から解放する入力です。<strong>1〜3は並進方向の力、4〜6は回転方向のモーメント</strong>を解放できます。指定した成分の梁端力・梁端モーメントがゼロになります。<code>PA</code> は GA 側の端A、<code>PB</code> は GB 側の端Bです。MSCのQRGでは “pin flags” と呼びますが、並進も対象なので、この教材では「端部自由度の解放」と呼びます。</p>
 <h3>1. 入力する場所</h3>
 <p>1行目の第4・5欄で GA・GB を指定し、2行目（継続行）の第2・3欄に PA・PB を書きます。下の各列は8文字の入力欄です。<strong>表を左右に送ると第9欄まで見られます。</strong>例の2行は欄位置を示す抜粋で、GRID・PBARなどを含む完成モデルではありません。</p>
 <div class="element-table-wrap"><table class="element-table pin-field-table"><thead><tr><th>行</th><th>第1欄</th><th>第2欄</th><th>第3欄</th><th>第4欄</th><th>第5欄</th><th>第6欄</th><th>第7欄</th><th>第8欄</th><th>第9欄</th></tr></thead><tbody>
@@ -449,11 +449,14 @@
 <tr><td><code>PA=5</code> または <code>6</code></td><td>指定した1つの曲げモーメント</td><td>もう一方の曲げ・ねじりは伝えられる</td></tr>
 <tr><td><code>PA=56</code></td><td>曲げモーメント2方向</td><td>ねじり（4）と並進力は伝えられる。「曲げに対するピン」</td></tr>
 <tr><td><code>PA=456</code></td><td>曲げ2方向＋ねじり</td><td>並進力は伝えられる。3方向の回転を解放する</td></tr>
+<tr><td><code>PA=123</code></td><td>軸力＋せん断力2方向</td><td>並進力を伝えない。回転ピンではなく、接続が不安定になりやすい</td></tr>
 </tbody></table></div>
-<p><code>PA=56</code> を「完全にモーメントを伝えないピン」と呼ぶと、残るねじりを見落とします。上の表はA端の例で、B端なら <code>PB</code> に同じ数字を書きます。1・2・3は力を解放する指定であり、通常の回転ピンとは用途が異なります。</p>
+<p><code>PA=56</code> を「完全にモーメントを伝えないピン」と呼ぶと、残るねじりを見落とします。<code>PA=123</code> は実際に入力できますが、軸力と両せん断力を解放するため、一般的なピン接合の指定ではありません。上の表はA端の例で、B端なら <code>PB</code> に同じ数字を書きます。</p>
 <h3>4. 2本の梁をつなぐ場合</h3>
-<figure class="element-figure"><div data-element-sketch="pin" data-description="梁1のB端と梁2のA端は共通節点を使う。PB1=456、PA2は空欄。2本だけで節点への外部モーメントがなければ両梁端のモーメントはゼロ"></div><figcaption>図の ∅ は空欄です。梁1のB端を <code>PB₁=456</code> で解放し、梁2のA端は <code>PA₂=空欄</code>。2本だけが節点につながり外部モーメントがなければ、梁1の解放と節点のつり合いにより<strong>両梁端のモーメントはゼロ</strong>になります。</figcaption></figure>
-<p><code>PA₂=空欄</code> なら梁2のA端は共通節点の回転に従いますが、梁1とは別の角度へ回れます。したがって<strong>梁1と梁2の間は両側から見てピン</strong>です。この2本だけの接続に <code>PA₂=456</code> を追加する必要はありません。両方を解放すると、共通節点の回転自由度がどの要素にもつながらず、特異行列の原因になる場合があります。他の部材や外部モーメントが節点につながる場合、梁2のA端モーメントはゼロとは限りません。</p>
+<p>梁1の <code>GB=20</code> と梁2の <code>GA=20</code> が<strong>同じ GRID 20</strong>を参照する例です。両梁端の位置は重なり、並進変位も同じになります。ただし「同じ節点を使う」ことと「回転も常に同じ」は別です。</p>
+<figure class="element-figure"><div data-element-sketch="pin" data-description="梁1のGBと梁2のGAは同一GRID20。並進は共有。梁1のB端はPB1=456で回転を解放し、梁2のA端はPA2空欄で節点回転に従う。外部モーメントなしの2本梁では両梁端モーメントはゼロ"></div><figcaption>左は梁1のB端、右は梁2のA端です。どちらもGRID 20の位置にあります。<code>PB₁=456</code> によって梁1のB端の回転だけが節点から切り離され、<code>PA₂=空欄</code> の梁2のA端は節点と一緒に回ります。図の ∅ は空欄です。</figcaption></figure>
+<ol><li><strong>位置：</strong>梁1のB端、GRID 20、梁2のA端は同じ位置で動きます。</li><li><strong>回転：</strong>梁2のA端はGRID 20と一緒に回ります。梁1のB端は別の角度へ回れるため、2本の梁の間はピンです。</li><li><strong>モーメント：</strong>梁1のB端は解放によってゼロです。この節点に2本しかなく外部モーメントもなければ、つり合いから梁2のA端もゼロです。</li></ol>
+<p>この条件では両方の梁がピン端になりますが、<code>PA₂=456</code> を追加する必要はありません。両側を解放すると、GRID 20の回転自由度がどの要素にもつながらず、特異行列の原因になる場合があります。別の部材や外部モーメントがGRID 20につながる場合、梁2のA端モーメントはゼロとは限りません。</p>
 <h3>5. 入力時の注意</h3>
 <ul>
 <li>同じCBARの両端で同じ成分を解放すると、その成分の剛性を失うことがあります。両端の4ならねじり、両端の1なら軸方向の剛性経路を失います。両端の56は曲げを伝えない棒に近づきますが、軸力・ねじりは残ります。モデル全体の自由度と <a href="analysis.html#model-verification">特異・AUTOSPC</a> を確認します。</li>
