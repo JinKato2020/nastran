@@ -118,7 +118,7 @@ with ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=str(R
         analysis.click()
     bundle = json.loads((ROOT/'src/generated/lessons.json').read_text(encoding='utf-8'))
     fallback_titles = [item['title'] for item in bundle['course']['navigation']['analyses']
-                       if item['title'] not in CASES and item['hash'] != '#common']
+                       if item['title'] not in CASES and item['hash'] != '#common' and item.get('group') != '検証・再実行']
     for title in fallback_titles:
         page.get_by_role('button',name=title,exact=True).click()
         expect(frame.locator('h1')).to_have_text(title)

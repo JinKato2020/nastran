@@ -9,10 +9,10 @@
  for(const [id,c] of Object.entries(D.cards)){
   if(entries.some(e=>e.key===id))continue;
   const model=Object.values(D.models).find(m=>m.rows.some(r=>r.name===id));
-  add({key:id,id,title:c.title,family:'bulk',category:categories[id],kind:'fixed',summary:c.intro,page:c.page,lines:c.lines,rows:model.rows.filter(r=>r.name===id).map(r=>r.values),reference:'dynamics.html#card-'+id});
+  add({key:id,id,title:c.title,family:'bulk',category:categories[id],kind:'fixed',summary:c.intro,page:c.page,lines:c.lines,rows:model.rows.filter(r=>r.name===id).map(r=>r.values),reference:'analysis.html#'+({EIGRL:'modes',TABDMP1:'modal-frequency',FREQ1:'modal-frequency',RLOAD1:'modal-frequency',DAREA:'modal-frequency',DLOAD:'modal-frequency',TLOAD1:'transient',TABLED1:'transient',TSTEP:'transient'}[id]||'modes')});
  }
- for(const [id,c] of Object.entries(F.cards))add({key:id,id,title:c.title,family:'bulk',category:'亀裂先端要素',kind:'fixed',summary:c.intro,page:c.page,lines:c.lines,rows:F.rows.filter(r=>r.card===id).map(r=>r.values),reference:'fracture.html#crack-card-'+id});
- add({key:'CDAMP2',id:'CDAMP2',title:'粘性減衰要素',family:'bulk',category:'ばね・質量・減衰要素',kind:'fixed',summary:'2つの自由度間の速度差に比例する粘性減衰力を、係数Bで定義します。',page:1532,lines:[M.cdamp.map(([label,help])=>({label,help}))],rows:M.variants.dashpot.focusRows.filter(r=>r.name==='CDAMP2').map(r=>r.values),reference:'damping.html#damp-card-CDAMP2'});
+ for(const [id,c] of Object.entries(F.cards))add({key:id,id,title:c.title,family:'bulk',category:'亀裂先端要素',kind:'fixed',summary:c.intro,page:c.page,lines:c.lines,rows:F.rows.filter(r=>r.card===id).map(r=>r.values),reference:'analysis.html#fracture'});
+ add({key:'CDAMP2',id:'CDAMP2',title:'粘性減衰要素',family:'bulk',category:'ばね・質量・減衰要素',kind:'fixed',summary:'2つの自由度間の速度差に比例する粘性減衰力を、係数Bで定義します。',page:1532,lines:[M.cdamp.map(([label,help])=>({label,help}))],rows:M.variants.dashpot.focusRows.filter(r=>r.name==='CDAMP2').map(r=>r.values),reference:'analysis.html#damping-check'});
  const params={
   POST:{page:1008,value:'1',category:'結果出力',meaning:'OP2出力に関する設定。2020 SP1で新しい結果データを扱う設定例は整数1です。読み込み先のポストプロセッサーの対応を確認します。Case Controlの結果要求も必要です。'},
   OMID:{page:1000,value:'YES',category:'結果出力',meaning:'対象となる線形シェルのF06/PUNCHの応力・ひずみ・要素力を材料座標系で出力する指定例です。OP2/XDBには作用しません。'},
@@ -23,7 +23,7 @@
  for(const [id,p] of Object.entries(params)){
   const complex=id.startsWith('ALPHA');
   const fields=[['カード名','Bulk DataのPARAMカード。'],['N','パラメータ名 '+id+'。'],['V1',p.meaning],['V2',complex?'複素パラメータの虚部。この実数のRayleigh係数の例では0.を指定します。ALPHA1とALPHA2は別のPARAM行に指定します。':'この設定例では使用しません。'],...Array.from({length:5},()=>['未使用','空欄。']),['継続','この例は1行で完結します。']];
-  add({key:'PARAM_'+id,id:'PARAM / '+id,title:p.category+'パラメータ',family:'parameter',category:p.category,kind:'fixed',summary:p.meaning,page:p.page,lines:[fields.map(([label,help])=>({label,help}))],rows:[['PARAM',id,p.value,...(complex?['0.']:[])]],reference:id in M.params?'damping.html#damp-card-'+id:'input.html#param'});
+  add({key:'PARAM_'+id,id:'PARAM / '+id,title:p.category+'パラメータ',family:'parameter',category:p.category,kind:'fixed',summary:p.meaning,page:p.page,lines:[fields.map(([label,help])=>({label,help}))],rows:[['PARAM',id,p.value,...(complex?['0.']:[])]],reference:id in M.params?'analysis.html#damping-check':'input.html#param'});
  }
  window.InputCatalog={entries,families:[['executive','エグゼクティブコントロール'],['case','ケースコントロール'],['parameter','パラメータ'],['bulk','バルクデータ']]};
 })();

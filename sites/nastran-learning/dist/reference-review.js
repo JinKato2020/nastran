@@ -8092,7 +8092,7 @@
           "1"
         ]
       ],
-      "reference": "fracture.html#crack-card-PRAC2D",
+      "reference": "analysis.html#fracture",
       "sourcePages": [
         2931
       ],
@@ -9238,7 +9238,7 @@
           "LOAD"
         ]
       ],
-      "reference": "dynamics.html#card-RLOAD1",
+      "reference": "analysis.html#modal-frequency",
       "connections": [
         [
           "DLOAD",
@@ -9635,7 +9635,7 @@
           "ENDT"
         ]
       ],
-      "reference": "dynamics.html#card-TABDMP1",
+      "reference": "analysis.html#modal-frequency",
       "sourcePages": [
         3213,
         3214,
@@ -9845,7 +9845,7 @@
           "ENDT"
         ]
       ],
-      "reference": "dynamics.html#card-TABLED1",
+      "reference": "analysis.html#transient",
       "sourcePages": [
         3222,
         3223,
@@ -10221,7 +10221,7 @@
           "80"
         ]
       ],
-      "reference": "dynamics.html#card-TLOAD1",
+      "reference": "analysis.html#transient",
       "connections": [
         [
           "DLOAD",
@@ -10564,7 +10564,7 @@
           "1"
         ]
       ],
-      "reference": "dynamics.html#card-TSTEP",
+      "reference": "analysis.html#transient",
       "sourcePages": [
         3320
       ],

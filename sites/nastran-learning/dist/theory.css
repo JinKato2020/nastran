@@ -12,3 +12,24 @@
 .eigen-figure .eigen-interpretation{margin:10px 0;line-height:1.8;color:#29466b}
 .eigen-figure .eigen-note{margin:8px 0 0;font-size:.875em;line-height:1.7;color:#4a6079}
 @media(max-width:620px){.eigen-chart-grid{grid-template-columns:minmax(0,1fr)}}
+.theory-lab{margin:16px 0 20px;padding:12px 14px;border:1px solid #cddbe9;border-radius:10px;background:#fff}
+.theory-lab-controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;font-size:14px;color:#344f6e}
+.theory-lab-controls label{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.theory-lab-controls select,.theory-lab-controls button{min-height:40px;padding:4px 10px;border:1px solid #9cb2cb;border-radius:6px;background:#f4f8fd;color:#243e60;font-size:16px}
+.theory-lab-controls input[type=range]{width:min(240px,70vw)}
+.theory-lab-svg{display:block;width:100%;max-width:460px;height:auto;margin:8px auto 0;direction:ltr}
+.theory-lab-svg text{font:12px system-ui,sans-serif;fill:#344f6e;direction:ltr;unicode-bidi:isolate}
+.theory-lab-svg .lab-frame{fill:#fbfdff;stroke:#9fb3c8;stroke-width:1}
+.theory-lab-svg .lab-grid{stroke:#e2e9f1;stroke-width:1}
+.theory-lab-svg .lab-ref{stroke:#7d8fa3;stroke-width:1.2;stroke-dasharray:4 4}
+.theory-lab-svg .lab-line{fill:none;stroke:#4a6c94;stroke-width:1.8}
+.theory-lab-svg .lab-line.strong{stroke:#1f4f9a;stroke-width:2.4}
+.theory-lab-svg .lab-mark{fill:#fff;stroke:#a92b30;stroke-width:2.5}
+.theory-lab-readout{margin:8px 0 0;font-size:14px;line-height:1.8;color:#24513d;font-variant-numeric:tabular-nums}
+.theory-lab figcaption{margin-top:6px;font-size:13px;line-height:1.7;color:#4a6079}
+.theory-lab-table{border-collapse:collapse;margin:10px 0 0;font-size:14px}
+.theory-lab-table th,.theory-lab-table td{border:1px solid #d4e0ef;padding:5px 8px;text-align:left;color:#334e6e}
+.theory-lab-table td{font-variant-numeric:tabular-nums}
+.theory-quiz details{margin:8px 0;border:1px solid #d4e0ef;border-radius:8px;background:#fff}
+.theory-quiz summary{min-height:44px;padding:10px 12px;cursor:pointer;font-size:15px;line-height:1.7;color:#29466b;box-sizing:border-box}
+.theory-quiz details p{margin:0;padding:0 12px 12px;font-size:15px;line-height:1.9;color:#435c79}

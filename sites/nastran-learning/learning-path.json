@@ -148,25 +148,25 @@
       "goal": "同じ軸・位置の結果を比べる"
     },
     {
-      "title": "動解析をはじめる",
-      "description": "固有振動・周波数応答・過渡応答",
-      "path": "dynamics.html",
-      "hash": "",
-      "goal": "時間や振動を含む問題へ進む"
+      "title": "実固有値・周波数応答・過渡応答の理論",
+      "description": "1自由度で固有振動数・共振・短い荷重の応答を確かめる",
+      "path": "theory.html",
+      "hash": "#modes",
+      "goal": "質量・剛性・減衰が応答をどう決めるかを、数値で説明できる"
     },
     {
-      "title": "減衰の種類と使い分け",
-      "description": "粘性・構造・モード・Rayleigh",
-      "path": "damping.html",
-      "hash": "",
-      "goal": "動解析の後で、減衰を選ぶ"
+      "title": "減衰の理論",
+      "description": "c・ζ・g・Qの換算、粘性と構造、モードとRayleigh",
+      "path": "theory.html",
+      "hash": "#damping",
+      "goal": "入力する減衰の数字の意味を区別できる"
     },
     {
-      "title": "亀裂先端のモデル化",
-      "description": "特異性・応力拡大係数・専用要素",
-      "path": "fracture.html",
-      "hash": "",
-      "goal": "応力評価と模型の限界を学ぶ発展編"
+      "title": "亀裂先端評価の理論",
+      "description": "特異性とK、評価方法の選び方、CRAC2Dの出力",
+      "path": "theory.html",
+      "hash": "#fracture",
+      "goal": "先端の最大応力ではなくKで評価する理由を説明できる"
     }
   ],
   "reference": [
