@@ -269,22 +269,27 @@
 </section>
 
 <section class="theory-section" id="beam-theory"><h2>2. 梁要素の土台となる理論</h2>
-<p><strong>梁要素は、断面の細かな形を節点で刻む代わりに、中心線の伸び・たわみ・回転で部材の変形を表します。</strong>まず、どの力がどの変形を生むかを対応づけます。下図は左端を固定した一定断面の梁です。破線は変形前、緑線は変形後（変形量を強調）、赤い矢印は加えた力・モーメントです。</p>
-<figure class="element-figure"><div data-element-sketch="beamFundamentals"></div></figure>
-<h3>平面保持の仮定</h3>
-<p>曲げを受けても、各断面は平面を保つと仮定します。図②の青い短線は断面の向きで、梁が曲がるにつれて断面も回転します。せん断変形を無視する梁理論では、断面は変形後の中心線に直角です。せん断変形を含めると、図③のように中心線の傾きと断面の回転に差が生まれます。「断面が平面を保つ」と「中心線に直角を保つ」は同じ条件ではありません。</p>
-<p>ねじりは中心線まわりの回転です。非円形断面では断面の反りも生じ得るため、平面保持だけでねじりの全てを説明することはできません。CBARではねじり定数 J によってねじり剛性を与え、反り拘束による追加の剛性は扱いません。</p>
-<h3>4種類の変形と剛性</h3>
-<div class="element-table-wrap"><table class="element-table">
-<thead><tr><th>変形</th><th>効く断面の値</th><th>代表的な剛性・応力の式</th></tr></thead>
-<tbody>
-<tr><td>伸び縮み（軸力 N）</td><td>断面積 A</td><td>剛性 EA/L、応力 σ = N/A</td></tr>
-<tr><td>ねじり（トルク T）</td><td>ねじり定数 J</td><td>剛性 GJ/L（円形断面なら τ = T·r/J）</td></tr>
-<tr><td>曲げ（曲げモーメント M）</td><td>断面二次モーメント I1・I2</td><td>片持ち梁の先端荷重 P で δ = PL³/(3EI)、応力 σ = M·c/I</td></tr>
-<tr><td>せん断変形（せん断力 V）</td><td>A と係数 K</td><td>片持ち梁で δs = PL/(K·A·G)。短く太い梁ほど効く</td></tr>
-</tbody></table></div>
-<p>E は縦弾性係数、G はせん断弾性係数、L は要素の長さ、c は中立軸から応力を求める点までの距離です。表の変位式は一定断面・微小変形・線形弾性の場合です。曲げとせん断を含めた片持ち梁の先端変位は、δ = δb + δs です。細長い梁では曲げが支配的で、短く太い梁ではせん断の寄与を無視できなくなります。</p>
-<p>せん断変形を無視した梁の要素剛性行列には、12EI/L³（たわみ）、6EI/L²（たわみと回転の連成）、4EI/L・2EI/L（回転）の係数が入ります。これらは単独のばね定数ではなく、両端の変位・回転と力・モーメントを一緒に結ぶ係数です。実際の荷重と変位の関係は、支持条件を適用して求めます。</p>
+<p><strong>梁要素は、中心線の伸び・たわみ・回転から部材の変形を表します。</strong>以下では左端を固定した一定断面の梁を使い、1種類ずつ「荷重 → 変形 → 効く断面の値」の順に示します。赤は荷重、緑は変形後（変形量を強調）、破線は変形前です。</p>
+<h3>① 伸び縮み：軸力 N → 長さ方向の変位 u</h3>
+<figure class="element-figure"><div data-element-sketch="beamAxial"></div></figure>
+<div class="element-table-wrap"><table class="element-table narrow"><tbody><tr><th scope="row">効く断面の値</th><td>断面積 A</td></tr><tr><th scope="row">剛性・応力</th><td>軸方向の剛性 EA/L、軸応力 σ = N/A</td></tr></tbody></table></div>
+<p>同じ材料・長さなら、断面積Aが大きいほど同じ軸力Nによる伸びは小さくなります。図の u = NL/(EA) は図示した片持ち棒の端部変位です。</p>
+<h3>② 曲げ：横荷重 P → 中心線の曲がり δb</h3>
+<figure class="element-figure"><div data-element-sketch="beamBend"></div></figure>
+<div class="element-table-wrap"><table class="element-table narrow"><tbody><tr><th scope="row">効く断面の値</th><td>断面二次モーメント I1・I2（曲がる面に対応）</td></tr><tr><th scope="row">剛性・応力</th><td>曲げ剛性 EI、曲げ応力の大きさ |σ| = |M|c/I</td></tr></tbody></table></div>
+<p>図の δb = PL³/(3EI) は、せん断変形を除いた片持ち梁の先端たわみです。Iは曲げる面に対応するI1またはI2を使います。断面内の応力評価位置までの距離がcです。<a href="#beam-inertia">I1とI2の対応</a>はCBARの節で確認できます。</p>
+<h3>③ 横せん断：横荷重 P → 追加のたわみ δs</h3>
+<figure class="element-figure"><div data-element-sketch="beamShear"></div></figure>
+<div class="element-table-wrap"><table class="element-table narrow"><tbody><tr><th scope="row">効く断面の値</th><td>断面積 Aとせん断補正係数 K（有効せん断面積 K A）</td></tr><tr><th scope="row">剛性・変位</th><td>せん断剛性 KAG、図の片持ち梁では δs = PL/(KAG)</td></tr></tbody></table></div>
+<p>②と③は同じ横荷重によるたわみを、曲げ成分とせん断成分に分けた図です。両方を考える場合の先端たわみは δ = δb + δs。短く太い梁ほど、せん断の寄与が相対的に大きくなります。Kの入力は<a href="bulk.html#PBAR">PBARのK1・K2</a>で確認できます。</p>
+<h3>④ ねじり：トルク T → 軸まわりの回転 θ</h3>
+<figure class="element-figure"><div data-element-sketch="beamTorsion"></div></figure>
+<div class="element-table-wrap"><table class="element-table narrow"><tbody><tr><th scope="row">効く断面の値</th><td>ねじり定数 J</td></tr><tr><th scope="row">剛性・応力</th><td>ねじり剛性 GJ/L。円形断面ならせん断応力 τ = Tr/J</td></tr></tbody></table></div>
+<p>図の θ = TL/(GJ) は一定断面・一定トルクの自由ねじりを表します。非円形断面ではJを I1 + I2 と同一視できず、ねじりによる断面の<a href="#beam-warping">反り</a>も考慮が必要になる場合があります。</p>
+<h3>4つの図に共通する前提</h3>
+<p>Eは縦弾性係数、Gはせん断弾性係数、Lは梁の長さです。上の式は線形弾性・微小変形・一定断面を前提とします。せん断変形を無視した梁の要素剛性行列には、12EI/L³（たわみ）、6EI/L²（たわみと回転の連成）、4EI/L・2EI/L（回転）の係数が入ります。これらは単独のばね定数ではなく、両端の変位・回転と力・モーメントを一緒に結ぶ係数です。実際の荷重と変位の関係は支持条件を適用して求めます。</p>
+<h3>曲げとせん断での断面の向き</h3>
+<p>曲げを受けても各断面は平面を保つと仮定します。②の青い短線は断面の向きで、梁が曲がるにつれて回転します。せん断変形を無視する梁理論では、断面は変形後の中心線に直角です。③では中心線の傾きと断面の回転に差γが生まれます。「断面が平面を保つ」と「中心線に直角を保つ」は別の条件です。ねじりでは非円形断面が反る場合もあるため、平面保持だけで全てを説明できません。</p>
 <h3>2つの面で別々に曲がる</h3>
 <p>要素座標の x-y 面が面1、x-z 面が面2です。面1 の曲げには I1、面2 の曲げには I2 が対応します。断面の主軸に y・z 軸を合わせて I12 = 0 とすると、2つの面の曲げを分離して考えられます。<a href="#beam-inertia">曲がる面と I1・I2 の対応図</a>で確認できます。面の向きの決め方は<a href="#beam-axes">要素座標と向きベクトル</a>へ進んでください。</p>
 <h3 id="beam-shear-center">せん断中心：横荷重をどこに通せば、ねじれないか</h3>
