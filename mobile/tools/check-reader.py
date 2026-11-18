@@ -121,6 +121,16 @@ with sync_playwright() as p:
     page.evaluate("location.hash='#fracture'")
     assert '398.9 MPa' in page.locator('[data-lab="lab-crack"] .theory-lab-readout').inner_text()
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+    # Numbered TOC links stay inside the selected article in the real reader.
+    page.evaluate("location.hash='#damping'")
+    page.locator('#damping-units').wait_for()
+    control=page.locator('[data-damping-lab] input[type=range]').first
+    control.evaluate('e=>{e.value=e.min;e.dispatchEvent(new Event("input",{bubbles:true}));}')
+    before=page.locator('[data-damping-lab] input').evaluate_all('es=>es.map(e=>e.value)')
+    page.locator('.element-toc a[data-jump="damping-units"]').click()
+    assert page.evaluate('location.hash')=='#damping'
+    assert page.evaluate('document.activeElement.closest("section").id')=='damping-units'
+    assert page.locator('[data-damping-lab] input').evaluate_all('es=>es.map(e=>e.value)')==before
     page.close()
     page=reader('damping.html')
     assert page.locator('#damping-chapter .theory-section').count()==19
@@ -130,6 +140,10 @@ with sync_playwright() as p:
     page.close()
     # Beam article: every interactive figure draws, and the headline numbers match the hand calculations.
     page=reader('elements.html')
+    page.evaluate("location.hash='#scalar'")
+    page.locator('#scalar .element-toc a[data-jump="scalar-celas"]').click()
+    assert page.evaluate('location.hash')=='#scalar'
+    assert page.evaluate('document.activeElement.closest("section").id')=='scalar-celas'
     page.evaluate("location.hash='#beam'")
     page.locator('[data-beam-lab="mesh"] svg').wait_for()
     assert page.locator('#beam figure.beam-lab svg').count()>=8

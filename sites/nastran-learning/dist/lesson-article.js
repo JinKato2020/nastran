@@ -26,18 +26,26 @@ ${points.map(s=>'<li>'+s+'</li>').join('\n')}
   const prerequisite=box.innerHTML.split('<strong>前提として読む記事</strong>')[1]?.split('<ol>')[0]?.trim().replace(/^：/,'');
   if(goals.length&&points.length&&prerequisite)box.outerHTML=introHTML(goals,prerequisite,points);
  }
- const toc=items=>'<ul class="element-toc" aria-label="この解説の目次">'+items.map(([id,label])=>`<li><button type="button" data-jump="${esc(id)}">${esc(label)}</button></li>`).join('')+'</ul>';
+ const toc=items=>'<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc">'+items.map(([id,label])=>`<li><a href="#${esc(id)}" data-jump="${esc(id)}">${esc(label)}</a></li>`).join('')+'</ol></nav>';
  const navigationRoots=new WeakSet();
  function bindNavigation(root){
   if(navigationRoots.has(root))return;
   navigationRoots.add(root);
-  root.addEventListener('click',event=>{
-   const jump=event.target.closest('button[data-jump]');
-   if(!jump)return;
+  const doc=root.ownerDocument||root;
+  // Handle in-page links before the mobile reader's document capture handler.
+  // Keep the selected article hash and its live controls while moving to a section.
+  doc.defaultView.addEventListener('click',event=>{
+   const jump=event.target.closest?.('a[data-jump]');
+   if(!jump||!root.contains(jump)||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+   const target=doc.getElementById(jump.dataset.jump);
+   if(!target)return;
    event.preventDefault();
-   const doc=root.ownerDocument||root;
-   doc.getElementById(jump.dataset.jump)?.scrollIntoView({block:'start'});
-  });
+   event.stopPropagation();
+   const heading=target.querySelector('h2')||target;
+   heading.setAttribute('tabindex','-1');
+   heading.focus({preventScroll:true});
+   target.scrollIntoView({block:'start'});
+  },true);
  }
  window.LessonArticle={intro,section,table,adoptIntro,toc,bindNavigation};
 })();

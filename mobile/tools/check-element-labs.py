@@ -13,7 +13,7 @@ errors, report = [], []
 def article_format(page, key):
     return page.locator('article[data-element='+key+']').evaluate('''a=>{
         const selectors={head:'.analysis-head',title:'.analysis-head h1',intro:'.element-key',
-          toc:'.element-toc',tocButton:'.element-toc button',section:'.theory-section',
+          toc:'.element-toc',tocLink:'.element-toc a',section:'.theory-section',
           heading:'.theory-section h2',formula:'.element-formula',table:'.element-table',
           tableWrap:'.element-table-wrap',quiz:'.theory-quiz',
           question:'[id$="-quiz"] summary',answer:'[id$="-quiz"] details p',

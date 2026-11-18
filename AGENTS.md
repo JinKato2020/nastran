@@ -120,3 +120,4 @@
 - 仕様根拠はMSC 2025.1動解析ガイドPDF288〜303・305〜306・315〜316、QRGのSDAMPING/TABDMP1、ALPHA1/2、KDAMP、SHLDAMP、WMODAL/W3/W4、DAMPING/HYBDAMP/PBUSHT。新しい操作例は一般理論の計算で、実験値・Nastran実行結果ではない。数式と入力リンクはcheck-damping-chapter.cjs、全操作・旧入口・梁とのスタイル一致・既存図形の一致はcheck-damping-chapter.pyで検査する。教材OTAだけで届く既存入口と、次回ビルドで変わるネイティブ一覧の表示名を混同しない。
 
 - 減衰章の目次生成・移動もLessonArticle.toc/bindNavigationを共通化し、要素記事と同じdata-jumpを使う。配布中アプリのネイティブ見出しとの互換性を保つため、通常の教材一覧はtheory.html#dampingを維持し、そこへ独立章全体を表示する。damping.htmlも同じ本文の独立ページとして復元する。旧ネイティブのdamping.htmlの見出しをOTAだけで更新したとは報告しない。
+- ユーザー指定（2026-11-18、記事上部の目次）：学習ポイントへの丸いボタン列は、見出し「目次」と通し番号付きの縦リストへ変更する。各項目は下線付きの実リンクとし、本文の順番・節番号に対応させ、確認問題と参照資料も含める。各要素7記事と減衰章はLessonArticle.tocと同じHTML/CSS・移動処理を共有する。目次の移動で記事選択や操作図の状態をリセットしない。

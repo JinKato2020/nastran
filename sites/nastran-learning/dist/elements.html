@@ -20,18 +20,7 @@
 <li>自由度、座標系、力の作用線をセットで確認する。</li>
 <li>変位・力のつり合い・エネルギーを手計算で確かめる。</li>
 </ol></div>
-<ul class="element-toc" aria-label="この解説の目次">
-<li><button type="button" data-jump="scalar-overview">要素ファミリーの全体像</button></li>
-<li><button type="button" data-jump="scalar-concept">形を持たない要素</button></li>
-<li><button type="button" data-jump="scalar-celas">CELAS1〜4</button></li>
-<li><button type="button" data-jump="scalar-spring1">検算：直列ばねの変位と力</button></li>
-<li><button type="button" data-jump="scalar-dof">自由度と内部拘束</button></li>
-<li><button type="button" data-jump="scalar-cbush">CBUSH</button></li>
-<li><button type="button" data-jump="scalar-pbush">PBUSH</button></li>
-<li><button type="button" data-jump="scalar-bushweld">検算：離れた節点をつなぐ</button></li>
-<li><button type="button" data-jump="scalar-choose">選び方と注意点</button></li>
-<li><button type="button" data-jump="scalar-sources">仕様を調べる</button></li>
-</ul>
+<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#scalar-overview" data-jump="scalar-overview">要素ファミリーの全体像</a></li><li><a href="#scalar-concept" data-jump="scalar-concept">形を持たない要素</a></li><li><a href="#scalar-celas" data-jump="scalar-celas">CELAS1〜4</a></li><li><a href="#scalar-spring1" data-jump="scalar-spring1">検算：直列ばねの変位と力</a></li><li><a href="#scalar-dof" data-jump="scalar-dof">自由度と内部拘束</a></li><li><a href="#scalar-cbush" data-jump="scalar-cbush">CBUSH</a></li><li><a href="#scalar-pbush" data-jump="scalar-pbush">PBUSH</a></li><li><a href="#scalar-bushweld" data-jump="scalar-bushweld">検算：離れた節点をつなぐ</a></li><li><a href="#scalar-choose" data-jump="scalar-choose">選び方と注意点</a></li><li><a href="#scalar-quiz" data-jump="scalar-quiz">自分で確かめる</a></li><li><a href="#scalar-sources" data-jump="scalar-sources">仕様を調べる</a></li></ol></nav>
 
 <section class="theory-section" id="scalar-overview"><h2>1. MSC Nastran の要素ファミリーの全体像</h2>
 <p>要素は形をどこまでモデルに残すかで選びます。スカラーは自由度の関係、梁は線と断面、シェルは面と厚さ、ソリッドは体積を表します。</p>
@@ -273,23 +262,7 @@
 <li>空欄の意味はカードと欄ごとに違う。PBAR の K1・K2 の空欄は「せん断に無限に硬い」、C〜F の空欄は「応力点が図心」。</li>
 </ol></div>
 
-<ul class="element-toc" aria-label="この解説の目次">
-<li><button type="button" data-jump="beam-overview">全体像</button></li>
-<li><button type="button" data-jump="beam-theory">1要素で足りるか</button></li>
-<li><button type="button" data-jump="beam-axes">断面の向き</button></li>
-<li><button type="button" data-jump="beam-offset">オフセット</button></li>
-<li><button type="button" data-jump="beam-cbar">CROD・CBAR の入力</button></li>
-<li><button type="button" data-jump="beam-shear">せん断変形</button></li>
-<li><button type="button" data-jump="beam-pin">端部の解放</button></li>
-<li><button type="button" data-jump="beam-cbeam">CBEAM：せん断中心と反り</button></li>
-<li><button type="button" data-jump="beam-taper">断面が変わる梁</button></li>
-<li><button type="button" data-jump="beam-compare">梁で足りるか</button></li>
-<li><button type="button" data-jump="beam-abcs">任意断面・複合材</button></li>
-<li><button type="button" data-jump="beam-curved">曲がり梁</button></li>
-<li><button type="button" data-jump="beam-choose">症状から原因を探す</button></li>
-<li><button type="button" data-jump="beam-quiz">自分で確かめる</button></li>
-<li><button type="button" data-jump="beam-sources">仕様を調べる</button></li>
-</ul>
+<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#beam-overview" data-jump="beam-overview">全体像</a></li><li><a href="#beam-theory" data-jump="beam-theory">1要素で足りるか</a></li><li><a href="#beam-axes" data-jump="beam-axes">断面の向き</a></li><li><a href="#beam-offset" data-jump="beam-offset">オフセット</a></li><li><a href="#beam-cbar" data-jump="beam-cbar">CROD・CBAR の入力</a></li><li><a href="#beam-shear" data-jump="beam-shear">せん断変形</a></li><li><a href="#beam-pin" data-jump="beam-pin">端部の解放</a></li><li><a href="#beam-cbeam" data-jump="beam-cbeam">CBEAM：せん断中心と反り</a></li><li><a href="#beam-taper" data-jump="beam-taper">断面が変わる梁</a></li><li><a href="#beam-compare" data-jump="beam-compare">梁で足りるか</a></li><li><a href="#beam-abcs" data-jump="beam-abcs">任意断面・複合材</a></li><li><a href="#beam-curved" data-jump="beam-curved">曲がり梁</a></li><li><a href="#beam-choose" data-jump="beam-choose">症状から原因を探す</a></li><li><a href="#beam-quiz" data-jump="beam-quiz">自分で確かめる</a></li><li><a href="#beam-sources" data-jump="beam-sources">仕様を調べる</a></li></ol></nav>
 
 <section class="theory-section" id="beam-overview"><h2>1. 梁要素は、断面を数に縮める</h2>
 <p>1次元要素は2つの節点を線で結び、断面の性質を数で与えます。立体の要素なら数万の自由度が要る部材を、両端の節点の6自由度ずつで表せます。</p>
@@ -627,26 +600,7 @@
 <li>Z1・Z2の名前だけでなく、実物のどちらの面かを確認する。</li>
 <li>材料の向きを変える操作と、結果の表示軸を変える操作を区別する。</li>
 </ol></div>
-<ul class="element-toc" aria-label="この解説の目次">
-<li><button type="button" data-jump="shell-overview">全体像</button></li>
-<li><button type="button" data-jump="shell-when">シェルが使える条件</button></li>
-<li><button type="button" data-jump="shell-theory">板の理論</button></li>
-<li><button type="button" data-jump="shell-input">CQUAD4・CTRIA3の入力</button></li>
-<li><button type="button" data-jump="shell-pshell">PSHELLの項目</button></li>
-<li><button type="button" data-jump="shell-axes">節点順・法線・材料方向</button></li>
-<li><button type="button" data-jump="shell-output">力・応力の出力</button></li>
-<li><button type="button" data-jump="shell-k6rot">第6自由度とK6ROT</button></li>
-<li><button type="button" data-jump="shell-plate2">検算：単位幅の膜力と曲げ</button></li>
-<li><button type="button" data-jump="shell-strain2">検算：中央面ひずみと曲率</button></li>
-<li><button type="button" data-jump="shell-small">小変形の仮定</button></li>
-<li><button type="button" data-jump="shell-quad8">CQUAD8・CTRIA6</button></li>
-<li><button type="button" data-jump="shell-omid">材料座標での出力</button></li>
-<li><button type="button" data-jump="shell-quadr">CQUADR・CTRIAR</button></li>
-<li><button type="button" data-jump="shell-shear">せん断パネル</button></li>
-<li><button type="button" data-jump="shell-crack">き裂先端要素</button></li>
-<li><button type="button" data-jump="shell-choose">選び方と注意点</button></li>
-<li><button type="button" data-jump="shell-sources">仕様を調べる</button></li>
-</ul>
+<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#shell-overview" data-jump="shell-overview">全体像</a></li><li><a href="#shell-when" data-jump="shell-when">シェルが使える条件</a></li><li><a href="#shell-theory" data-jump="shell-theory">板の理論</a></li><li><a href="#shell-input" data-jump="shell-input">CQUAD4・CTRIA3の入力</a></li><li><a href="#shell-pshell" data-jump="shell-pshell">PSHELLの項目</a></li><li><a href="#shell-axes" data-jump="shell-axes">節点順・法線・材料方向</a></li><li><a href="#shell-output" data-jump="shell-output">力・応力の出力</a></li><li><a href="#shell-k6rot" data-jump="shell-k6rot">第6自由度とK6ROT</a></li><li><a href="#shell-plate2" data-jump="shell-plate2">検算：単位幅の膜力と曲げ</a></li><li><a href="#shell-strain2" data-jump="shell-strain2">検算：中央面ひずみと曲率</a></li><li><a href="#shell-small" data-jump="shell-small">小変形の仮定</a></li><li><a href="#shell-quad8" data-jump="shell-quad8">CQUAD8・CTRIA6</a></li><li><a href="#shell-omid" data-jump="shell-omid">材料座標での出力</a></li><li><a href="#shell-quadr" data-jump="shell-quadr">CQUADR・CTRIAR</a></li><li><a href="#shell-shear" data-jump="shell-shear">せん断パネル</a></li><li><a href="#shell-crack" data-jump="shell-crack">き裂先端要素</a></li><li><a href="#shell-choose" data-jump="shell-choose">選び方と注意点</a></li><li><a href="#shell-quiz" data-jump="shell-quiz">自分で確かめる</a></li><li><a href="#shell-sources" data-jump="shell-sources">仕様を調べる</a></li></ol></nav>
 
 <section class="theory-section" id="shell-overview"><h2>1. 2次元要素の全体像</h2>
 <p>シェル要素は面に厚さを持たせて、面に沿う変形と面外の曲げを扱います。</p>
@@ -1005,18 +959,7 @@ F2 も辺 2-3・1-4 について同様</p>
 <li>中間節点と細分化はひずみの変化を表す手段。要素数だけで精度を決めない。</li>
 <li>最大応力を比べる前に座標・位置・平均化・拘束条件をそろえる。</li>
 </ol></div>
-<ul class="element-toc" aria-label="この解説の目次">
-<li><button type="button" data-jump="solid-overview">全体像</button></li>
-<li><button type="button" data-jump="solid-nodes">節点の並びと中間節点</button></li>
-<li><button type="button" data-jump="solid-dof">回転自由度がない</button></li>
-<li><button type="button" data-jump="solid-psolid">PSOLID と積分・応力</button></li>
-<li><button type="button" data-jump="solid-axes">要素座標系</button></li>
-<li><button type="button" data-jump="solid-taper">検算：厚さ方向の分割と曲げ</button></li>
-<li><button type="button" data-jump="solid-triax">CTRIAX6（軸対称）</button></li>
-<li><button type="button" data-jump="solid-crack">CRAC3D（き裂先端）</button></li>
-<li><button type="button" data-jump="solid-choose">選び方と注意点</button></li>
-<li><button type="button" data-jump="solid-sources">仕様を調べる</button></li>
-</ul>
+<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#solid-overview" data-jump="solid-overview">全体像</a></li><li><a href="#solid-nodes" data-jump="solid-nodes">節点の並びと中間節点</a></li><li><a href="#solid-dof" data-jump="solid-dof">回転自由度がない</a></li><li><a href="#solid-psolid" data-jump="solid-psolid">PSOLID と積分・応力</a></li><li><a href="#solid-axes" data-jump="solid-axes">要素座標系</a></li><li><a href="#solid-taper" data-jump="solid-taper">検算：厚さ方向の分割と曲げ</a></li><li><a href="#solid-triax" data-jump="solid-triax">CTRIAX6（軸対称）</a></li><li><a href="#solid-crack" data-jump="solid-crack">CRAC3D（き裂先端）</a></li><li><a href="#solid-choose" data-jump="solid-choose">選び方と注意点</a></li><li><a href="#solid-quiz" data-jump="solid-quiz">自分で確かめる</a></li><li><a href="#solid-sources" data-jump="solid-sources">仕様を調べる</a></li></ol></nav>
 
 <section class="theory-section" id="solid-overview"><h2>1. 3次元要素の全体像</h2>
 <figure data-element-lab="poisson"></figure>
@@ -1195,18 +1138,7 @@ F2 も辺 2-3・1-4 について同様</p>
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 結合要素</span><h1>結合要素（溶接・締結・接着）</h1>
 <p>つなぎ目の硬さ、力が入る範囲、開きやずれの許容を分けて考えます。部品の変形と結合部の変形を見比べ、目的に合う結合を選びます。</p></div><div class="element-key"><strong>この記事で分かること</strong><ul><li>CWELD・CFAST・CSEAM・凝着要素を、点・線・面と結合の物理で選び分ける</li><li>結合剛性、直径、結合位置を変えたとき、変位と荷重経路のどこが変わるか</li><li>つながっているように見えて力が伝わらない場合や、過度に硬くした場合の確認方法</li></ul><strong>前提として読む記事</strong>：<a href="elements.html#scalar">ばね要素</a>、<a href="elements.html#shell">シェル要素</a>、<a href="coordinates.html#elements">要素の向き</a>。力と変位の関係 F = kδ を使います。<ol><li>結合部の剛性と、部品側へ力を配る範囲は別の設定。どちらも変形に影響する。</li><li>剛結合、有限剛性の結合、開閉する接触は違う物理。見た目の形だけでは選べない。</li><li>接着の面積・開き・応力・合力を分ける。線形の凝着要素だけでは、はく離開始後の損傷を予測しない。</li></ol></div>
 
-<ul aria-label="この解説の目次" class="element-toc">
-<li><button data-jump="connector-why" type="button">なぜ結合要素か</button></li>
-<li><button data-jump="connector-cweld" type="button">CWELD の接続形式</button></li>
-<li><button data-jump="connector-patch" type="button">パッチ結合の仕組み</button></li>
-<li><button data-jump="connector-cweld-ex" type="button">CWELD の例題</button></li>
-<li><button data-jump="connector-cfast" type="button">CFAST</button></li>
-<li><button data-jump="connector-cseam" type="button">CSEAM</button></li>
-<li><button data-jump="connector-cintc" type="button">CINTC</button></li>
-<li><button data-jump="connector-cohesive" type="button">凝着要素</button></li>
-<li><button data-jump="connector-choose" type="button">選び方と注意点</button></li>
-<li><button data-jump="connector-quiz" type="button">自分で確かめる</button></li><li><button data-jump="connector-sources" type="button">出典</button></li>
-</ul>
+<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#connector-why" data-jump="connector-why">なぜ結合要素か</a></li><li><a href="#connector-cweld" data-jump="connector-cweld">CWELD の接続形式</a></li><li><a href="#connector-patch" data-jump="connector-patch">パッチ結合の仕組み</a></li><li><a href="#connector-cweld-ex" data-jump="connector-cweld-ex">CWELD の例題</a></li><li><a href="#connector-cfast" data-jump="connector-cfast">CFAST</a></li><li><a href="#connector-cseam" data-jump="connector-cseam">CSEAM</a></li><li><a href="#connector-cintc" data-jump="connector-cintc">CINTC</a></li><li><a href="#connector-cohesive" data-jump="connector-cohesive">凝着要素</a></li><li><a href="#connector-choose" data-jump="connector-choose">選び方と注意点</a></li><li><a href="#connector-quiz" data-jump="connector-quiz">自分で確かめる</a></li><li><a href="#connector-sources" data-jump="connector-sources">出典</a></li></ol></nav>
 <section class="theory-section" id="connector-why"><h2>1. なぜ専用の結合要素があるのか</h2>
 <p>つなぎ目は、従来の要素の組み合わせでも表せます。マニュアルは、目的に応じて柔らかいばねや梁（<a href="bulk.html#CBUSH">CBUSH</a>・<a href="bulk.html#CBAR">CBAR</a>）、剛体要素（<a href="bulk.html#RBAR">RBAR</a>・RJOINT・<a href="bulk.html#RBE2">RBE2</a>・<a href="bulk.html#RBE3">RBE3</a>）、多点拘束（<a href="bulk.html#MPC">MPC</a>）を使う方法を挙げています。しかし、これらには次の問題があると指摘しています。</p>
 <div class="element-table-wrap"><table class="element-table">
@@ -1484,21 +1416,7 @@ F2 も辺 2-3・1-4 について同様</p>
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 剛体要素</span><h1>剛体・補間要素（RBE2・RBE3・RBAR）</h1>
 <p>剛に結ぶ、平均でつなぐ、地面に支える。この3つを区別し、独立・従属自由度の向きと結果への影響を確かめます。</p></div><div class="element-key"><strong>この記事で分かること</strong><ul><li>RBE2の剛体運動とRBE3の平均化が、荷重配分と変形をどう変えるか</li><li>RBE2とRBE3で逆になる独立・従属の関係と、SPCとの衝突を避ける方法</li><li>節点を増やしても直らない配置の不足、二重の従属指定、拘束の循環を見抜く</li></ul><strong>前提として読む記事</strong>：<a href="coordinates.html#systems">変位の座標系</a>、<a href="elements.html#beam">梁要素</a>。並進と回転、および力のモーメントを使います。<ol><li>RBE2は剛体運動を強制する。離れた節点の並進は、中心の並進に回転の効果を加えた値になる。</li><li>RBE3の参照点は既定で従属側。周囲の節点を剛な面にせず、変位を平均し荷重を配る。</li><li>独立・従属は節点全体ではなく成分ごとの役割。全体を支えるSPCと、節点間を結ぶ条件を分ける。</li></ol></div>
 
-<ul aria-label="この解説の目次" class="element-toc">
-<li><button data-jump="rigid-overview" type="button">全体像</button></li>
-<li><button data-jump="rigid-mset" type="button">独立・従属と m-set</button></li>
-<li><button data-jump="rigid-method" type="button">線形法とラグランジュ法</button></li>
-<li><button data-jump="rigid-rbar" type="button">RBAR</button></li>
-<li><button data-jump="rigid-hinge" type="button">RBARのヒンジ</button></li>
-<li><button data-jump="rigid-rbe2" type="button">RBE2</button></li>
-<li><button data-jump="rigid-rbe3" type="button">RBE3の仕組み</button></li>
-<li><button data-jump="rigid-rbe3-plate" type="button">RBE3の例題（板）</button></li>
-<li><button data-jump="rigid-rbe3-ring" type="button">RBE3の例題（取付リング）</button></li>
-<li><button data-jump="rigid-compare" type="button">RBE2とRBE3の違い</button></li>
-<li><button data-jump="rigid-rjoint" type="button">RJOINT</button></li>
-<li><button data-jump="rigid-choose" type="button">選び方と注意点</button></li>
-<li><button data-jump="rigid-quiz" type="button">自分で確かめる</button></li><li><button data-jump="rigid-sources" type="button">出典</button></li>
-</ul>
+<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#rigid-overview" data-jump="rigid-overview">全体像</a></li><li><a href="#rigid-mset" data-jump="rigid-mset">独立・従属と m-set</a></li><li><a href="#rigid-method" data-jump="rigid-method">線形法とラグランジュ法</a></li><li><a href="#rigid-rbar" data-jump="rigid-rbar">RBAR</a></li><li><a href="#rigid-hinge" data-jump="rigid-hinge">RBARのヒンジ</a></li><li><a href="#rigid-rbe2" data-jump="rigid-rbe2">RBE2</a></li><li><a href="#rigid-rbe3" data-jump="rigid-rbe3">RBE3の仕組み</a></li><li><a href="#rigid-rbe3-plate" data-jump="rigid-rbe3-plate">RBE3の例題（板）</a></li><li><a href="#rigid-rbe3-ring" data-jump="rigid-rbe3-ring">RBE3の例題（取付リング）</a></li><li><a href="#rigid-compare" data-jump="rigid-compare">RBE2とRBE3の違い</a></li><li><a href="#rigid-rjoint" data-jump="rigid-rjoint">RJOINT</a></li><li><a href="#rigid-choose" data-jump="rigid-choose">選び方と注意点</a></li><li><a href="#rigid-quiz" data-jump="rigid-quiz">自分で確かめる</a></li><li><a href="#rigid-sources" data-jump="rigid-sources">出典</a></li></ol></nav>
 <section class="theory-section" id="rigid-overview"><h2>1. R型要素の全体像</h2>
 <p>R型要素（R-type element）は、つないだ節点の動きの間に「決まった関係」を課す要素です。マニュアルは、数学的には1本以上の多点拘束式（<a href="bulk.html#MPC">MPC</a>）と同じものだと説明しています。1本の拘束式は、1つの<strong>従属自由度</strong>（動きを決められる側）を、<strong>独立自由度</strong>（自分で動く側）の一次式で表します。</p>
 <p>「剛体要素」と呼ばれることが多いのですが、マニュアルはこの呼び名は誤解を招くと注意しています。本当に剛体として働くのは RROD・RBAR・RBAR1・RJOINT・RBE1・RBE2・RTRPLT・RTRPLT1 で、<strong>RBE3 と RSPLINE は「補間要素」であって剛体ではありません</strong>。この違いが、後で見る RBE2 と RBE3 の結果の差の根っこです。</p>
@@ -1861,15 +1779,7 @@ b = Σ (x − 50)·w / Σ (x − 50)² = (2 × 50 × 6×10⁻⁴) / (4 × 50²) 
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 一般要素</span><h1>一般要素（GENEL）</h1>
 <p>試験や別の計算で分かった「力と変位の関係」を行列で組み込みます。連成、自由度の並び、剛体運動の扱いを順に確かめ、行列の数字が何を意味するかを読み解きます。</p></div><div class="element-key"><strong>この記事で分かること</strong><ul><li>荷重がゼロの方向にも変位が出る連成と、剛性K・柔性Zの関係</li><li>UIの並びを変えるとき、行列の行・列・荷重を一緒に並べ替える理由</li><li>基準側も動く部品で ui − S ud を使う意味と、釣合い・エネルギーによる検算</li></ul><strong>前提として読む記事</strong>：<a href="elements.html#scalar">ばね要素</a>、<a href="elements.html#rigid">剛体運動と拘束</a>。行列は「各変位が各力にどれだけ効くかを並べた表」として読みます。<ol><li>対角項だけでなく連成項も物理を表す。小さく見える項の省略でも別のモデルになる。</li><li>UDは剛体運動の基準であり、SPCではない。UIの弾性変位は ui − S ud で取り出す。</li><li>GENELは内部形状を持たない。変位と界面の釣合いは確認できても、内部応力は別の回収方法が必要。</li></ol></div>
 
-<ul aria-label="この解説の目次" class="element-toc">
-<li><button data-jump="genel-what" type="button">GENELとは</button></li>
-<li><button data-jump="genel-theory" type="button">剛性形式と柔性形式</button></li>
-<li><button data-jump="genel-ud" type="button">UD と S の役割</button></li>
-<li><button data-jump="genel-input" type="button">入力カード</button></li>
-<li><button data-jump="genel-example" type="button">ロボットアームの例題</button></li>
-<li><button data-jump="genel-choose" type="button">選び方と注意点</button></li>
-<li><button data-jump="genel-quiz" type="button">自分で確かめる</button></li><li><button data-jump="genel-sources" type="button">出典</button></li>
-</ul>
+<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#genel-what" data-jump="genel-what">GENELとは</a></li><li><a href="#genel-theory" data-jump="genel-theory">剛性形式と柔性形式</a></li><li><a href="#genel-ud" data-jump="genel-ud">UD と S の役割</a></li><li><a href="#genel-input" data-jump="genel-input">入力カード</a></li><li><a href="#genel-example" data-jump="genel-example">ロボットアームの例題</a></li><li><a href="#genel-choose" data-jump="genel-choose">選び方と注意点</a></li><li><a href="#genel-quiz" data-jump="genel-quiz">自分で確かめる</a></li><li><a href="#genel-sources" data-jump="genel-sources">出典</a></li></ol></nav>
 <section class="theory-section" id="genel-what"><h2>1. GENEL とは — 行列で直接書く要素</h2>
 <p>GENEL は、CBAR や CQUAD4 と同じ意味での「要素」ではありません。マニュアルの言葉を借りれば、物性を明示的に定義せず、結果の回収（要素の力や応力の出力）も行わない要素です。その代わり、<strong>任意の数の節点・スカラー点</strong>につながる部分構造を、剛性行列か柔性行列だけで表せます。</p>
 <p><a href="elements.html#scalar">ばね要素の記事</a>で見たように、形の情報が少ない要素ほどユーザーが直接値を与えます。CELAS は「ばね定数1個」、CBUSH は「6方向の剛さ」を与えました。GENEL は、その行き着く先として「つながる全自由度の間の剛さを行列ごと」与えます。行列の値は、手計算、別の計算モデル、実際の試験データのどれから作ってもかまいません。</p>

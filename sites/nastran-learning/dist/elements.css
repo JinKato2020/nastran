@@ -1,7 +1,12 @@
 .elements-main .analysis-head>p{max-width:68ch}
-.element-toc{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px;padding:0;list-style:none}
-.element-toc button{min-height:40px;padding:6px 12px;border:1px solid #b4c9e8;border-radius:999px;background:#eef4fc;color:#285698;font-size:14px;cursor:pointer}
-.element-toc button:active{background:#dbe7f8}
+.element-contents{margin:22px 0 6px}
+.element-toc-title{margin:0 0 8px;font-size:18px;color:#29466b}
+.element-toc{display:block;margin:0;padding-inline-start:2.1em;list-style:decimal;font-size:15px;line-height:1.6}
+.element-toc li{padding:0}
+.element-toc li::marker{color:#435c79;font-variant-numeric:tabular-nums}
+.element-toc a{display:block;min-height:40px;box-sizing:border-box;padding:8px 0;color:#285698;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.element-toc a:hover,.element-toc a:active{color:#173b70}
+.element-toc a:focus-visible{outline:2px solid #285698;outline-offset:2px;border-radius:2px}
 .element-note{margin:14px 0;padding:12px 14px;border-left:4px solid #c48a1c;background:#fff8ea;border-radius:6px;font-size:14px;line-height:1.85;color:#5a4521}
 .element-key{margin:14px 0;padding:12px 14px;border-left:4px solid #3f8f6b;background:#eef8f3;border-radius:6px;font-size:14px;line-height:1.85;color:#24513d}
 .element-table-wrap{overflow-x:auto;margin:12px 0 18px;-webkit-overflow-scrolling:touch}
