@@ -92,7 +92,7 @@
    if(!heading)continue;
    if(document.body.dataset.learningPage==='elements.html'){
     // Rebuilt element articles use deliberate, language-neutral experiments.
-    if(section.closest('article[data-element=scalar],article[data-element=shell],article[data-element=solid]'))continue;
+    if(section.closest('article[data-element=scalar],article[data-element=shell],article[data-element=solid],article[data-element=connector],article[data-element=rigid],article[data-element=genel]'))continue;
     // Existing specialist illustrations take precedence over generic sketches.
     if(section.querySelector('.element-figure,.ev-diagram'))continue;
     const key=window.ElementSectionVisuals?.[id];
