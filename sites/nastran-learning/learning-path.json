@@ -610,13 +610,6 @@
     ],
     "common": [
       {
-        "title": "境界条件の理論",
-        "description": "自由度・剛体運動・支持の理想化",
-        "path": "theory.html",
-        "hash": "#boundary",
-        "kind": "共通理論"
-      },
-      {
         "title": "静荷重と荷重ケース",
         "description": "力・圧力・慣性・温度・結果の重ね合わせ",
         "path": "theory.html",
@@ -694,6 +687,50 @@
         "path": "theory.html",
         "hash": "#materials/verification",
         "kind": "材料理論"
+      }
+    ],
+    "boundaryTheory": [
+      {
+        "title": "境界条件の基本",
+        "description": "第1〜6節：自由度・支持・剛体運動・座標・対称条件",
+        "path": "theory.html",
+        "hash": "#boundary",
+        "kind": "境界条件と拘束"
+      },
+      {
+        "title": "SPC・指定変位",
+        "description": "第7〜9節：拘束セットと強制変位、反力までの式展開",
+        "path": "theory.html",
+        "hash": "#boundary/spc",
+        "kind": "境界条件と拘束"
+      },
+      {
+        "title": "MPC・独立と従属",
+        "description": "第10〜13節：相対量・仕事・非同次拘束・重複と矛盾",
+        "path": "theory.html",
+        "hash": "#boundary/mpc",
+        "kind": "境界条件と拘束"
+      },
+      {
+        "title": "結合と支持の選択",
+        "description": "第14〜17節：RBE・異種要素・端部解放・支持剛性",
+        "path": "theory.html",
+        "hash": "#boundary/connections",
+        "kind": "境界条件と拘束"
+      },
+      {
+        "title": "自動拘束と結果の検証",
+        "description": "第18〜22節：AUTOSPC・自由物体・反力・診断・解析別の違い",
+        "path": "theory.html",
+        "hash": "#boundary/verification",
+        "kind": "境界条件と拘束"
+      },
+      {
+        "title": "確認問題・参照資料",
+        "description": "第23〜24節：手計算・判断の12問と一次資料",
+        "path": "theory.html",
+        "hash": "#boundary/questions",
+        "kind": "境界条件と拘束"
       }
     ]
   }

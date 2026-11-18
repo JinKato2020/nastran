@@ -11,44 +11,8 @@
  // Full material chapter lives in material-chapter.js; this is routing metadata.
  entries.push({key:'materials',title:'材料の理論',summary:'弾性・異方性・積層・熱膨張・塑性',sections:[],links:[],sources:[]});
 
- Object.assign(entries.find(item=>item.key==='boundary'),{
-  title:'境界条件と自由度',sectionIndex:true,
-  summary:'支持で止める自由度、既知の量だけ動かす自由度、他の節点の動きに従う自由度を分けます。支持を選んでから荷重を加え、変位と反力で合っているかを確かめます。',
-  equation:'SPC：uᵢ = dᵢ　　MPC：Σ aᵢuᵢ = 0　　MPCY：Σ aᵢuᵢ = y',
-  symbols:'uは節点成分の変位または回転、dはその成分の指定値、aは拘束式の係数、yは右辺です。',
-  sections:[
-   ['支持・対称・自由面を区別する',[
-    '実物がどの方向の力やモーメントを受け止められるかを考えます。固定端は接続する要素で必要な移動・回転を止め、滑り支持では支持面の法線方向だけを止めるなど、実物が許す動きを残します。',
-    '対称面では形状だけでなく材料、荷重、支持も対称であることを確認し、対称面を横切る変位など対称性に反する成分を拘束します。回転自由度のある要素では対応する回転成分も考えます。自由面は対称面とは条件が異なります。'
-   ]],
-   ['SPCとSPC1 · 支持対象を決める',[
-    'SPCは節点・成分と指定値の組、SPC1は同じ成分を複数節点でゼロにするための入力です。Case ControlのSPCで使うSIDを選びます。GRIDのPSに置く拘束は節点自体の指定なので、SUBCASEで切り替える支持と混同しないようにします。',
-    '成分1〜3は並進、4〜6は回転です。たとえば斜めのローラーをモデル化するときは、GRIDのCDで軸を設定し、止める成分が実際の法線を向いているか矢印で確認します。ソリッドの通常の剛性は並進で伝わります。',
-    '左右の支持など複数の拘束セットを同時に使うときは、Bulk DataのSPCADDでまとめたSIDをCase Controlで選びます。GRIDのPSとGRDSETから受け取る拘束は各ケースで共通です。SUBCASEを変えても同じ成分が動かない場合は、この永久拘束も確認します。'
-   ]],
-   ['強制変位 · SPCとSPCD',[
-    '押し込む装置の移動量が既知なら、変位を与えて反力を求めます。単純な線形静解析ではSPCに非ゼロ値を与える方法と、対象成分を選択済みのSPC／SPC1に含め、SPCDで値を与える方法があります。後者ではSOL 101のCase ControlのLOADでSPCDのセットを選びます。',
-    'ばね定数が100 N/mmのばねの端を1 mm動かすと、反力の大きさは100 Nです。入力が力なら変位が未知、入力が変位なら反力が未知になります。結果では指定成分の変位と反力を対で確認します。',
-    '支持する成分を共通にしたまま複数ケースで押込み量だけを変えるなら、拘束セットを再利用し、SPCD側の荷重セットを切り替えます。SPCDを使う対象成分では、SPC側の値と足し合わせず、SPCD側で指定する値を確認します。'
-   ]],
-   ['MPCとMPCY／MPCD · 運動の関係を決める',[
-    '2つ以上の成分を線形式で結ぶ場合はMPCを使います。たとえば離れた2節点の相対変位を記録したければ、スカラー点sを用意し、s − uB + uA = 0 と結べば、その点で差を読めます。',
-    'MPCYでは式の右辺を非ゼロにできます。MPCDでは、MPCYを識別する節点と成分を使って右辺の値を上書きします。SOL 101ではCase ControlのMPCで拘束式を選び、LOADでMPCDを直接選びます。通常のBulk DataのLOADによる合成には入れられません。',
-    '式を手で作るときは、従属成分を他の拘束と競合させないこと、変位と回転を混ぜる場合は係数の単位を合わせることが重要です。剛な治具や荷重分配にはRBE2・RBE3も比較します。',
-    '例としてuB = 0.8 mmで拘束式がuA − uB = 0.25 mmなら、uAは1.05 mmです。MPCDで右辺を0.50 mmへ上書きすると、uBが同じ場合にuAは1.30 mmになります。変位を式に戻し、支持反力と多点拘束による力はSPCFORCESとMPCFORCESでそれぞれ確認します。'
-   ]],
-   ['AUTOSPC · 計算終了後に確かめる',[
-    'ソルバーは、局所的に剛性がない、または極めて小さい成分を自動拘束することがあります。F06のGrid Point Singularity Tableで、どの節点のどの成分が対象になったかを確認します。',
-    'MSCのSOL 101では既定でAUTOSPCが働き、GPSPが節点で局所的に弱い方向を調べます。判定の方向とGRIDの成分軸は一致するとは限りません。ガイドの梁例のように剛性が不足した主方向と節点軸が斜めに交わる場合、表に載った成分番号だけで「物理的に固定したかった方向」と判断せず、断面剛性と座標を照合します。',
-    'ソリッドの未使用回転が対象になる場合と、接続漏れや支持の方向違いで本来動く成分が対象になる場合を分けます。まず節点番号・接続・CD・物性を確認します。自動拘束が出たことだけで支持条件の正しさは判断できません。',
-    '支持反力の合計と外荷重の合力、同じ点まわりのモーメントを比較します。変位が予想より小さい場合は、実物が許す滑りや回転まで止めていないかも点検します。'
-   ]],
-  ],
-  limits:['自由度番号はGRIDのCDを基準に読みます。','MPCY・MPCDはSOLごとに対応範囲を確認します。MSC 2025.1 QRGではSOL 400非対応です。'],
-  links:[card('SPC'),card('SPC1'),card('SPCADD'),card('SPCD'),card('MPC'),card('MPCY'),card('MPCD'),card('CASE_SPCFORCES','SPCFORCES (Case)'),card('CASE_MPCFORCES','MPCFORCES (Case)'),card('PARAM_AUTOSPC','PARAM,AUTOSPC'),['comparisons.html#rigid-interpolation','SPC・RBE2・RBE3・MPCを比較']],
-  technical:['analysis.html#constraint-check','拘束の入力・反力を点検する'],
-  sources:[src(235,'第6章 PDF 235–252'),src(236,'SPC・SPC1・SPCADD PDF 236–238'),src(238,'AUTOSPC PDF 238–242'),src(242,'強制変位 PDF 242–243'),src(243,'MPCの式と例題 PDF 243–245'),src(246,'MPCY・MPCD PDF 246–252')],
- });
+ // Boundary chapter is authored once in boundary-chapter.js.
+
 
  Object.assign(entries.find(item=>item.key==='common-loads'),{
   title:'静荷重と荷重ケース',sectionIndex:true,

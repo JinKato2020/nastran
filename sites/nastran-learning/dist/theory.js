@@ -8,11 +8,11 @@
   const [caption,columns,rows]=table;
   return window.LessonArticle.table(columns,rows,{caption});
  }
- function render(){const [key,section]=location.hash.slice(1).split('/');const e=entries.find(e=>e.key===key)||entries.find(e=>e.key===picker.options[0]?.value)||entries[0];picker.value=e.key;document.title=e.title+' — FEM Guide';
-  const damping=e.key==='damping',materials=e.key==='materials';
-  detail.closest('main').classList.toggle('elements-main',damping||materials);
-  picker.closest('label').hidden=damping||materials;
-  if(materials){if(detail.dataset.chapter!=='materials'){window.MaterialChapter.mount(detail);detail.dataset.chapter='materials';}if(section)window.MaterialChapter.focusSection(section);return;}
+ function render(){let [key,section]=location.hash.slice(1).split('/');const alias=entries.find(e=>e.key===key&&e.chapter);if(alias){key=alias.chapter;section=alias.section;}const e=entries.find(e=>e.key===key)||entries.find(e=>e.key===picker.options[0]?.value)||entries[0];picker.value=e.key;document.title=e.title+' — FEM Guide';
+  const damping=e.key==='damping',chapter={materials:window.MaterialChapter,boundary:window.BoundaryChapter}[e.key];
+  detail.closest('main').classList.toggle('elements-main',damping||!!chapter);
+  picker.closest('label').hidden=damping||!!chapter;
+  if(chapter){if(detail.dataset.chapter!==e.key){chapter.mount(detail);detail.dataset.chapter=e.key;}if(section)chapter.focusSection(section);return;}
   delete detail.dataset.chapter;
   if(damping){window.DampingChapter.mount(detail);return;}
   const visual=e.visual==='eigenvalues'?window.EigenvalueVisuals:null;
@@ -39,16 +39,16 @@
   const nav=window.NASTRAN_LEARNING.navigation;
   const groups=new Map();
   const used=new Set();
-  for(const item of [...nav.materialTheory,...nav.common,...nav.materials]){
+  for(const item of [...nav.materialTheory,...nav.boundaryTheory,...nav.common,...nav.materials]){
    if(item.path!=='theory.html')continue;
    const entry=entries.find(e=>e.key===item.hash.slice(1).split('/')[0]);
    if(!entry||used.has(entry.key))continue;
-   const group=entry.key==='materials'?'材料理論':item.group||'共通の解析技術論';
+   const group=entry.key==='materials'?'材料理論':entry.key==='boundary'?'境界条件と拘束':item.group||'共通の解析技術論';
    if(!groups.has(group))groups.set(group,[]);
    groups.get(group).push(entry);
    used.add(entry.key);
   }
-  groups.set('応用・確認',entries.filter(e=>!used.has(e.key)));
+  groups.set('応用・確認',entries.filter(e=>!used.has(e.key)&&!e.chapter));
   picker.innerHTML=[...groups].map(([group,items])=>`<optgroup label="${esc(group)}">${items.map(e=>`<option value="${e.key}">${esc(e.title)}</option>`).join('')}</optgroup>`).join('');
   picker.addEventListener('change',()=>{location.hash=picker.value;window.scrollTo(0,0);});
   addEventListener('hashchange',render);

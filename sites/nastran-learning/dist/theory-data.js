@@ -59,7 +59,7 @@
   ['圧縮による安定性の変化',['無荷重で横方向へ変形させると弾性の復元力が生じます。圧縮荷重があると横変形に伴う荷重の作用も加わり、復元する能力が低下します。接線剛性が特異になる条件が線形固有値座屈の出発点です。','基準荷重でまず応力状態を求め、その応力状態に比例して荷重を増やしたときの限界倍率を解きます。基準荷重の数値を変えると倍率λは変わりますが、同じ比例荷重状態ならλPrefは同じ限界荷重を表します。']],
   ['座屈モードと実変形',['座屈モードは不安定になりやすい変形パターンです。固有値問題なので表示倍率は任意であり、実際のたわみ量を表しません。複数の曲げ方向がある場合、各方向の剛性によりモードの順番が決まります。','Euler式は理想的な細長い柱を対象とします。支持条件が変わると有効長が変わり、断面の弱軸・強軸でも限界荷重が変わります。長さや断面積だけで座屈荷重を評価しません。']],
   ['予荷重と現実の限界荷重',['一定の予荷重P₀と比例増加させる荷重Prefを分ける場合、全荷重はP₀+λPrefです。一定として扱う予荷重までλ倍しないように、どの荷重状態を基準にしているかを整理します。','初期不整、塑性、大変形、接触は実際の限界荷重を変えます。線形固有値座屈は理想化した安定性の指標として有用ですが、座屈後の変形経路や実物の耐荷重を直接保証するものではありません。']]],limits:['固有値の出力表にあるCYCLES等を、座屈の固有振動数として解釈しません。','必要に応じて初期不整を含む非線形解析へ進みます。'],technical:['analysis.html#buckling','座屈解析の技術情報'],sources:[guide('Linear_Static_Analysis_User_Guide',488)]},
- {key:'boundary',title:'境界条件と自由度',summary:'モデルが外部とどのようにつながるかを、許される運動・指定する運動・作用する力として表します。',equation:'u꜀ = ū꜀\nKff uf = Ff − Kfc ū꜀',symbols:'f：未知の自由度、c：変位が指定された自由度。非ゼロの指定変位も釣合いに影響します。',sections:[['支持を運動として表す',['固定・ピン・ローラーという名称を、その位置でどの並進・回転を許すかに置き換えます。実際の支持が伝える力とモーメントを考え、その伝達能力に対応する自由度を拘束します。','支持を増やすと計算が解ける場合でも、実物より硬い別のモデルになり得ます。剛体運動を除去することと、実物の変形を適切に許すことを両立させます。']],['対称・自由面・接続',['対称条件は対称面を横切る運動などを制限します。形状だけでなく荷重と材料の対称性が必要です。自由面は外力や接続がない面で、変位を0にする条件ではありません。','接触や結合は部品間でどの運動と力を伝えるかを決めます。剛結、ピン結合、滑り、分離を同じ拘束で代用すると、荷重経路が変わります。']]],limits:['拘束不足と過拘束の両方を、変形形状・反力・モデルの接続から確認します。'],technical:['basics.html#constraints','拘束の入力・技術情報'],sources:[stat]},
+ {key:'boundary',title:'境界条件と拘束の理論',summary:'支持・指定変位・多点拘束・検証',sections:[],sources:[]},
  {key:'damping',title:'減衰の理論',summary:'独立した減衰章。本文はdamping-chapter.jsを共用する。',equation:'',symbols:'',sections:[],limits:[],technical:['analysis.html#modal-frequency','周波数応答の技術情報'],sources:[]}
  ];
  // Reviewed against the actual PDF pages, rather than printed book pagination.
@@ -78,7 +78,6 @@
  byKey.get('heat').sources=[guide('Thermal_Analysis_User_Guide',22),guide('Thermal_Analysis_User_Guide',38),guide('Thermal_Analysis_User_Guide',75)];
  add('buckling','負の座屈荷重係数','負の固有値は、基準にした比例荷重と逆向きの荷重で座屈する可能性を表します。単に計算失敗として除外したり、絶対値だけで最小荷重を選んだりせず、想定する荷重方向とモード形を確認します。');
  byKey.get('buckling').sources=[guide('Linear_Static_Analysis_User_Guide',488),guide('Linear_Static_Analysis_User_Guide',503)];
- byKey.get('boundary').sources=[guide('Linear_Static_Analysis_User_Guide',232),guide('Linear_Static_Analysis_User_Guide',241)];
  byKey.get('damping').sources=[guide('Dynamic_Analysis_User_Guide',214),guide('Dynamic_Analysis_User_Guide',274),guide('Dynamic_Analysis_User_Guide',275)];
  byKey.get('fracture').sources=[guide('Reference_Guide',189),guide('Reference_Guide',190),['https://ntrs.nasa.gov/citations/19770013561','NASA NTRS · 四分点要素と亀裂先端の特異性'],['https://ntrs.nasa.gov/citations/19970035961','NASA NTRS · 線形弾性破壊力学とK・Gの関係']];
 })();

@@ -125,3 +125,8 @@
 - 材料理論は23節（参照資料を含む）、MaterialLabsの操作例9つ、確認問題12問。LessonArticle・BeamLabs.ui/graphicsと既存CSSを直接使う。既存材料図7つは図形を変えず、説明文字だけ記号化して図外に分離。材料方向、工学せん断、ABDと積層順、熱拘束、EtとH、MATS1の全ひずみ曲線を重点にする。弾塑性・熱応力の解析理論から材料の重複説明を整理し、材料章へリンクする。
 - 参照はMSC 2025.1線形静解析ガイド第5章PDF203–234、QRGのMAT1/2/3/8/9、PCOMP/PCOMPG、MATT1/MATS1。一般理論はMIT OCWのRoylance（構成式、積層板、応力ひずみ曲線、降伏）とBowerの弾性・粘弾性・塑性を照合。入力リスト・公式図の転載はせず、計算例は一般理論の独立計算と明記する。Siemensの未照合仕様へ一般化しない。
 - check-material-chapter.cjsで座標変換、ABDから回復する力・モーメント、正定値性、熱のつり合い、硬化換算を検算。check-material-chapter.pyで23節・9操作例・図中の言語・旧図形の保持・全操作・320/390/768px・入口と戻るを確認する。教材一覧の独立章表示はネイティブの変更。今回はユーザーが「全部終わったらBuild」と明示したため、新版で反映する。起動後の監視はしない。
+
+- ユーザー指定（2026-11-18、境界条件と拘束の独立章）：材料章に続き境界条件と拘束を独立化。本文の正本はboundary-chapter.js、操作図はboundary-labs.js。theory.html#boundaryと#boundary/節で共通表示し、navigation.boundaryTheoryに6つの入口を設ける。旧common-constraint-errors・common-symmetry・common-rigidは該当節へ読み替え、本文を重複管理しない。
+- 境界条件章は24節（出典を含む）、操作図9つ、独自の模式図2つ、確認問題12問。LessonArticle・BeamLabs.ui/graphics・既存CSSを直接共有する。既存の図・流れ図5つは保持し、図中文字だけ記号化する。SPCとMPC、独立・従属、反対称、3–2–1の独立性、強制変位の行列分割、仮想仕事、非同次拘束の縮約、過拘束と冗長性、AUTOSPCの製品・SOL範囲までつなぐ。新規DATやNastran実行結果ではない。
+- 根拠はMSC 2025.1線形静解析ガイド第6章PDF235–252と対称条件PDF379–381、QRGのSPC／SPCD／MPC／MPCY／MPCD／AUTOSPC／SUPORT。一般理論はMIT OCW BatheとBower §7.1。check-boundary-chapter.cjsで独立した梁FE、剛体運動の階数、投影、反力・仕事・MPCを検算し、check-boundary-chapter.pyで全操作・旧リンク・梁の書式・図形保持・320/390/768pxを確認する。
+- 今回の「続いて境界条件と拘束へ」は教材作成依頼として扱い、配信はR2教材OTA。前回の材料章のビルド依頼を以後の自動ビルド許可と解釈しない。端末の既存「境界条件の理論」から新版本文を読める。独立章のネイティブ一覧表示は、次回明示的に依頼されたビルドで反映する。

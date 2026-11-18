@@ -45,7 +45,7 @@ with sync_playwright() as p:
  page.get_by_role('button',name='しおりを付ける').click()
  page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="coordinates.html"&&p.hash==="#systems")')
  root('教材')
- for title in ['各解析技術理論','各要素理論','材料理論']:
+ for title in ['各解析技術理論','各要素理論','材料理論','境界条件と拘束']:
   assert page.get_by_role('button',name=title,exact=True).count()==1
  for title in ['初めての解析','入力規則','座標','要素の向き','応力方向']:
   assert page.get_by_role('button',name=title,exact=True).count()==0,title
@@ -53,12 +53,22 @@ with sync_playwright() as p:
  if toggle.get_attribute('aria-expanded')!='true':toggle.click()
  assert page.get_by_role('button',name='共通の解析技術論',exact=True).count()==0
  assert page.get_by_role('heading',name='共通の解析技術論',exact=True).bounding_box()['y'] < page.get_by_role('heading',name='解析ごとの理論',exact=True).bounding_box()['y']
- for title in ['境界条件の理論','減衰の理論']:
+ for title in ['減衰の理論']:
   assert page.get_by_role('button',name=title,exact=True).count()==1
  for title in ['モデル化の考え方','並列計算・バッチ実行','INCLUDEとファイル分割','関連ファイル・結果の読み込み']:
   assert page.get_by_role('button',name=title,exact=True).count()==0
  page.screenshot(path='.qa/five-tabs-materials.png')
- page.get_by_role('button',name='境界条件の理論',exact=True).click()
+ page.get_by_role('button',name='境界条件と拘束',exact=True).click()
+ for title in ['境界条件の基本','SPC・指定変位','MPC・独立と従属','結合と支持の選択','自動拘束と結果の検証','確認問題・参照資料']:
+  assert page.get_by_role('button',name=title,exact=True).count()==1,title
+ page.get_by_role('button',name='MPC・独立と従属',exact=True).click()
+ frame=page.frame_locator('iframe')
+ frame.locator('#boundary-mpc').wait_for(state='visible')
+ assert frame.locator('.theory-section').count()==24
+ assert frame.locator('#boundary-mpc').evaluate('e=>Math.abs(e.getBoundingClientRect().top)<140')
+ frame.locator('a[href="bulk.html#MPC"]').first.click()
+ assert page.frame_locator('iframe').locator('#card-picker').input_value()=='MPC'
+ page.get_by_role('button',name='‹ 戻る',exact=True).click()
  page.frame_locator('iframe').locator('#theory-detail').wait_for(state='visible');bottom()
  root('教材')
  page.get_by_role('button',name='材料理論',exact=True).click()

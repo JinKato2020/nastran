@@ -139,6 +139,16 @@ with sync_playwright() as p:
     assert page.evaluate('location.hash')=='#materials/composites'
     assert page.locator('[data-material-lab="laminate"] select').input_value()=='unsym'
     assert page.evaluate('document.activeElement.closest("section").id')=='materials-questions'
+    page.evaluate("location.hash='#boundary/mpc'")
+    page.locator('#boundary-mpc').wait_for()
+    assert page.locator('.theory-section').count()==24
+    page.locator('[data-boundary-lab="conflict"] select').select_option('inconsistent')
+    page.locator('.element-toc a[data-jump="boundary-questions"]').click()
+    assert page.evaluate('location.hash')=='#boundary/mpc'
+    assert page.locator('[data-boundary-lab="conflict"] select').input_value()=='inconsistent'
+    assert page.evaluate('document.activeElement.closest("section").id')=='boundary-questions'
+    page.locator('a[href="bulk.html#MPC"]').first.click()
+    page.wait_for_function('messages.some(m=>m.type==="navigate"&&m.path==="bulk.html"&&m.hash==="#MPC")')
     page.close()
     page=reader('damping.html')
     assert page.locator('#damping-chapter .theory-section').count()==19
