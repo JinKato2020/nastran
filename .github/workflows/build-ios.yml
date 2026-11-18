@@ -13,7 +13,7 @@ on:
         description: 同じバージョンのビルド番号（再ビルドは増加）
         type: string
         required: true
-        default: '1001'
+        default: '1002'
       testflight:
         description: TestFlightへアップロードする（App Store審査申請はしない）
         type: boolean
