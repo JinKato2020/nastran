@@ -2,7 +2,7 @@
   "expo": {
     "name": "FEM Guide for nas",
     "slug": "nastran-learning",
-    "version": "1.3.1",
+    "version": "1.3.2",
     "orientation": "default",
     "scheme": "nastranlearning",
     "userInterfaceStyle": "light",
