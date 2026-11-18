@@ -78,6 +78,7 @@ for(const l of content.LESSONS){
 assert(!content.readerHTML({path:'index.html',hash:'#</script><script>alert(1)</script>',y:0},'[]','test').includes('"hash":"#</script>'));
 for(const [rel,f]of Object.entries(content.DOWNLOADS))assert.deepEqual(Buffer.from(f.base64,'base64'),fs.readFileSync(path.join(root,'../sites/nastran-learning/dist',rel)));
 require('./check-input-catalog.cjs');
+require('./check-input-native.cjs');
 require('./check-element-labs.cjs');
 require('./check-connection-labs.cjs');
 require('./check-damping-chapter.cjs');

@@ -8,15 +8,9 @@
  const home=$('input-home'),browser=$('input-browser');
  function showBrowser(family){home.hidden=true;browser.hidden=false;$('input-family-title').textContent=label(family);}
  function showHome(){home.hidden=false;browser.hidden=true;document.title='Inputデータ — FEM Guide';searchAll();}
- const normalize=value=>String(value).normalize('NFKC').toLocaleLowerCase().trim();
  function searchAll(){
-  const q=normalize($('input-search').value),tokens=q.split(/\s+/).filter(Boolean);
-  const named=tokens.length===1?entries.filter(e=>normalize(e.id).startsWith(q)):[];
-  const pool=named.length?named:entries;
-  const matches=q?pool.filter(e=>tokens.every(t=>normalize([e.id,e.key,e.title,e.summary,...(e.aliases||[])].join(' ')).includes(t))).sort((a,b)=>{
-   const rank=e=>normalize(e.id)===q?0:normalize(e.id).startsWith(q)?1:2;
-   return rank(a)-rank(b)||cardOrder.compare(a.id,b.id)||cardOrder.compare(a.key,b.key);
-  }):[];
+  const q=window.NastranInputSearch.normalize($('input-search').value);
+  const matches=window.NastranInputSearch.search(entries,q);
   $('input-search-status').textContent=q?(matches.length?`${matches.length}件`:'該当するカードがありません。短い語句やカード名で検索してください。'):'';
   $('input-search-results').innerHTML=matches.map(e=>`<a class="learning-card" href="bulk.html#${esc(e.key)}"><div><strong>${esc(e.id)} — ${esc(e.title)}</strong><p>${esc(label(e.family))} / ${esc(e.category)}</p></div></a>`).join('');
   document.querySelector('.input-home-cards').hidden=!!q;

@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {INPUT_INDEX,INPUT_HOME,searchInput,inputIndexFromHTML,isInputHome}=require('../src/input-home.ts');
+assert.equal(INPUT_HOME.length,5);assert.equal(INPUT_INDEX.entries.length,312);
+for(const query of ['celas','ＣＥＬＡＳ',' CelAs '])assert.deepEqual(searchInput(INPUT_INDEX.entries,query).map(e=>e.key),['CELAS1','CELAS2','CELAS3','CELAS4']);
+assert.equal(searchInput(INPUT_INDEX.entries,'zz_unknown_card').length,0);
+assert(searchInput(INPUT_INDEX.entries,'変位').length>0);
+const bundle=require('../src/generated/lessons.json');assert.deepEqual(inputIndexFromHTML(bundle.pages['bulk.html']),INPUT_INDEX);
+for(const broken of [undefined,'legacy html','<script type="application/json" id="nastran-input-index">{bad}</script>','<script type="application/json" id="nastran-input-index">{"entries":[],"families":[]}</script>'])assert.equal(inputIndexFromHTML(broken),INPUT_INDEX);
+const changed=JSON.parse(JSON.stringify(INPUT_INDEX));changed.entries[0].title='OTA updated entry';
+assert.deepEqual(inputIndexFromHTML('<script type="application/json" id="nastran-input-index">'+JSON.stringify(changed)+'</script>'),changed);
+assert(isInputHome({path:'bulk.html',hash:''}));assert(!isInputHome({path:'bulk.html',hash:'#CELAS2'}));
+assert.equal(fs.readFileSync(path.resolve(__dirname,'../src/generated/input-search.js'),'utf8'),fs.readFileSync(path.resolve(__dirname,'../../sites/nastran-learning/dist/input-search.js'),'utf8'));
+console.log('PASS: shared native/web Input search, five destinations, current OTA index and legacy/corrupt fallback.');

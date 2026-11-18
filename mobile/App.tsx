@@ -1,6 +1,6 @@
 import appConfig from './app.json';
-import { Fragment, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, AppState, BackHandler, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, AppState, BackHandler, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,6 +12,7 @@ import { NAVIGATION, DOWNLOADS, readerHTML, titleFor } from './src/content';
 import { updateLessons } from './src/content-ota';
 import type { UpdatedPages } from './src/content-ota-core';
 import { ROOT_TABS, type TabKey } from './src/navigation';
+import { INPUT_HOME, INPUT_INDEX, inputIndexFromHTML, isInputHome, searchInput } from './src/input-home';
 import { EMPTY_STATE, externalURL, filePayload, position, progress, courseProgress, restore, samePlace, type Position, type SavedState } from './src/protocol';
 
 const STORAGE_KEY='nastran-learning-state-v1';
@@ -40,6 +41,12 @@ function Reader({entry,saved,updatedHTML,onMessage,onExternal,onNavigate,onResta
   </View>;
 }
 
+// All five tab roots use this exact native header, including Input.
+function TabHeader({tab}:{tab:TabKey}){
+ const compact=useWindowDimensions().width<350;
+ return <View style={[styles.brandRow,compact&&styles.compactBrandRow]} testID="tab-header"><Image style={styles.logo} source={require('./assets/icon-fem-guide-for-nas.png')} accessibilityLabel="FEM Guide for nas" resizeMode="contain"/><Text style={styles.screenTitle} accessibilityRole="header" testID="tab-title" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>{ROOT_TABS.find(t=>t.id===tab)?.title}</Text><View style={styles.brandMark}><Text style={[styles.brand,compact&&styles.compactBrand]}>FEM Guide for nas</Text><Text style={[styles.brandSub,compact&&styles.compactBrandSub]}>非公式学習教材</Text></View></View>;
+}
+
 function LearningApp(){
   const [saved,setSaved]=useState<SavedState>(EMPTY_STATE);
   const savedRef=useRef(saved);
@@ -52,6 +59,9 @@ function LearningApp(){
   const webRef=useRef<WebView<object>>(null);
   const [menu,setMenu]=useState(false);
   const [tab,setTab]=useState<TabKey>('home');
+  const [inputQuery,setInputQuery]=useState('');
+  const [inputIndex,setInputIndex]=useState(INPUT_INDEX);
+  const inputMatches=useMemo(()=>searchInput(inputIndex.entries,inputQuery),[inputIndex,inputQuery]);
   const tabSessions=useRef<Partial<Record<TabKey,{position:Position|null;trail:Position[]}>>>({});
   const [showBookmarks,setShowBookmarks]=useState(false);
   const [sharing,setSharing]=useState(false);
@@ -70,6 +80,7 @@ function LearningApp(){
       const place=current.current;
       const changed=place && pages[place.path]!==updatedPages.current[place.path];
       updatedPages.current=pages;
+      setInputIndex(inputIndexFromHTML(pages['bulk.html']));
       if(changed && place){
         const refreshed=newEntry(place);
         readerReported.current=false;
@@ -93,7 +104,7 @@ function LearningApp(){
     return()=>{active=false;sub.remove();if(timer.current)clearTimeout(timer.current);};
   },[]);
   function ownerTab(p:Position):TabKey{
-    if(p.path==='bulk.html')return 'input';
+    if(p.path==='bulk.html'||p.path==='comparisons.html')return 'input';
     if(p.path==='analysis.html'||p.path==='relations.html')return 'analysis';
     if(p.path==='errors.html'||NAVIGATION.operations.some(item=>item.path===p.path)||
       NAVIGATION.homeResources.some(item=>item.path===p.path&&item.hash===p.hash)||
@@ -102,6 +113,7 @@ function LearningApp(){
     return 'materials';
   }
   function open(p:Position,remember=true){
+    if(isInputHome(p)){setTab('input');root();return;}
     setTab(ownerTab(p));
     if(remember&&current.current)trail.current=[...trail.current.slice(-49),current.current];
     const e=newEntry(p);current.current=p;readerReported.current=false;entryRef.current=e;setEntry(e);setLocationTitle(titleFor(p));setMenu(false);
@@ -113,12 +125,12 @@ function LearningApp(){
     const previous=tabSessions.current[value];
     setTab(value);setMenu(false);
     if(target){trail.current=[];open(target,false);return;}
-    if(value==='settings'||value===tab&&value!=='input'){root();return;}
-    const next=previous?.position||(value==='input'?{path:'bulk.html',hash:'',y:0}:null);
+    if(value==='settings'||value===tab){root();return;}
+    const next=previous?.position;
     if(next){open(next,false);trail.current=previous?.trail||[];}else root();
   }
   function home(){tabSessions.current[tab]={position:current.current,trail:[...trail.current]};setTab('home');root();}
-  function back(){const previous=trail.current.pop();if(previous)open(previous,false);else if(tab==='input')home();else root();}
+  function back(){const previous=trail.current.pop();if(previous)open(previous,false);else root();}
   useEffect(()=>{const sub=BackHandler.addEventListener('hardwareBackPress',()=>{if(menu){setMenu(false);return true;}if(entry){back();return true;}if(tab!=='home'){home();return true;}return false;});return()=>sub.remove();},[entry,menu,tab]);
   async function external(raw:string){const url=externalURL(raw);if(!url)return;try{await Linking.openURL(url);}catch{Alert.alert('リンクを開けません','原典PDFなどの外部ページには、インターネット接続が必要です。');}}
   function reply(session:string,id:unknown,ok:boolean,error?:string){
@@ -149,6 +161,7 @@ function LearningApp(){
       else if(m.type==='progress'){updateSaved({...savedRef.current,progress:progress(m.value)});}
       else if(m.type==='position'){
         const p=position(m);if(!p||p.path!==entryRef.current?.path)return;
+        if(isInputHome(p)){setTab('input');root();return;}
         if(readerReported.current&&current.current&&!samePlace(current.current,p))trail.current=[...trail.current.slice(-49),current.current];
         readerReported.current=true;
         current.current=p;setLocationTitle(titleFor(p));updateSaved({...savedRef.current,last:p});
@@ -202,8 +215,8 @@ function LearningApp(){
       <View style={styles.toolbar}><Pressable accessibilityRole="button" onPress={back} style={styles.toolButton}><Text style={styles.toolText}>‹ 戻る</Text></Pressable><Text style={styles.readerTitle} numberOfLines={2}>{locationTitle}</Text><Pressable onPress={bookmark} accessibilityRole="button" accessibilityLabel={marked?'しおりを外す':'しおりを付ける'} accessibilityState={{selected:marked}} style={styles.starButton}><Text style={[styles.star,marked&&styles.marked]}>{marked?'★':'☆'}</Text></Pressable><Pressable onPress={()=>setMenu(true)} accessibilityRole="button" style={styles.toolButton}><Text style={styles.toolText}>目次</Text></Pressable></View>
       <Reader key={entry.key} entry={entry} saved={saved} updatedHTML={updatedPages.current[entry.path]} onMessage={message} onExternal={external} onNavigate={open} onRestart={()=>{if(current.current)open(current.current,false);}} webRef={webRef}/>
       {sharing&&<View style={styles.shareStatus} accessibilityLiveRegion="polite"><Text style={styles.shareText}>共有メニューで「ファイルに保存」を選べます</Text></View>}
-    </>:<ScrollView key={tab} style={styles.screen} contentContainerStyle={styles.home}>
-      <View style={styles.brandRow}><Image style={styles.logo} source={require('./assets/icon-fem-guide-for-nas.png')} accessibilityLabel="FEM Guide for nas" resizeMode="contain" /><Text style={styles.screenTitle}>{ROOT_TABS.find(t=>t.id===tab)?.title}</Text><View style={styles.brandMark}><Text style={styles.brand}>FEM Guide for nas</Text><Text style={styles.brandSub}>非公式学習教材</Text></View></View>
+    </>:<ScrollView key={tab} style={styles.screen} contentContainerStyle={styles.home} keyboardShouldPersistTaps="handled" testID="tab-screen">
+      <TabHeader tab={tab}/>
       {tab==='home'&&<>
         {saved.last&&<View style={[styles.resumeCard,styles.homeFirst]}><Text style={styles.smallHeading}>最近開いた内容</Text><Text style={styles.lastTitle}>{titleFor(saved.last)}</Text><Pressable style={styles.primary} onPress={()=>open(saved.last!,false)} accessibilityRole="button"><Text style={styles.primaryText}>続きから読む →</Text></Pressable>{complete<6&&<Text style={styles.description}>初めての解析の読了 {complete} / 6</Text>}</View>}
         <Text accessibilityRole="header" style={styles.sectionTitle}>最初に学ぶ</Text>
@@ -222,6 +235,18 @@ function LearningApp(){
           {groupedLessons(NAVIGATION.materials,NAVIGATION.common.length)}
         </>:g.items.map(lesson)}</View>}</View>)}</>}
       {tab==='analysis'&&<><Text style={styles.screenLead}>モデル・解析条件・Input・実行・出力・検証</Text>{groupedLessons(NAVIGATION.analyses)}</>}
+      {tab==='input'&&<>
+        <Text style={styles.screenLead}>入力区分を選ぶか、語句・カード名から説明を探せます。</Text>
+        <View style={styles.searchRow}>
+          <Text style={styles.searchIcon} accessibilityElementsHidden importantForAccessibility="no">⌕</Text>
+          <TextInput style={[styles.searchText,styles.inputQuery]} value={inputQuery} onChangeText={setInputQuery} accessibilityLabel="語句・カード名で探す" placeholder="例：celas、変位、減衰" placeholderTextColor="#7187a4" autoCapitalize="none" autoCorrect={false} returnKeyType="search"/>
+          {!!inputQuery&&<Pressable style={styles.toolButton} onPress={()=>setInputQuery('')} accessibilityRole="button" accessibilityLabel="検索語を消す"><Text style={styles.toolText}>解除</Text></Pressable>}
+        </View>
+        {inputQuery.trim()?<>
+          <Text style={styles.description} accessibilityLiveRegion="polite">{inputMatches.length?`${inputMatches.length}件`:'該当するカードがありません。短い語句やカード名で検索してください。'}</Text>
+          {inputMatches.map((card,index)=>lesson({title:card.id+' — '+card.title,description:(inputIndex.families.find(f=>f[0]===card.family)?.[1]||card.family)+' / '+card.category,path:'bulk.html',hash:'#'+card.key},index))}
+        </>:INPUT_HOME.map(lesson)}
+      </>}
       {tab==='settings'&&<>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>本文の文字サイズ</Text><Text style={styles.description}>説明文のサイズを変更します。入力表は8文字の配置を保ちます。</Text><View style={styles.sizeOptions}>{([{value:1,label:'標準'},{value:1.15,label:'大'},{value:1.3,label:'特大'}]).map(x=><Pressable key={x.value} style={[styles.sizeOption,saved.textScale===x.value&&styles.selectedSize]} onPress={()=>updateSaved({...savedRef.current,textScale:x.value})} accessibilityRole="radio" accessibilityLabel={'文字サイズ '+x.label} accessibilityState={{checked:saved.textScale===x.value}} aria-checked={saved.textScale===x.value}><Text style={[styles.sizeOptionText,saved.textScale===x.value&&styles.selectedSizeText]}>{x.label}</Text></Pressable>)}</View></View>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>保存データ</Text><Text style={styles.body}>学習記録としおりは端末内に保存します。基礎コースの読了は {complete} / 6、しおりは {saved.bookmarks.length} 件です。</Text><Text style={styles.description}>アプリの削除で端末内の記録も削除されます。</Text></View>
@@ -237,6 +262,8 @@ export default function App(){return <SafeAreaProvider><LearningApp/></SafeAreaP
 
 const styles=StyleSheet.create({
  materialGroup:{marginBottom:14,borderWidth:1,borderColor:'#d5e0ee',borderRadius:12,backgroundColor:'#fff',overflow:'hidden'},materialGroupHeader:{padding:17,flexDirection:'row',alignItems:'center',gap:10,minHeight:72,backgroundColor:'#edf3fb'},materialGroupBody:{padding:10,paddingBottom:0},
+ compactBrandRow:{gap:8},compactBrand:{fontSize:10},compactBrandSub:{fontSize:9},
+ inputQuery:{minHeight:48,minWidth:0,paddingVertical:10},
  screen:{flex:1},screenTitle:{fontSize:24,fontWeight:'700',color:'#1d3555',flexShrink:1},brandMark:{marginLeft:'auto',alignItems:'flex-end'},homeFirst:{marginTop:16},searchRow:{flexDirection:'row',alignItems:'center',gap:10,minHeight:48,paddingHorizontal:14,borderRadius:10,backgroundColor:'#fff',borderWidth:1,borderColor:'#cddbf7',marginBottom:10},searchIcon:{fontSize:20,color:'#617fae'},searchText:{flex:1,fontSize:15,color:'#5d7598'},screenLead:{fontSize:13,lineHeight:23,color:'#637b9a',marginTop:8,marginBottom:22},
  introCard:{padding:19,borderWidth:1,borderColor:'#d3dff2',backgroundColor:'#fff',borderRadius:14,marginBottom:16},cardEyebrow:{fontSize:10,letterSpacing:1.2,fontWeight:'700',color:'#617fae',marginBottom:7},sectionTitle:{fontSize:20,lineHeight:28,fontWeight:'700',color:'#294b77'},introRow:{flexDirection:'row',alignItems:'center',gap:10,paddingVertical:15,borderTopWidth:1,borderColor:'#e8edf5',marginTop:8},introTitle:{fontSize:15,lineHeight:23,fontWeight:'600',color:'#294b77'},errorCard:{padding:20,borderRadius:14,backgroundColor:'#edf2ff',borderWidth:1,borderColor:'#cddbf7',marginBottom:16},linkText:{fontSize:13,fontWeight:'600',color:'#3259d8',marginTop:10},resumeCard:{padding:18,borderRadius:12,backgroundColor:'#fff',borderWidth:1,borderColor:'#dbe4f0',gap:12,marginBottom:18},smallHeading:{fontSize:13,fontWeight:'600',color:'#526d94'},bookmarkHeading:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingVertical:10},count:{fontSize:13,color:'#7890b1'},settingsCard:{padding:20,borderRadius:12,backgroundColor:'#fff',borderWidth:1,borderColor:'#dbe4f0',marginBottom:16,gap:8},sizeOptions:{flexDirection:'row',gap:8,marginTop:12},sizeOption:{flex:1,minHeight:46,borderRadius:8,borderWidth:1,borderColor:'#ccd8ed',justifyContent:'center',alignItems:'center'},selectedSize:{backgroundColor:'#3259d8',borderColor:'#3259d8'},sizeOptionText:{fontSize:14,color:'#45648e',fontWeight:'600'},selectedSizeText:{color:'#fff'},
  bottomNav:{flexDirection:'row',backgroundColor:'#fff',borderTopWidth:1,borderColor:'#d7e1ef',paddingTop:4,paddingBottom:4,paddingHorizontal:4},bottomTab:{flex:1,minHeight:58,justifyContent:'center',alignItems:'center',gap:3,borderRadius:9,minWidth:0},activeBottomTab:{backgroundColor:'#eef3ff'},navIcon:{fontSize:23,lineHeight:28,color:'#7a8ca7',fontWeight:'500'},navLabel:{fontSize:10,lineHeight:16,color:'#7185a2',fontWeight:'600'},activeNavText:{color:'#3259d8'},

@@ -23,7 +23,7 @@ with sync_playwright() as p:
  for width in [320,390,768]:
   page.set_viewport_size({'width':width,'height':844})
   for label in labels:
-   root(label) if label!='Inputデータ' else nav(label)
+   root(label)
    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(width,label)
    bottom()
  page.set_viewport_size({'width':390,'height':844})
@@ -128,31 +128,43 @@ with sync_playwright() as p:
  page.screenshot(path='.qa/analysis-linked-card.png')
  page.get_by_role('button',name='しおりを付ける').click()
  page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="analysis.html"&&p.hash.startsWith("#modes/tip-mass"))')
- # Per-tab reading locations and 3-level input selector survive switching.
- nav('Inputデータ');frame=page.frame_locator('iframe')
- assert frame.locator('#input-home').is_visible()
- assert frame.locator('.input-home-cards a').count()==5
- frame.locator('#input-search').fill('celas')
- assert frame.locator('#input-search-results a').count()==4
- frame.locator('a[href="bulk.html#CELAS2"]').click();frame=page.frame_locator('iframe')
- # Compact selector, real native reader wrapper; card heading is visible immediately.
+ # The Input root shares the native tab header/cards; detail retains the reader.
+ root('Inputデータ')
+ assert page.locator('iframe').count()==0
+ assert page.get_by_test_id('tab-title').inner_text()=='Inputデータ'
+ for title in ['Executive Control','Case Control','パラメータ','Bulk Data','似たカードの使い分け']:
+  assert page.get_by_role('button',name=title,exact=True).is_visible()
+ page.get_by_role('textbox',name='語句・カード名で探す').fill('celas')
+ assert page.get_by_role('button',name='CELAS',exact=False).count()==4
+ page.get_by_role('button',name='CELAS2',exact=False).click();frame=page.frame_locator('iframe')
  for width in [320,390]:
   page.set_viewport_size({'width':width,'height':844})
   assert frame.locator('.library-selectors select').count()==2
   assert frame.locator('.library-selectors').evaluate('e=>e.getBoundingClientRect().height')<=150
   assert frame.locator('.card-title h2').evaluate('e=>e.getBoundingClientRect().y')<290
-  assert not frame.locator('.library-search').evaluate('e=>e.dataset.expanded==="true"')
  page.set_viewport_size({'width':390,'height':844})
- frame.locator('.library-crumb a').click();frame=page.frame_locator('iframe');frame.locator('#input-search-clear').click();frame.locator('a[href="bulk.html#family/executive"]').click();frame=page.frame_locator('iframe');frame.locator('#category').select_option('SOL · 非線形');frame.locator('#card-picker').select_option('EXEC_SOL_400')
+ page.get_by_role('button',name='‹ 戻る',exact=True).click()
+ assert page.locator('iframe').count()==0
+ assert page.get_by_role('textbox',name='語句・カード名で探す').input_value()=='celas'
+ page.get_by_role('button',name='検索語を消す').click()
+ page.get_by_role('button',name='Executive Control',exact=True).click();frame=page.frame_locator('iframe')
+ frame.locator('#category').select_option('SOL · 非線形');frame.locator('#card-picker').select_option('EXEC_SOL_400')
  assert frame.locator('.reference-section').filter(has_text='関連入力・参照関係').count()==1
- page.screenshot(path='.qa/qrg-app-sol400.png')
  nav('教材');nav('Inputデータ');frame=page.frame_locator('iframe')
  assert frame.locator('#card-picker').input_value()=='EXEC_SOL_400'
- frame.locator('.library-crumb a').click();frame=page.frame_locator('iframe');frame.locator('#input-search-clear').click();frame.locator('a[href="bulk.html#family/bulk"]').click();frame=page.frame_locator('iframe');frame.locator('#category').select_option('棒・梁');frame.locator('#card-picker').select_option('CBAR')
+ frame.locator('.library-crumb a').click()
+ assert page.locator('iframe').count()==0
+ page.get_by_role('button',name='Bulk Data',exact=True).click();frame=page.frame_locator('iframe')
+ frame.locator('#category').select_option('棒・梁');frame.locator('#card-picker').select_option('CBAR')
  nav('解析');assert page.frame_locator('iframe').locator('h1').inner_text()=='実固有値解析'
  nav('Inputデータ');frame=page.frame_locator('iframe')
  assert frame.locator('#card-picker').input_value()=='CBAR'
  assert frame.locator('#category').input_value()=='棒・梁'
+ root('Inputデータ')
+ page.get_by_role('button',name='似たカードの使い分け',exact=True).click()
+ assert page.get_by_role('tab',name='Inputデータ',exact=True).get_attribute('aria-selected')=='true'
+ page.get_by_role('button',name='‹ 戻る',exact=True).click()
+ assert page.get_by_test_id('tab-title').inner_text()=='Inputデータ'
  # Settings are real persisted preferences; reader reload applies the new size.
  nav('設定');page.get_by_role('radio',name='文字サイズ 特大',exact=True).click()
  page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).textScale===1.3')
@@ -177,11 +189,11 @@ with sync_playwright() as p:
  page.get_by_role('button',name='並列計算・バッチ実行',exact=True).click()
  page.frame_locator('iframe').locator('#save-batch').wait_for()
  assert page.get_by_role('tab',name='ホーム',exact=True).get_attribute('aria-selected')=='true'
- # A fresh Input root can go back to Home; it never shows an empty root page.
- page.reload(wait_until='networkidle');nav('Inputデータ')
- page.frame_locator('iframe').locator('#input-home').wait_for()
- page.get_by_role('button',name='‹ 戻る',exact=True).click()
- assert page.get_by_role('tab',name='ホーム',exact=True).get_attribute('aria-selected')=='true'
+ # Every tab root is a native screen, including a fresh Input root.
+ page.reload(wait_until='networkidle');root('Inputデータ')
+ assert page.locator('iframe').count()==0
+ assert page.get_by_test_id('tab-title').inner_text()=='Inputデータ'
+ nav('ホーム')
  assert page.get_by_role('button',name='エラーメッセージ',exact=True).is_visible()
  assert not errors,errors
  browser.close()

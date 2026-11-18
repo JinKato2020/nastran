@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
@@ -31,9 +32,14 @@ const comparisonTopics=comparisons.topics.map(({key,title})=>({key,title}));
 for(const [key,target] of Object.entries(comparisons.aliases||{}))comparisonTopics.push({key,title:comparisonTopics.find(topic=>topic.key===target).title});
 const pages={};const hashes={};
 const read=name=>{const p=path.resolve(source,name);if(!p.startsWith(source+path.sep))throw Error('Invalid asset');const bytes=fs.readFileSync(p);hashes[name]=crypto.createHash('sha256').update(bytes).digest('hex');return bytes.toString('utf8');};
+// Build the native search index from the same final, merged card definitions.
+const context={window:{}};vm.createContext(context);
+for(const name of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards','element-input-cards'])vm.runInContext(read(name+'.js'),context);
+const inputIndex={families:context.window.InputCatalog.families,entries:context.window.InputCatalog.entries.map(({key,id,title,summary,family,category,aliases=[]})=>({key,id,title,summary,family,category,aliases}))};
 const pdf='https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide.pdf';
 for(const item of catalog){
  let html=read(item.id);
+ if(item.id==='bulk.html')html=html.replace('</head>','<script type="application/json" id="nastran-input-index">'+JSON.stringify(inputIndex).replace(/</g,'\\u003c')+'</script></head>');
  html=html.replace(/<link\b[^>]*>/g,tag=>{if(!/rel="stylesheet"/.test(tag))return tag;const name=/href="([^"]+)"/.exec(tag)?.[1];if(!name)throw Error('Missing stylesheet path');return `<style>${read(name)}</style>`;});
  html=html.replace(/<script\s+src="([^"]+)"[^>]*><\/script>/g,(_,name)=>`<script>${read(name).replace(/<\/script/gi,'<\\/script')}</script>`);
  html=html.replace('<a href="reference/linear-static-text.txt">原典全709ページの抽出テキスト</a>',`<a href="${pdf}">原典PDF（オンライン）</a>`);
@@ -54,7 +60,8 @@ createRequire(import.meta.url)('./check-content-rights.cjs').checkRights(pages);
 const sha256=text=>crypto.createHash('sha256').update(text,'utf8').digest('hex');
 const pageHashes=Object.fromEntries(Object.entries(pages).map(([name,html])=>[name,sha256(html)]));
 fs.mkdirSync(path.join(root,'src/generated'),{recursive:true});
-fs.writeFileSync(path.join(root,'src/generated/lessons.json'),JSON.stringify({catalog,course,comparisonTopics,pages,downloads,bridge}));
+fs.writeFileSync(path.join(root,'src/generated/input-search.js'),read('input-search.js'));
+fs.writeFileSync(path.join(root,'src/generated/lessons.json'),JSON.stringify({catalog,course,comparisonTopics,inputIndex,pages,downloads,bridge}));
 fs.writeFileSync(path.join(root,'src/generated/provenance.json'),JSON.stringify({source:'sites/nastran-learning/dist',sha256:hashes},null,2)+'\n');
 fs.writeFileSync(path.join(root,'src/generated/page-hashes.json'),JSON.stringify(pageHashes)+'\n');
 if(process.argv.includes('--ota')){
