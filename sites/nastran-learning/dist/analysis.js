@@ -161,6 +161,7 @@
   if(quiz)window.AnalysisQuiz.bind(detail);
   window.AnalysisStructureLabs?.bind(detail);
   window.AnalysisEigenLabs?.bind(detail);
+   window.AnalysisResponseLabs?.bind(detail);
   byId('analysis-original-input')?.addEventListener('toggle',()=>history.replaceState(null,'',place(model.id,token())));
   byId('save-original-dat')?.addEventListener('click',()=>saveDeck(deck));
   function changeModel(id,controlId){

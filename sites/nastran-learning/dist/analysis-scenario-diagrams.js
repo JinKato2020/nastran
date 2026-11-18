@@ -3,7 +3,7 @@
  'use strict';
  const fixed='#2c60ad', force='#ad3928', result='#1b705a', stroke='#48627e';
  let neutral=false,legend=[];
- const symbols={'横方向のダンパ':'c','固定側':'u=0','1次のモード形':'φ₁','引張 1727 N':'N=+1727 N','圧縮 1727 N':'N=−1727 N','圧縮':'P₀','座屈形を読む':'φ','ピン':'M=0','ピン（軸方向に可動）':'M=0, uₓ','回転を拘束（軸方向に可動）':'θ=0, uₓ','自由端':'G13','内圧':'pᵢ','Y方向を固定':'uᵧ=0','X方向を固定':'uₓ=0','内面の点で':'r=a','変位・応力を読む':'uᵣ, σᵣ, σθ','固定点':'SPC','固定辺':'SPC','固定面':'SPC','固定':'SPC','横荷重':'P','変位の観測点':'O','梁の中心線':'CBEAM','先端辺へ配分':'ΣP','先端面へ配分':'ΣP','板の中立面':'CQUAD4','厚さ方向にも分割':'CHEXA','中央の観測点':'O','追加質量':'m','先端の観測点':'O'};
+ const symbols={'正弦加振 1 N':'P̂=1 N','荷重の時間変化':'P(t)','時間':'t','横方向のダンパ':'c','固定側':'u=0','1次のモード形':'φ₁','引張 1727 N':'N=+1727 N','圧縮 1727 N':'N=−1727 N','圧縮':'P₀','座屈形を読む':'φ','ピン':'M=0','ピン（軸方向に可動）':'M=0, uₓ','回転を拘束（軸方向に可動）':'θ=0, uₓ','自由端':'G13','内圧':'pᵢ','Y方向を固定':'uᵧ=0','X方向を固定':'uₓ=0','内面の点で':'r=a','変位・応力を読む':'uᵣ, σᵣ, σθ','固定点':'SPC','固定辺':'SPC','固定面':'SPC','固定':'SPC','横荷重':'P','変位の観測点':'O','梁の中心線':'CBEAM','先端辺へ配分':'ΣP','先端面へ配分':'ΣP','板の中立面':'CQUAD4','厚さ方向にも分割':'CHEXA','中央の観測点':'O','追加質量':'m','先端の観測点':'O'};
  const text=(x,y,value,color=stroke,align='start')=>{if(neutral&&symbols[value]){const original=value;value=symbols[value];if(!legend.some(([s,t])=>s===value&&t===original))legend.push([value,original]);}return `<text x="${x}" y="${y}" fill="${color}" text-anchor="${align}">${value}</text>`;};
  const path=(d,color=stroke,width=2,fill='none')=>`<path d="${d}" fill="${fill}" stroke="${color}" stroke-width="${width}" stroke-linejoin="round" stroke-linecap="round"/>`;
  const arrow=(x,y)=>path(`M${x} ${y-43}v36m-6-6 6 6 6-6`,force,2.5);
@@ -102,7 +102,7 @@
   'heat-insulated':()=>heatStrip(false),'heat-convection':()=>heatStrip(true),harmonic,'pulse-short':()=>pulse(false),'pulse-long':()=>pulse(true),
   'buck-cantilever':()=>column('buck-cantilever'),'buck-pinned':()=>column('buck-pinned'),'buck-fixed':()=>column('buck-fixed')};
  window.renderAnalysisScenarioDiagram=kind=>{
-  neutral=['undamped','damped','pre-none','pre-tension','pre-compression','beam','shell','solid','baseline','tip-mass','both-fixed','buck-cantilever','buck-pinned','buck-fixed','cyl-coarse','cyl-standard','cyl-fine'].includes(kind);legend=[];
+  neutral=['harmonic','pulse-short','pulse-long','undamped','damped','pre-none','pre-tension','pre-compression','beam','shell','solid','baseline','tip-mass','both-fixed','buck-cantilever','buck-pinned','buck-fixed','cyl-coarse','cyl-standard','cyl-fine'].includes(kind);legend=[];
   const drawing=extra[kind]?extra[kind]():({beam,shell,solid}[kind]?.()||vibration(kind));
   const key=neutral?`<div class="analysis-figure-key">${legend.map(([s,t])=>`<span><b>${s}</b>：${t}</span>`).join('')}</div>`:'';
   neutral=false;return drawing+key;

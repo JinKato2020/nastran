@@ -96,6 +96,7 @@ require('./check-input-catalog.cjs');
 require('./check-input-native.cjs');
 require('./check-analysis-structure.cjs');
 require('./check-analysis-eigen.cjs');
+require('./check-analysis-response.cjs');
 require('./check-element-labs.cjs');
 require('./check-connection-labs.cjs');
 require('./check-damping-chapter.cjs');

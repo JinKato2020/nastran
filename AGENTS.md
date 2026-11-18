@@ -168,3 +168,9 @@
 - check-analysis-eigen.cjsをtest:coreへ接続。Rayleighのエネルギー積分、減衰ODE、独立したNumPy状態行列の根、モデル別36問を照合する。check-analysis-eigen.pyで全9条件・11図・36問、2選択、初回得点、カード往復、320/390/768pxを検査する。教材フォルダへの保存用コピーも同期する。
 
 - 2026-11-19 ビルド障害対応：1.3.2（1001）は事前検査成功後、GitHub macos-26 Arm64ランナーの容量不足で未開始のまま失敗。start-ios-build.cjs --intelで既存intel_runner入力を選択できるようにし、1.3.2（1002）を再起動する。起動後は通常どおり監視しない。アプリの不具合や署名エラーと混同しない。
+
+
+- ユーザー指定（2026-11-19、次の3解析）：直接周波数応答SOL 108、モーダル周波数応答SOL 111、過渡応答SOL 109/112を、初学者が間違えやすい条件の比較として拡充。周波数刻み・減衰・荷重位相の4条件、保持モード・逆位相・反共振の4条件、荷重持続・モード法・時間刻み/保存間隔・立上りの5条件。13比較に52問、13操作図。既存LessonArticle、BeamLabs.ui/graphics、AnalysisQuiz、相関図の共通部品を直接使う。
+- 正本はanalysis-response-core.js、analysis-response-labs.js、analysis-frequency-lessons.js、analysis-transient-lessons.js、analysis-response-quiz.js。analysis.htmlでanalysis.jsより先に読み込み、描画後にAnalysisResponseLabs.bindを呼ぶ。既存DATを変更せず、新規DATも追加しない。新しい比較は独立した理論計算であり、MSC実行結果ではない。弱軸だけのモード次数とEIGRLの全方向NDを区別する。対称2質点の直接解・モード解、梁の弱軸連続体近似、過渡の1自由度近似と独立Newmark積分の適用範囲を明記する。
+- MSC 2025.1動解析ガイドの周波数・過渡、QRGのDLOAD・DPHASE・RLOAD1・TABDMP1・TLOAD1・TSTEPを照合。既存の正弦荷重・短いパルス・長いパルスのSVGは文字以外の一致を確認。図中文字は記号・数値とし説明を図外に置く。
+- check-analysis-response.cjsをtest:coreへ追加。独立した梁60要素計算、状態方程式の時間積分、力の釣合い、2モード完全性、反共振、時間刻み収束と全カード参照を検査。check-analysis-response.pyで13モデル・52問・全操作・カード往復・320/390/768pxを検査。教材フォルダへ同期し、R2教材OTAのみ配信する。再起動済み1.3.2（1002）の進捗は確認しない。
