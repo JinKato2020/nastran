@@ -22,11 +22,9 @@
 .el-soft{fill:#e0e8ef;stroke:#7892aa;stroke-width:1.1}
 .el-warn{color:#8b3c19;font-weight:650}
 .el-equation{font-variant-numeric:tabular-nums;font-size:15px;padding:8px 10px;background:#f1f5f9;border-left:3px solid #477397;overflow-x:auto;white-space:normal}
-.el-intro{padding:16px;background:#f2f6fb;border:1px solid #c9d8e8;border-radius:10px;margin:16px 0}
-.el-intro h2{font-size:18px;margin:0 0 8px}.el-intro p{margin:8px 0}
 .el-checks details{border-top:1px solid #cbd7e3;padding:12px 0}.el-checks summary{cursor:pointer;font-weight:650;line-height:1.65}
 .element-lab .theory-lab-table{width:100%;font-variant-numeric:tabular-nums}
-@media(max-width:380px){.element-lab{padding:12px 6px}.el-intro{padding:12px}.element-lab .theory-lab-controls{display:grid;grid-template-columns:1fr}}
+@media(max-width:380px){.element-lab{padding:12px 6px}.element-lab .theory-lab-controls{display:grid;grid-template-columns:1fr}}
 
 .el-node-hidden{fill:#f2f6fb;stroke:#315b87;stroke-width:1.6;stroke-dasharray:2 2}
 .el-motion{stroke-dasharray:5 3}

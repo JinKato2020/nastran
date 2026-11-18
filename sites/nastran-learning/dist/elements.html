@@ -8,7 +8,7 @@
 <p>節点の成分どうしをつなぐ CELAS と、要素座標を持つ CBUSH を比較します。剛性の値が同じでも、接続位置と成分が違うと結果は変わります。</p></div>
 
 
-<div class="el-intro"><h2>この記事で分かること</h2><p>相対変位から力とエネルギーを求める。直列・並列・方向・節点のずれを比較する。CELASとCBUSHを状況で選ぶ。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html#points">GRID・SPOINT</a>、<a href="coordinates.html">位置と変位の座標</a></p><p><strong>ばねの力は「距離」ではなく「選んだ自由度の差」から決まる。</strong></p><p><strong>3行の要点</strong></p><ol><li>Kだけを与えるモデルでは、応力分布や実物の形は自動では求まらない。</li><li>自由度、座標系、力の作用線をセットで確認する。</li><li>変位・力のつり合い・エネルギーを手計算で確かめる。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
+<div class="element-key"><strong>この記事で分かること</strong><p>相対変位から力とエネルギーを求める。直列・並列・方向・節点のずれを比較する。CELASとCBUSHを状況で選ぶ。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html#points">GRID・SPOINT</a>、<a href="coordinates.html">位置と変位の座標</a></p><p><strong>ばねの力は「距離」ではなく「選んだ自由度の差」から決まる。</strong></p><p><strong>3行の要点</strong></p><ol><li>Kだけを与えるモデルでは、応力分布や実物の形は自動では求まらない。</li><li>自由度、座標系、力の作用線をセットで確認する。</li><li>変位・力のつり合い・エネルギーを手計算で確かめる。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
 <ul class="element-toc" aria-label="この解説の目次">
 <li><button type="button" data-jump="scalar-overview">要素ファミリーの全体像</button></li>
 <li><button type="button" data-jump="scalar-concept">形を持たない要素</button></li>
@@ -596,7 +596,7 @@
 <p>薄肉部材を面で表します。中立面、法線、板厚、材料方向が、力と表裏の応力にどう表れるかを追います。</p></div>
 
 
-<div class="el-intro"><h2>この記事で分かること</h2><p>板厚の効果、法線の反転、材料軸、要素のゆがみ、サンドイッチ構造を図で比較する。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html#elements">要素の向き</a>、<a href="coordinates.html#signs">応力方向</a></p><p><strong>基準面と板厚で、膜力・曲げ・表裏の応力をつなぐ。</strong></p><p><strong>3行の要点</strong></p><ol><li>板厚は膜剛性に1乗、曲げ剛性に3乗で効く。</li><li>Z1・Z2の名前だけでなく、実物のどちらの面かを確認する。</li><li>材料の向きを変える操作と、結果の表示軸を変える操作を区別する。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
+<div class="element-key"><strong>この記事で分かること</strong><p>板厚の効果、法線の反転、材料軸、要素のゆがみ、サンドイッチ構造を図で比較する。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html#elements">要素の向き</a>、<a href="coordinates.html#signs">応力方向</a></p><p><strong>基準面と板厚で、膜力・曲げ・表裏の応力をつなぐ。</strong></p><p><strong>3行の要点</strong></p><ol><li>板厚は膜剛性に1乗、曲げ剛性に3乗で効く。</li><li>Z1・Z2の名前だけでなく、実物のどちらの面かを確認する。</li><li>材料の向きを変える操作と、結果の表示軸を変える操作を区別する。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
 <ul class="element-toc" aria-label="この解説の目次">
 <li><button type="button" data-jump="shell-overview">全体像</button></li>
 <li><button type="button" data-jump="shell-when">シェルが使える条件</button></li>
@@ -955,7 +955,7 @@ F2 も辺 2-3・1-4 について同様</div>
 <p>立体内部の変位・応力を求める要素です。節点順、面にかかる荷重、他の要素との接続、比較する応力の位置を確認します。</p></div>
 
 
-<div class="el-intro"><h2>この記事で分かること</h2><p>横拘束、1次・2次補間、要素のつぶれ、モーメントの伝達、圧力とせん断を比較する。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html">座標</a>、<a href="coordinates.html#signs">応力方向</a>、<a href="elements.html#shell">シェルが使える範囲</a></p><p><strong>立体の節点変位から、3次元のひずみと応力を読む。</strong></p><p><strong>3行の要点</strong></p><ol><li>ソリッドの剛性に直接つながるのは節点の並進で、回転は周囲の並進で表す。</li><li>中間節点と細分化はひずみの変化を表す手段。要素数だけで精度を決めない。</li><li>最大応力を比べる前に座標・位置・平均化・拘束条件をそろえる。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
+<div class="element-key"><strong>この記事で分かること</strong><p>横拘束、1次・2次補間、要素のつぶれ、モーメントの伝達、圧力とせん断を比較する。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html">座標</a>、<a href="coordinates.html#signs">応力方向</a>、<a href="elements.html#shell">シェルが使える範囲</a></p><p><strong>立体の節点変位から、3次元のひずみと応力を読む。</strong></p><p><strong>3行の要点</strong></p><ol><li>ソリッドの剛性に直接つながるのは節点の並進で、回転は周囲の並進で表す。</li><li>中間節点と細分化はひずみの変化を表す手段。要素数だけで精度を決めない。</li><li>最大応力を比べる前に座標・位置・平均化・拘束条件をそろえる。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
 <ul class="element-toc" aria-label="この解説の目次">
 <li><button type="button" data-jump="solid-overview">全体像</button></li>
 <li><button type="button" data-jump="solid-nodes">節点の並びと中間節点</button></li>
