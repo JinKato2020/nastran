@@ -1,6 +1,7 @@
 """Actual App.tsx on React Native Web. Native OS services are mocked."""
 import base64,json
-from playwright.sync_api import sync_playwright
+from pathlib import Path
+from playwright.sync_api import sync_playwright,expect
 errors=[]
 with sync_playwright() as p:
  browser=p.chromium.launch(headless=True,executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')
@@ -10,10 +11,20 @@ with sync_playwright() as p:
  labels=['ホーム','教材','解析','Inputデータ','設定']
  page.get_by_role('tab',name='ホーム',exact=True).wait_for()
  assert page.get_by_role('tab').count()==5
- def nav(label):page.get_by_role('tab',name=label,exact=True).click()
+ def nav(label):
+  page.get_by_role('tab',name=label,exact=True).click()
+  page.evaluate('()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
  def root(label):
   nav(label)
   if page.locator('iframe').count():nav(label)
+ def chapter(title):
+  toggle=page.get_by_role('button',name=title,exact=True)
+  if toggle.get_attribute('aria-expanded')!='true':toggle.click()
+  expect(toggle).to_have_attribute('aria-expanded','true')
+ analyses=json.loads((Path(__file__).resolve().parents[2]/'sites/nastran-learning/learning-path.json').read_text(encoding='utf-8'))['navigation']['analyses']
+ def analysis(title):
+  chapter(next(a['group'] for a in analyses if a['title']==title))
+  page.get_by_role('button',name=title,exact=True).click()
  def bottom():
   assert page.get_by_role('tab').count()==5
   for label in labels:
@@ -104,13 +115,23 @@ with sync_playwright() as p:
  bottom()
  # Each requested analysis opens its distinct content, while retaining the bottom bar.
  root('解析')
+ assert page.get_by_test_id('lesson-group-body').count()==0
+ assert page.get_by_test_id('lesson-group-toggle').count()==5
+ for group in dict.fromkeys(a['group'] for a in analyses):
+  chapter(group)
+  assert page.get_by_test_id('lesson-group-body').count()==1
+  assert page.get_by_test_id('lesson-group-body').get_by_role('button').count()==sum(a['group']==group for a in analyses)
+  for item in (a for a in analyses if a['group']==group):
+   assert page.get_by_role('button',name=item['title'],exact=True).count()==1
+   assert item['kind'] in page.get_by_role('button',name=item['title'],exact=True).inner_text()
+ page.get_by_role('button',name=group,exact=True).click()
  titles=['静解析','実固有値解析','複素固有値解析','熱伝導解析','モーダル周波数応答解析','直接周波数応答解析','過渡応答解析','亀裂先端解析','座屈解析']
  page.screenshot(path='.qa/five-tabs-analysis.png')
  for title in titles:
-  page.get_by_role('button',name=title,exact=True).click()
+  analysis(title)
   assert page.frame_locator('iframe').locator('h1').inner_text()==title
-  bottom();nav('解析')
- page.get_by_role('button',name='実固有値解析',exact=True).click()
+  bottom();nav('解析');expect(page.locator('iframe')).to_have_count(0)
+ analysis('実固有値解析')
  frame=page.frame_locator('iframe')
  assert frame.locator('#analysis-example-raw,#save-analysis').count()==0
  frame.locator('#analysis-example-picker').select_option('tip-mass')
@@ -139,7 +160,7 @@ with sync_playwright() as p:
  page.get_by_role('button',name='CELAS2',exact=False).click();frame=page.frame_locator('iframe')
  for width in [320,390]:
   page.set_viewport_size({'width':width,'height':844})
-  assert frame.locator('.library-selectors select').count()==2
+  assert frame.locator('.library-selectors select').count()==1
   assert frame.locator('.library-selectors').evaluate('e=>e.getBoundingClientRect().height')<=150
   assert frame.locator('.card-title h2').evaluate('e=>e.getBoundingClientRect().y')<290
  page.set_viewport_size({'width':390,'height':844})
@@ -147,21 +168,23 @@ with sync_playwright() as p:
  assert page.locator('iframe').count()==0
  assert page.get_by_role('textbox',name='語句・カード名で探す').input_value()=='celas'
  page.get_by_role('button',name='検索語を消す').click()
- page.get_by_role('button',name='Executive Control',exact=True).click();frame=page.frame_locator('iframe')
- frame.locator('#category').select_option('SOL · 非線形');frame.locator('#card-picker').select_option('EXEC_SOL_400')
+ chapter('Executive Control');page.get_by_role('button',name='SOL · 非線形',exact=True).click();frame=page.frame_locator('iframe')
+ assert frame.locator('#input-category-title').inner_text()=='SOL · 非線形'
+ frame.locator('#card-picker').select_option('EXEC_SOL_400')
  assert frame.locator('.reference-section').filter(has_text='関連入力・参照関係').count()==1
  nav('教材');nav('Inputデータ');frame=page.frame_locator('iframe')
  assert frame.locator('#card-picker').input_value()=='EXEC_SOL_400'
  frame.locator('.library-crumb a').click()
  assert page.locator('iframe').count()==0
- page.get_by_role('button',name='Bulk Data',exact=True).click();frame=page.frame_locator('iframe')
- frame.locator('#category').select_option('棒・梁');frame.locator('#card-picker').select_option('CBAR')
+ assert page.get_by_role('button',name='Executive Control',exact=True).get_attribute('aria-expanded')=='true'
+ chapter('Bulk Data');page.get_by_role('button',name='棒・梁',exact=True).click();frame=page.frame_locator('iframe')
+ frame.locator('#card-picker').select_option('CBAR')
  nav('解析');assert page.frame_locator('iframe').locator('h1').inner_text()=='実固有値解析'
  nav('Inputデータ');frame=page.frame_locator('iframe')
  assert frame.locator('#card-picker').input_value()=='CBAR'
  assert frame.locator('#category').input_value()=='棒・梁'
  root('Inputデータ')
- page.get_by_role('button',name='似たカードの使い分け',exact=True).click()
+ chapter('似たカードの使い分け');page.get_by_role('button',name='棒・梁の選び方（CROD・CONROD・CBAR・CBEAM）',exact=True).click()
  assert page.get_by_role('tab',name='Inputデータ',exact=True).get_attribute('aria-selected')=='true'
  page.get_by_role('button',name='‹ 戻る',exact=True).click()
  assert page.get_by_test_id('tab-title').inner_text()=='Inputデータ'

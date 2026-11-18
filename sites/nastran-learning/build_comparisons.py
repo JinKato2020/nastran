@@ -22,7 +22,7 @@ for topic in data['topics']:
 (ROOT / 'dist/comparison-data.js').write_text(
     'window.CardComparisons=' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';\n',
     encoding='utf-8', newline='\n')
-index = [{'key': t['key'], 'title': t['title'], 'cards': t['cards']} for t in data['topics']]
+index = [{'key': t['key'], 'title': t['title'], 'summary': t['summary'], 'cards': t['cards']} for t in data['topics']]
 (ROOT / 'dist/comparison-index.js').write_text(
     'window.CardComparisonIndex=' + json.dumps(index, ensure_ascii=False, separators=(',', ':')) + ';\n',
     encoding='utf-8', newline='\n')

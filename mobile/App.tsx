@@ -12,13 +12,28 @@ import { NAVIGATION, DOWNLOADS, readerHTML, titleFor } from './src/content';
 import { updateLessons } from './src/content-ota';
 import type { UpdatedPages } from './src/content-ota-core';
 import { ROOT_TABS, type TabKey } from './src/navigation';
-import { INPUT_HOME, INPUT_INDEX, inputIndexFromHTML, isInputHome, searchInput } from './src/input-home';
+import { INPUT_INDEX, inputGroups, inputIndexFromHTML, isInputHome, searchInput } from './src/input-home';
 import { EMPTY_STATE, externalURL, filePayload, position, progress, courseProgress, restore, samePlace, type Position, type SavedState } from './src/protocol';
 
 const STORAGE_KEY='nastran-learning-state-v1';
 type Entry=Position&{key:string};
 let entryNumber=0;
 const newEntry=(p:Position):Entry=>({...p,key:String(++entryNumber)});
+type CourseItem={key?:string;title:string;description:string;path:string;hash:string;kind?:string;group?:string};
+type CourseGroup={key:string;title:string;description:string;items:CourseItem[]};
+const analysisDescriptions:Record<string,string>={
+ '構造・静解析':'静解析・内圧とメッシュ収束・線形座屈',
+ '振動・動解析':'固有値・周波数応答・過渡応答',
+ '熱解析':'熱伝導・温度変化による熱応力',
+ '非線形・破壊':'大変形・弾塑性・接触と締結・亀裂先端',
+ '検証・再実行':'モデル検証・リスタート・データベース管理',
+};
+const analysisGroups=NAVIGATION.analyses.reduce<CourseGroup[]>((groups,item)=>{
+ const title=item.group;
+ let group=groups.find(g=>g.key===title);
+ if(!group){group={key:title,title,description:analysisDescriptions[title]||'',items:[]};groups.push(group);}
+ group.items.push(item);return groups;
+},[]);
 
 function Reader({entry,saved,updatedHTML,onMessage,onExternal,onNavigate,onRestart,webRef}:{entry:Entry;saved:SavedState;updatedHTML?:string;onMessage:(event:WebViewMessageEvent)=>void;onExternal:(url:string)=>void;onNavigate:(p:Position)=>void;onRestart:()=>void;webRef:React.RefObject<WebView<object>|null>}){
   // Freeze the initial HTML: progress and scroll messages must not reload the reader.
@@ -47,6 +62,17 @@ function TabHeader({tab}:{tab:TabKey}){
  return <View style={[styles.brandRow,compact&&styles.compactBrandRow]} testID="tab-header"><Image style={styles.logo} source={require('./assets/icon-fem-guide-for-nas.png')} accessibilityLabel="FEM Guide for nas" resizeMode="contain"/><Text style={styles.screenTitle} accessibilityRole="header" testID="tab-title" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>{ROOT_TABS.find(t=>t.id===tab)?.title}</Text><View style={styles.brandMark}><Text style={[styles.brand,compact&&styles.compactBrand]}>FEM Guide for nas</Text><Text style={[styles.brandSub,compact&&styles.compactBrandSub]}>非公式学習教材</Text></View></View>;
 }
 
+// Materials, Analysis and Input share the same chapter markup and styles.
+function LessonGroup({title,description,expanded,onToggle,children}:{title:string;description:string;expanded:boolean;onToggle:()=>void;children:React.ReactNode}){
+ return <View style={styles.lessonGroup} testID="lesson-group">
+   <Pressable style={styles.lessonGroupHeader} accessibilityRole="button" accessibilityLabel={title} accessibilityState={{expanded}} aria-expanded={expanded} onPress={onToggle} testID="lesson-group-toggle">
+     <View style={styles.lessonCopy}><Text style={styles.sectionTitle}>{title}</Text><Text style={styles.description}>{description}</Text></View>
+     <Text style={styles.arrow}>{expanded?'−':'＋'}</Text>
+   </Pressable>
+   {expanded&&<View style={styles.lessonGroupBody} testID="lesson-group-body">{children}</View>}
+ </View>;
+}
+
 function LearningApp(){
   const [saved,setSaved]=useState<SavedState>(EMPTY_STATE);
   const savedRef=useRef(saved);
@@ -61,6 +87,9 @@ function LearningApp(){
   const [tab,setTab]=useState<TabKey>('home');
   const [inputQuery,setInputQuery]=useState('');
   const [inputIndex,setInputIndex]=useState(INPUT_INDEX);
+  const [inputGroup,setInputGroup]=useState('');
+  const [analysisGroup,setAnalysisGroup]=useState('');
+  const inputChapters=useMemo(()=>inputGroups(inputIndex),[inputIndex]);
   const inputMatches=useMemo(()=>searchInput(inputIndex.entries,inputQuery),[inputIndex,inputQuery]);
   const tabSessions=useRef<Partial<Record<TabKey,{position:Position|null;trail:Position[]}>>>({});
   const [showBookmarks,setShowBookmarks]=useState(false);
@@ -113,7 +142,7 @@ function LearningApp(){
     return 'materials';
   }
   function open(p:Position,remember=true){
-    if(isInputHome(p)){setTab('input');root();return;}
+    if(isInputHome(p)){setTab('input');if(p.hash.startsWith('#family/'))setInputGroup(p.hash.slice(8));root();return;}
     setTab(ownerTab(p));
     if(remember&&current.current)trail.current=[...trail.current.slice(-49),current.current];
     const e=newEntry(p);current.current=p;readerReported.current=false;entryRef.current=e;setEntry(e);setLocationTitle(titleFor(p));setMenu(false);
@@ -161,7 +190,7 @@ function LearningApp(){
       else if(m.type==='progress'){updateSaved({...savedRef.current,progress:progress(m.value)});}
       else if(m.type==='position'){
         const p=position(m);if(!p||p.path!==entryRef.current?.path)return;
-        if(isInputHome(p)){setTab('input');root();return;}
+        if(isInputHome(p)){open(p,false);return;}
         if(readerReported.current&&current.current&&!samePlace(current.current,p))trail.current=[...trail.current.slice(-49),current.current];
         readerReported.current=true;
         current.current=p;setLocationTitle(titleFor(p));updateSaved({...savedRef.current,last:p});
@@ -174,7 +203,6 @@ function LearningApp(){
     }catch(e){const text=e instanceof Error?e.message:'操作を完了できませんでした。';reply(session,m.id,false,text);}
   }
   function bookmark(){const p=current.current;if(!p)return;const old=savedRef.current.bookmarks;const exists=old.some(b=>samePlace(b,p));updateSaved({...savedRef.current,bookmarks:exists?old.filter(b=>!samePlace(b,p)):[p,...old].slice(0,100)});}
-  type CourseItem={key?:string;title:string;description:string;path:string;hash:string;kind?:string;group?:string};
   const [materialGroup,setMaterialGroup]=useState('elements');
   const materialGroups=[
     {key:'elements',title:'各要素理論',description:'ばね・梁・シェル・ソリッド・結合・剛体・GENELの仕組み・モデル化・結果の読み方',items:NAVIGATION.elements},
@@ -228,15 +256,15 @@ function LearningApp(){
         <Pressable style={styles.bookmarkHeading} onPress={()=>setShowBookmarks(v=>!v)} accessibilityRole="button" accessibilityLabel="しおり一覧" accessibilityState={{expanded:showBookmarks}}><Text style={styles.sectionTitle}>しおり <Text style={styles.count}>{saved.bookmarks.length}</Text></Text><Text style={styles.linkText}>{saved.bookmarks.length>3?(showBookmarks?'3件に戻す':'すべて見る'):''}</Text></Pressable>
         {(saved.bookmarks.length?(showBookmarks?saved.bookmarks:saved.bookmarks.slice(0,3)).map((p,i)=><View key={p.path+p.hash} style={styles.bookmarkRow}><Pressable style={styles.bookmarkOpen} onPress={()=>open(p,false)} accessibilityRole="button"><Text style={styles.introTitle}>{titleFor(p)}</Text><Text style={styles.description}>保存した場所を開く →</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="しおりを削除" style={styles.toolButton} onPress={()=>updateSaved({...savedRef.current,bookmarks:savedRef.current.bookmarks.filter((_,n)=>n!==i)})}><Text style={styles.toolText}>削除</Text></Pressable></View>):<Text style={styles.empty}>教材の☆から場所を保存できます。</Text>)}
       </>}
-      {tab==='materials'&&<><Text style={styles.screenLead}>分類を選び、経験と目的に合う内容から学べます。</Text>{materialGroups.map(g=><View key={g.key} style={styles.materialGroup}><Pressable style={styles.materialGroupHeader} accessibilityRole="button" accessibilityLabel={g.title} accessibilityState={{expanded:materialGroup===g.key}} onPress={()=>setMaterialGroup(materialGroup===g.key?'':g.key)}><View style={styles.lessonCopy}><Text style={styles.sectionTitle}>{g.title}</Text><Text style={styles.description}>{g.description}</Text></View><Text style={styles.arrow}>{materialGroup===g.key?'−':'＋'}</Text></Pressable>{materialGroup===g.key&&<View style={styles.materialGroupBody}>  {g.key==='theory'?<>
+      {tab==='materials'&&<><Text style={styles.screenLead}>分類を選び、経験と目的に合う内容から学べます。</Text>{materialGroups.map(g=><LessonGroup key={g.key} title={g.title} description={g.description} expanded={materialGroup===g.key} onToggle={()=>setMaterialGroup(materialGroup===g.key?'':g.key)}>{g.key==='theory'?<>
           <Text accessibilityRole="header" style={styles.menuSection}>共通の解析技術論</Text>
           {NAVIGATION.common.map(lesson)}
           <Text accessibilityRole="header" style={styles.menuSection}>解析ごとの理論</Text>
           {groupedLessons(NAVIGATION.materials,NAVIGATION.common.length)}
-        </>:g.items.map(lesson)}</View>}</View>)}</>}
-      {tab==='analysis'&&<><Text style={styles.screenLead}>モデル・解析条件・Input・実行・出力・検証</Text>{groupedLessons(NAVIGATION.analyses)}</>}
+        </>:g.items.map(lesson)}</LessonGroup>)}</>}
+      {tab==='analysis'&&<><Text style={styles.screenLead}>分類を開き、解析条件・入力・出力・検証を確認できます。</Text>{analysisGroups.map(g=><LessonGroup key={g.key} title={g.title} description={g.description} expanded={analysisGroup===g.key} onToggle={()=>setAnalysisGroup(analysisGroup===g.key?'':g.key)}>{g.items.map(lesson)}</LessonGroup>)}</>}
       {tab==='input'&&<>
-        <Text style={styles.screenLead}>入力区分を選ぶか、語句・カード名から説明を探せます。</Text>
+        <Text style={styles.screenLead}>章を開いてカテゴリーを選び、本文でカード・設定名を切り替えます。</Text>
         <View style={styles.searchRow}>
           <Text style={styles.searchIcon} accessibilityElementsHidden importantForAccessibility="no">⌕</Text>
           <TextInput style={[styles.searchText,styles.inputQuery]} value={inputQuery} onChangeText={setInputQuery} accessibilityLabel="語句・カード名で探す" placeholder="例：celas、変位、減衰" placeholderTextColor="#7187a4" autoCapitalize="none" autoCorrect={false} returnKeyType="search"/>
@@ -245,7 +273,7 @@ function LearningApp(){
         {inputQuery.trim()?<>
           <Text style={styles.description} accessibilityLiveRegion="polite">{inputMatches.length?`${inputMatches.length}件`:'該当するカードがありません。短い語句やカード名で検索してください。'}</Text>
           {inputMatches.map((card,index)=>lesson({title:card.id+' — '+card.title,description:(inputIndex.families.find(f=>f[0]===card.family)?.[1]||card.family)+' / '+card.category,path:'bulk.html',hash:'#'+card.key},index))}
-        </>:INPUT_HOME.map(lesson)}
+        </>:inputChapters.map(g=><LessonGroup key={g.key} title={g.title} description={g.description} expanded={inputGroup===g.key} onToggle={()=>setInputGroup(inputGroup===g.key?'':g.key)}>{g.items.map(lesson)}</LessonGroup>)}
       </>}
       {tab==='settings'&&<>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>本文の文字サイズ</Text><Text style={styles.description}>説明文のサイズを変更します。入力表は8文字の配置を保ちます。</Text><View style={styles.sizeOptions}>{([{value:1,label:'標準'},{value:1.15,label:'大'},{value:1.3,label:'特大'}]).map(x=><Pressable key={x.value} style={[styles.sizeOption,saved.textScale===x.value&&styles.selectedSize]} onPress={()=>updateSaved({...savedRef.current,textScale:x.value})} accessibilityRole="radio" accessibilityLabel={'文字サイズ '+x.label} accessibilityState={{checked:saved.textScale===x.value}} aria-checked={saved.textScale===x.value}><Text style={[styles.sizeOptionText,saved.textScale===x.value&&styles.selectedSizeText]}>{x.label}</Text></Pressable>)}</View></View>
@@ -261,7 +289,7 @@ function LearningApp(){
 export default function App(){return <SafeAreaProvider><LearningApp/></SafeAreaProvider>;}
 
 const styles=StyleSheet.create({
- materialGroup:{marginBottom:14,borderWidth:1,borderColor:'#d5e0ee',borderRadius:12,backgroundColor:'#fff',overflow:'hidden'},materialGroupHeader:{padding:17,flexDirection:'row',alignItems:'center',gap:10,minHeight:72,backgroundColor:'#edf3fb'},materialGroupBody:{padding:10,paddingBottom:0},
+ lessonGroup:{marginBottom:14,borderWidth:1,borderColor:'#d5e0ee',borderRadius:12,backgroundColor:'#fff',overflow:'hidden'},lessonGroupHeader:{padding:17,flexDirection:'row',alignItems:'center',gap:10,minHeight:72,backgroundColor:'#edf3fb'},lessonGroupBody:{padding:10,paddingBottom:0},
  compactBrandRow:{gap:8},compactBrand:{fontSize:10},compactBrandSub:{fontSize:9},
  inputQuery:{minHeight:48,minWidth:0,paddingVertical:10},
  screen:{flex:1},screenTitle:{fontSize:24,fontWeight:'700',color:'#1d3555',flexShrink:1},brandMark:{marginLeft:'auto',alignItems:'flex-end'},homeFirst:{marginTop:16},searchRow:{flexDirection:'row',alignItems:'center',gap:10,minHeight:48,paddingHorizontal:14,borderRadius:10,backgroundColor:'#fff',borderWidth:1,borderColor:'#cddbf7',marginBottom:10},searchIcon:{fontSize:20,color:'#617fae'},searchText:{flex:1,fontSize:15,color:'#5d7598'},screenLead:{fontSize:13,lineHeight:23,color:'#637b9a',marginTop:8,marginBottom:22},

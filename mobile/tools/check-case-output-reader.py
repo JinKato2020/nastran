@@ -7,9 +7,9 @@ with sync_playwright() as p:
  page.on('pageerror',lambda e:errors.append(str(e)))
  page.goto('http://127.0.0.1:8766',wait_until='networkidle')
  page.get_by_role('tab',name='Inputデータ',exact=True).click()
+ page.get_by_role('button',name='Case Control',exact=True).click()
+ page.get_by_role('button',name='結果出力',exact=True).click()
  frame=page.frame_locator('iframe')
- frame.locator('#input-family').select_option('case')
- frame.locator('#category').select_option('結果出力')
  frame.locator('#card-picker').select_option('CASE_ACCELERATION')
  assert frame.locator('.output-options tr').count()==19
  frame.locator('.output-syntax summary').click()

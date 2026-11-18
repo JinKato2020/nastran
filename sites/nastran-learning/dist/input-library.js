@@ -6,6 +6,13 @@
  const cardOrder=new Intl.Collator('en',{numeric:true,sensitivity:'base'});
  const qrg=(p,v)=>{const n='MSC_Nastran_'+(v||'2020')+'_Quick_Reference_Guide';return 'https://documentation-be.hexagon.com/bundle/'+n+'/raw/resource/enus/'+n+'.pdf#page='+p;};
  const home=$('input-home'),browser=$('input-browser');
+ const chapters=document.querySelector('.input-home-cards');
+ chapters.innerHTML=window.NastranInputSearch.groups(entries,window.CardComparisonIndex).map(g=>window.NastranLearningUI.group(g.title,[[null,g.items]],false,g.key)).join('');
+ try{const saved=sessionStorage.getItem('nastran-input-chapter');chapters.querySelectorAll('details').forEach(el=>el.open=el.dataset.chapter===saved);}catch{}
+ chapters.addEventListener('toggle',event=>{
+  if(event.target.open)chapters.querySelectorAll('details').forEach(el=>{if(el!==event.target)el.open=false;});
+  try{sessionStorage.setItem('nastran-input-chapter',chapters.querySelector('details[open]')?.dataset.chapter||'');}catch{}
+ },true);
  function showBrowser(family){home.hidden=true;browser.hidden=false;$('input-family-title').textContent=label(family);}
  function showHome(){home.hidden=false;browser.hidden=true;document.title='Inputデータ — FEM Guide';searchAll();}
  function searchAll(){
@@ -25,6 +32,8 @@
   const entry=byKey.get(key);if(!entry)return;
   showBrowser(entry.family);selected=key;field=detail;$('card-search').value='';$('input-family').value=entry.family;
   options($('category'),categories(entry.family).map(c=>[c,c]));$('category').value=entry.category;
+  $('input-category-title').textContent=entry.category;
+  chapters.querySelectorAll('details').forEach(el=>el.open=el.dataset.chapter===entry.family);
   renderList();if(scroll)$('card-detail').scrollIntoView({block:'start'});
  }
  function filtered(){const q=$('card-search').value.trim().toLowerCase();return entries.filter(e=>e.family===$('input-family').value&&e.category===$('category').value&&[e.id,e.title,e.summary].join(' ').toLowerCase().includes(q)).sort((a,b)=>cardOrder.compare(a.id,b.id)||cardOrder.compare(a.key,b.key));}
@@ -113,8 +122,8 @@
  function route(){
   let key,detail='';try{const raw=location.hash.slice(1),split=raw.indexOf('/');key=decodeURIComponent(split<0?raw:raw.slice(0,split));if(split>=0)detail=decodeURIComponent(raw.slice(split+1));}catch{key='EXEC_SOL';}
   if(key==='format-guide'){const a=document.createElement('a');a.href='input.html#rules';document.body.append(a);a.click();a.remove();return;}
-  if(!key){showHome();return;}
-  if(key==='family'&&families.some(([id])=>id===detail)){choose(entries.find(e=>e.family===detail).key);window.scrollTo(0,0);return;}
+  if(!key||key==='input-home'){showHome();return;}
+  if(key==='family'&&families.some(([id])=>id===detail)){showHome();chapters.querySelectorAll('details').forEach(el=>el.open=el.dataset.chapter===detail);window.scrollTo(0,0);return;}
   const match=byKey.has(key)?key:byKey.has(key.toUpperCase())?key.toUpperCase():null;
   if(match)choose(match,detail);else showHome();
  }

@@ -35,7 +35,7 @@ const read=name=>{const p=path.resolve(source,name);if(!p.startsWith(source+path
 // Build the native search index from the same final, merged card definitions.
 const context={window:{}};vm.createContext(context);
 for(const name of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards','element-input-cards'])vm.runInContext(read(name+'.js'),context);
-const inputIndex={families:context.window.InputCatalog.families,entries:context.window.InputCatalog.entries.map(({key,id,title,summary,family,category,aliases=[]})=>({key,id,title,summary,family,category,aliases}))};
+const inputIndex={families:context.window.InputCatalog.families,entries:context.window.InputCatalog.entries.map(({key,id,title,summary,family,category,aliases=[]})=>({key,id,title,summary,family,category,aliases})),comparisons:comparisons.topics.map(({key,title,summary})=>({key,title,summary}))};
 const pdf='https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide.pdf';
 for(const item of catalog){
  let html=read(item.id);

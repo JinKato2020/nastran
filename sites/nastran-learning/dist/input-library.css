@@ -27,3 +27,6 @@
 #input-search-status{font-size:14px;color:var(--muted);margin:8px 0}
 .library-crumb{font-size:13px;line-height:2;margin:0 0 8px}
 @media(max-width:480px){.library-selectors{grid-template-columns:minmax(0,1fr)}.library-selectors label:last-child{grid-column:auto}}
+
+/* Category is selected in the chapter list; the article has one card picker. */
+.library-selectors{grid-template-columns:minmax(0,1fr)}

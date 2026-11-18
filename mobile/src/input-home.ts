@@ -1,17 +1,14 @@
 import bundle from './generated/lessons.json';
 export type InputSearchEntry={key:string;id:string;title:string;summary:string;family:string;category:string;aliases:string[]};
-export type InputIndex={entries:InputSearchEntry[];families:string[][]};
+type ComparisonEntry={key:string;title:string;summary:string};
+export type InputIndex={entries:InputSearchEntry[];families:string[][];comparisons?:ComparisonEntry[]};
+type InputGroup={key:string;title:string;description:string;items:{title:string;description:string;path:string;hash:string}[]};
 // Generated verbatim from the browser module; one search implementation.
-export const {search:searchInput}=require('./generated/input-search.js') as {search:(entries:InputSearchEntry[],query:string)=>InputSearchEntry[]};
+const inputUI=require('./generated/input-search.js') as {search:(entries:InputSearchEntry[],query:string)=>InputSearchEntry[];groups:(entries:InputSearchEntry[],comparisons:ComparisonEntry[])=>InputGroup[]};
+export const searchInput=inputUI.search;
 export const INPUT_INDEX:InputIndex=bundle.inputIndex;
-export const INPUT_HOME=[
- {title:'Executive Control',description:'SOL・実行の制御',path:'bulk.html',hash:'#family/executive'},
- {title:'Case Control',description:'ケース・拘束・荷重・出力の選択',path:'bulk.html',hash:'#family/case'},
- {title:'パラメータ',description:'計算方法・出力などの設定',path:'bulk.html',hash:'#family/parameter'},
- {title:'Bulk Data',description:'節点・要素・材料・荷重・解析条件',path:'bulk.html',hash:'#family/bulk'},
- {title:'似たカードの使い分け',description:'長所・短所と、状況に応じた選択',path:'comparisons.html',hash:'#beam'},
-];
-export const isInputHome=(p:{path:string;hash:string})=>p.path==='bulk.html'&&(!p.hash||p.hash==='#input-home');
+export const inputGroups=(index:InputIndex)=>inputUI.groups(index.entries,index.comparisons||INPUT_INDEX.comparisons||[]);
+export const isInputHome=(p:{path:string;hash:string})=>p.path==='bulk.html'&&(!p.hash||p.hash==='#input-home'||/^#family\/(executive|case|parameter|bulk)$/.test(p.hash));
 export function inputIndexFromHTML(html?:string):InputIndex{
  if(!html)return INPUT_INDEX;
  try{
@@ -21,6 +18,8 @@ export function inputIndexFromHTML(html?:string):InputIndex{
   if(!Array.isArray(value.entries)||!value.entries.length||!Array.isArray(value.families))return INPUT_INDEX;
   if(!value.entries.every(e=>['key','id','title','summary','family','category'].every(k=>typeof e[k as keyof InputSearchEntry]==='string')&&/^[A-Z0-9_]+$/.test(e.key)&&Array.isArray(e.aliases)&&e.aliases.every(a=>typeof a==='string')))return INPUT_INDEX;
   if(!value.families.every(f=>Array.isArray(f)&&f.length>=2&&f.every(v=>typeof v==='string')))return INPUT_INDEX;
+  if(value.comparisons&&!Array.isArray(value.comparisons))return INPUT_INDEX;
+  if(value.comparisons&&!value.comparisons.every(c=>typeof c.key==='string'&&/^[a-z0-9-]+$/.test(c.key)&&typeof c.title==='string'&&typeof c.summary==='string'))return INPUT_INDEX;
   return value;
  }catch{return INPUT_INDEX;}
 }

@@ -19,17 +19,19 @@
   ['各解析技術理論', [['共通の解析技術論',nav.common],...theoryGroups]],
  ];
  const learningCard=x=>'<a class="learning-card" href="'+href(x)+'"><div><strong>'+esc(x.title)+'</strong><p>'+esc(x.description)+'</p></div></a>';
+ function learningGroup(title,sections,open=false,key=''){
+  const count=sections.reduce((total,[,items])=>total+items.length,0);
+  const content=sections.map(([heading,items])=>(heading?'<h3 class="learning-group-label">'+esc(heading)+'</h3>':'')+
+   '<div class="learning-list">'+items.map(learningCard).join('')+'</div>').join('');
+  return '<details class="curriculum-group" data-chapter="'+esc(key)+'" '+(open?'open':'')+'><summary>'+esc(title)+'<small>'+count+'項目</small></summary>'+content+'</details>';
+ }
+ window.NastranLearningUI={card:learningCard,group:learningGroup};
  const basicList=document.getElementById('learning-basics');
  if(basicList)basicList.innerHTML=basics.map(learningCard).join('');
  const operations=document.getElementById('learning-operations');
  if(operations)operations.innerHTML=nav.operations.map(learningCard).join('');
  const catalog=document.getElementById('learning-catalog');
- if(catalog)catalog.innerHTML=navGroups.map(([title,sections],i)=>{
-  const count=sections.reduce((total,[,items])=>total+items.length,0);
-  const content=sections.map(([heading,items])=>(heading?'<h3 class="learning-group-label">'+esc(heading)+'</h3>':'')+
-   '<div class="learning-list">'+items.map(learningCard).join('')+'</div>').join('');
-  return '<details class="curriculum-group" '+(i===0?'open':'')+'><summary>'+esc(title)+'<small>'+count+'項目</small></summary>'+content+'</details>';
- }).join('');
+ if(catalog)catalog.innerHTML=navGroups.map(([title,sections],i)=>learningGroup(title,sections,i===0)).join('');
  function cards(group){return course[group].map((x,i)=>'<a class="learning-card" href="'+href(x)+'"><span'+(done.includes(x.key)?' class="learning-complete-mark"':'')+'>'+(done.includes(x.key)?'✓':group==='steps'?String(i+1).padStart(2,'0'):group==='next'?'→':'?')+'</span><div><strong>'+esc(x.title)+'</strong><p>'+esc(x.description)+'</p>'+(group==='next'?'<small>'+esc(x.goal)+'</small>':x.kind?'<small>'+esc(x.kind)+'</small>':'')+'</div></a>').join('');}
  function home(){const el=document.getElementById('learning-home');if(!el)return;
   el.innerHTML='<div class="learning-progress"><b>初めての解析の学習記録</b><span>'+done.length+' / 6ステップ</span></div><div class="learning-list">'+cards('steps')+'</div>';
