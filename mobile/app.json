@@ -2,7 +2,7 @@
   "expo": {
     "name": "FEM Guide for nas",
     "slug": "nastran-learning",
-    "version": "1.2.13",
+    "version": "1.2.1",
     "orientation": "default",
     "scheme": "nastranlearning",
     "userInterfaceStyle": "light",
@@ -12,7 +12,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "1001"
+      "buildNumber": "1002"
     },
     "android": {
       "package": "com.safa.nastranlearning"

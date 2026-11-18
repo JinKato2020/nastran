@@ -103,6 +103,10 @@
   return `<label class="analysis-selector analysis-model-selector ${css}" for="${id}">${esc(label)}<select id="${id}">${options.map(([key,title])=>`<option value="${esc(key)}"${key===value?' selected':''}>${esc(title)}</option>`).join('')}</select></label>`;
  }
  function scenarioControls(scenario,model,complex){
+  if(scenario.studyGroups){
+   const group=scenario.studyGroups.find(g=>g.models.some(m=>m.id===model.id));
+   return `<div class="analysis-complex-options">${select('analysis-study-picker','比較の目的',scenario.studyGroups.map(g=>[g.id,g.title]),group.id)}${select('analysis-example-picker','モデル',group.models.map(m=>[m.id,m.title]),model.id)}</div>`;
+  }
   if(!complex)return select('analysis-example-picker','モデル',
    scenario.models.map(item=>[item.id,item.title]),model.id);
   return `<div class="analysis-complex-options">${complexChoices.map(({id,label,options,value})=>select(id,label,options,value(model))).join('')}</div>`;
@@ -123,8 +127,9 @@
  function showScenario(entry,scenario,modelKey,tabKey){
   const complex=entry.key==='complex-modes';
   const model=scenario.models.find(item=>item.id===modelKey)||scenario.models[0];
+  const comparison=scenario.studyGroups?.find(g=>g.models.some(m=>m.id===model.id))||scenario;
   const deck=window.AnalysisOriginalDecks[model.id];
-  const figure=`<figure class="analysis-scenario-figure">${window.renderAnalysisScenarioDiagram(model.diagram)}<figcaption>境界条件の模式図</figcaption></figure>`;
+  const figure=`<figure class="analysis-scenario-figure">${window.renderAnalysisScenarioDiagram(model.diagram)}<figcaption>${esc(model.diagramCaption||'境界条件の模式図')}</figcaption></figure>`;
   const selection=scenarioControls(scenario,model,complex);
   const related=[...(scenario.links||[])];
   if(entry.key==='static')related.push(
@@ -141,17 +146,20 @@
   const token=()=>state.current==='input'&&byId('analysis-original-input')?.open?'dat':state.current;
   const place=(id,tab)=>'#'+entry.key+'/'+id+(tab&&tab!=='model'?'/'+tab:'');
   detail.innerHTML=heading(entry,'')+selection+figure+(tabbed(state.current,{
-      model:[[null,readingIntro(entry,scenario,model,specific)],['モデル化と境界条件',conditions(model.conditions)],guide&&['この解析で共通する基礎',specific?'<div class=theory-quiz><details><summary>全モデルに共通する用語と手順</summary>'+guideBasics(guide)+'</details></div>':guideBasics(guide)]],
+      model:[[null,readingIntro(entry,scenario,model,specific)],['モデル化と境界条件',conditions(model.conditions)],specific?.explanation&&['条件から結果までをつなぐ',specific.explanation()],guide&&['この解析で共通する基礎',specific?'<div class=theory-quiz><details><summary>全モデルに共通する用語と手順</summary>'+guideBasics(guide)+'</details></div>':guideBasics(guide)]],
       input:[['カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations'],
        entry.key==='buckling'&&['SOL 105で静解析と座屈を対応させる',bucklingSetup(),'analysis-buckling-setup'],
        guide?.inputReview&&['入力で確認する指定',cardGroups(guide.inputReview)+sources([{url:'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=38',label:'線形静解析ユーザーガイド 2025.1 · 第2章 PDF 38–40ページ'}])],
-       ['自作モデルのDAT',deckSection(deck,tabKey==='dat')]],
+       specific?.inputReview&&['このモデルで指定する内容',cardGroups(specific.inputReview)],
+       deck&&['自作モデルのDAT',deckSection(deck,tabKey==='dat')],
+       !deck&&['入力モデルの扱い','<p>境界条件と入力の役割を比較する理論教材です。この比較用の実行確認済み入力ファイルは未収録です。下記の数値は理論値で、MSC Nastranの実行結果ではありません。</p>']],
       quiz:quiz&&[['入力の4択問題',window.AnalysisQuiz.render(entry.key,model.id),'analysis-quiz']],
-      results:[['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(specific||guide)],['モデル間の比較',compare(scenario,scenario.models.indexOf(model),specific)],specific?.pitfalls?['このモデルで間違えやすい点',conditions(specific.pitfalls)]:guide&&['よくある失敗と直し方',conditions(guide.pitfalls)]]
+      results:[['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(specific||guide)],specific?.resultExtra&&['照合する量と条件',specific.resultExtra()],['モデル間の比較',compare(comparison,comparison.models.indexOf(model),specific)],specific?.pitfalls?['このモデルで間違えやすい点',conditions(specific.pitfalls)]:guide&&['よくある失敗と直し方',conditions(guide.pitfalls)]]
      }))+
    contextLinks(entry,related)+sources(scenario.sources||entry.sources);
   bindTabs(state,()=>history.replaceState(null,'',place(model.id,token())));
   if(quiz)window.AnalysisQuiz.bind(detail);
+  window.AnalysisStructureLabs?.bind(detail);
   byId('analysis-original-input')?.addEventListener('toggle',()=>history.replaceState(null,'',place(model.id,token())));
   byId('save-original-dat')?.addEventListener('click',()=>saveDeck(deck));
   function changeModel(id,controlId){
@@ -168,6 +176,8 @@
   }
   const modelPicker=byId('analysis-example-picker');
   modelPicker?.addEventListener('change',()=>changeModel(modelPicker.value,modelPicker.id));
+  const studyPicker=byId('analysis-study-picker');
+  studyPicker?.addEventListener('change',()=>changeModel(scenario.studyGroups.find(g=>g.id===studyPicker.value).models[0].id,studyPicker.id));
  }
  function solverLinks(key,simcenter=false){
   return `<nav class="solver-options" aria-label="対象ソルバー"><a href="#${key}"${simcenter?'':' aria-current="page"'}>MSC Nastran</a><a href="#${key}/simcenter"${simcenter?' aria-current="page"':''}>Simcenter Nastran</a></nav>`;

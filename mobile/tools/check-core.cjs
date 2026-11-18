@@ -79,6 +79,7 @@ assert(!content.readerHTML({path:'index.html',hash:'#</script><script>alert(1)</
 for(const [rel,f]of Object.entries(content.DOWNLOADS))assert.deepEqual(Buffer.from(f.base64,'base64'),fs.readFileSync(path.join(root,'../sites/nastran-learning/dist',rel)));
 require('./check-input-catalog.cjs');
 require('./check-input-native.cjs');
+require('./check-analysis-structure.cjs');
 require('./check-element-labs.cjs');
 require('./check-connection-labs.cjs');
 require('./check-damping-chapter.cjs');

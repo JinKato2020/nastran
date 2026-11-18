@@ -76,6 +76,7 @@
   if(String(raw).trim()===''||!isFinite(v0))return ['warn','数値を入れてください（例 -6.171E+00）。'];
   if(c.integer&&!Number.isInteger(v0))return ['warn','モード数は整数で入力してください。'];
   const v=c.abs?Math.abs(v0):v0,ex=c.abs?Math.abs(c.expect):c.expect,r=v/ex;
+  if(ex===0)return Math.abs(v)<=(c.tolerance??1e-6)?['ok','理論値0と許容差内で一致します。荷重・拘束条件も併せて確認します。']:['warn',`理論値は0です。入力値 ${num(v,4)} の単位、成分、荷重と拘束の条件を確認します。`];
   for(const [k,msg] of c.diag){if(k===0?Math.abs(v)<=1e-6*Math.abs(ex):Math.abs(r/k-1)<0.03)return [k===1?'ok':'warn',`手計算 ${num(ex,4)} に対して ${num(r,3)} 倍。${msg}`];}
   return ['warn',`手計算 ${num(ex,4)} に対して ${num(r,3)} 倍です。単位系、断面の値、荷重の向きと大きさを順に見直します。`];
  }
