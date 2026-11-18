@@ -162,10 +162,11 @@ function LearningApp(){
   }
   function bookmark(){const p=current.current;if(!p)return;const old=savedRef.current.bookmarks;const exists=old.some(b=>samePlace(b,p));updateSaved({...savedRef.current,bookmarks:exists?old.filter(b=>!samePlace(b,p)):[p,...old].slice(0,100)});}
   type CourseItem={key?:string;title:string;description:string;path:string;hash:string;kind?:string;group?:string};
-  const [materialGroup,setMaterialGroup]=useState('theory');
+  const [materialGroup,setMaterialGroup]=useState('elements');
   const materialGroups=[
-    {key:'theory',title:'各解析技術理論',description:'共通の解析技術から、解析ごとの理論へ',items:[...NAVIGATION.common,...NAVIGATION.materials]},
     {key:'elements',title:'各要素理論',description:'ばね・梁・シェル・ソリッド・結合・剛体・GENELの仕組み・モデル化・結果の読み方',items:NAVIGATION.elements},
+    {key:'materialTheory',title:'材料理論',description:'弾性・異方性・積層・熱膨張・塑性を、式と操作図で学ぶ',items:NAVIGATION.materialTheory},
+    {key:'theory',title:'各解析技術理論',description:'共通の解析技術から、解析ごとの理論へ',items:[...NAVIGATION.common,...NAVIGATION.materials]},
   ];
   const menuGroups:{title:string;tab:TabKey;items:CourseItem[]}[]=[
     {title:'最初に学ぶ',tab:'home',items:[...NAVIGATION.intro,NAVIGATION.homeResources[0]]},

@@ -131,6 +131,14 @@ with sync_playwright() as p:
     assert page.evaluate('location.hash')=='#damping'
     assert page.evaluate('document.activeElement.closest("section").id')=='damping-units'
     assert page.locator('[data-damping-lab] input').evaluate_all('es=>es.map(e=>e.value)')==before
+    page.evaluate("location.hash='#materials/composites'")
+    page.locator('#materials-shell-property').wait_for()
+    assert page.locator('.theory-section').count()==23
+    page.locator('[data-material-lab="laminate"] select').select_option('unsym')
+    page.locator('.element-toc a[data-jump="materials-questions"]').click()
+    assert page.evaluate('location.hash')=='#materials/composites'
+    assert page.locator('[data-material-lab="laminate"] select').input_value()=='unsym'
+    assert page.evaluate('document.activeElement.closest("section").id')=='materials-questions'
     page.close()
     page=reader('damping.html')
     assert page.locator('#damping-chapter .theory-section').count()==19

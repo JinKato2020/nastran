@@ -10,8 +10,9 @@
  const basics=[nav.intro[0],nav.homeResources[0],...nav.intro.slice(1)];
  const theoryGroups=[...new Set(nav.materials.map(item=>item.group))].map(group=>[group,nav.materials.filter(item=>item.group===group)]);
  const navGroups=[
-  ['各解析技術理論', [['共通の解析技術論',nav.common],...theoryGroups]],
   ['各要素理論', [[null,nav.elements]]],
+  ['材料理論', [[null,nav.materialTheory]]],
+  ['各解析技術理論', [['共通の解析技術論',nav.common],...theoryGroups]],
  ];
  const learningCard=x=>'<a class="learning-card" href="'+href(x)+'"><div><strong>'+esc(x.title)+'</strong><p>'+esc(x.description)+'</p></div></a>';
  const basicList=document.getElementById('learning-basics');

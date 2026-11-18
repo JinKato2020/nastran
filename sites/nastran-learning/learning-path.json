@@ -610,13 +610,6 @@
     ],
     "common": [
       {
-        "title": "材料特性と複合材料",
-        "description": "弾性・材料方向・積層の剛性と確認方法",
-        "path": "theory.html",
-        "hash": "#materials",
-        "kind": "共通理論"
-      },
-      {
         "title": "境界条件の理論",
         "description": "自由度・剛体運動・支持の理想化",
         "path": "theory.html",
@@ -657,6 +650,50 @@
         "path": "comparisons.html",
         "hash": "#beam",
         "kind": "カード比較"
+      }
+    ],
+    "materialTheory": [
+      {
+        "title": "材料の基本・等方弾性",
+        "description": "第1〜5節：材料と形状、応力・ひずみ、E・G・ν、横収縮",
+        "path": "theory.html",
+        "hash": "#materials",
+        "kind": "材料理論"
+      },
+      {
+        "title": "異方性・材料方向",
+        "description": "第6〜10節：MAT2・MAT3・MAT8・MAT9、方向と行列の検証",
+        "path": "theory.html",
+        "hash": "#materials/anisotropy",
+        "kind": "材料理論"
+      },
+      {
+        "title": "複合材料・積層板",
+        "description": "第11〜15節：PCOMP、A・B・D、層別結果とサンドイッチ",
+        "path": "theory.html",
+        "hash": "#materials/composites",
+        "kind": "材料理論"
+      },
+      {
+        "title": "熱膨張・密度・減衰",
+        "description": "第16〜17節：温度と拘束、単位、材料欄の役割",
+        "path": "theory.html",
+        "hash": "#materials/thermal",
+        "kind": "材料理論"
+      },
+      {
+        "title": "塑性・試験データ",
+        "description": "第18〜20節：降伏・除荷、EtとH、応力ひずみ曲線",
+        "path": "theory.html",
+        "hash": "#materials/plasticity",
+        "kind": "材料理論"
+      },
+      {
+        "title": "材料検証・確認問題",
+        "description": "第21〜23節：症状からの診断、手計算12問、参考文献",
+        "path": "theory.html",
+        "hash": "#materials/verification",
+        "kind": "材料理論"
       }
     ]
   }

@@ -45,7 +45,7 @@ with sync_playwright() as p:
  page.get_by_role('button',name='しおりを付ける').click()
  page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="coordinates.html"&&p.hash==="#systems")')
  root('教材')
- for title in ['各解析技術理論','各要素理論']:
+ for title in ['各解析技術理論','各要素理論','材料理論']:
   assert page.get_by_role('button',name=title,exact=True).count()==1
  for title in ['初めての解析','入力規則','座標','要素の向き','応力方向']:
   assert page.get_by_role('button',name=title,exact=True).count()==0,title
@@ -60,6 +60,24 @@ with sync_playwright() as p:
  page.screenshot(path='.qa/five-tabs-materials.png')
  page.get_by_role('button',name='境界条件の理論',exact=True).click()
  page.frame_locator('iframe').locator('#theory-detail').wait_for(state='visible');bottom()
+ root('教材')
+ page.get_by_role('button',name='材料理論',exact=True).click()
+ for title in ['材料の基本・等方弾性','異方性・材料方向','複合材料・積層板','熱膨張・密度・減衰','塑性・試験データ','材料検証・確認問題']:
+  assert page.get_by_role('button',name=title,exact=True).count()==1,title
+ page.screenshot(path='.qa/material-chapter-menu.png')
+ page.get_by_role('button',name='複合材料・積層板',exact=True).click()
+ frame=page.frame_locator('iframe')
+ frame.locator('#materials-shell-property').wait_for(state='visible')
+ assert frame.locator('.theory-section').count()==23
+ assert frame.locator('#materials-shell-property').evaluate('e=>Math.abs(e.getBoundingClientRect().top)<140')
+ frame.locator('[data-jump="materials-layup"]').click()
+ frame.locator('[data-material-lab="laminate"] select').select_option('unsym')
+ assert '非対称' in frame.locator('[data-material-lab="laminate"] .theory-lab-readout').inner_text()
+ frame.locator('a[href="bulk.html#PCOMP"]').first.click()
+ assert page.frame_locator('iframe').locator('#card-picker').input_value()=='PCOMP'
+ page.get_by_role('button',name='‹ 戻る',exact=True).click()
+ assert page.frame_locator('iframe').locator('#materials-shell-property').is_visible()
+ bottom()
  # Each requested analysis opens its distinct content, while retaining the bottom bar.
  root('解析')
  titles=['静解析','実固有値解析','複素固有値解析','熱伝導解析','モーダル周波数応答解析','直接周波数応答解析','過渡応答解析','亀裂先端解析','座屈解析']
@@ -72,6 +90,7 @@ with sync_playwright() as p:
  frame=page.frame_locator('iframe')
  assert frame.locator('#analysis-example-raw,#save-analysis').count()==0
  frame.locator('#analysis-example-picker').select_option('tip-mass')
+ frame.locator('[data-analysis-tab="input"]').click()
  card=frame.locator('[data-analysis-card="CONM2"]')
  card.scroll_into_view_if_needed()
  before=frame.locator('body').evaluate('()=>window.scrollY')
@@ -84,7 +103,7 @@ with sync_playwright() as p:
  assert abs(frame.locator('body').evaluate('()=>window.scrollY')-before)<3
  page.screenshot(path='.qa/analysis-linked-card.png')
  page.get_by_role('button',name='しおりを付ける').click()
- page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="analysis.html"&&p.hash==="#modes/tip-mass")')
+ page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="analysis.html"&&p.hash.startsWith("#modes/tip-mass"))')
  # Per-tab reading locations and 3-level input selector survive switching.
  nav('Inputデータ');frame=page.frame_locator('iframe')
  # Compact selector, real native reader wrapper; card heading is visible immediately.
@@ -110,12 +129,13 @@ with sync_playwright() as p:
  page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).textScale===1.3')
  page.screenshot(path='.qa/five-tabs-settings.png')
  nav('解析');frame=page.frame_locator('iframe')
- assert frame.locator('.analysis-scenario-summary').first.evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
+ frame.locator('[data-analysis-tab="model"]').click()
+ assert frame.locator('#analysis-detail .element-key li').first.evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
  page.screenshot(path='.qa/five-tabs-heat.png')
  page.reload(wait_until='networkidle')
  page.get_by_role('button',name='続きから読む →').click()
  assert page.frame_locator('iframe').locator('h1').inner_text()=='実固有値解析'
- assert page.frame_locator('iframe').locator('.analysis-scenario-summary').first.evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
+ assert page.frame_locator('iframe').locator('#analysis-detail .element-key li').first.evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
  # Home bookmark list and error search remain reachable without another bottom tab.
  root('ホーム');page.get_by_role('button',name='しおり一覧').click()
  assert page.get_by_text('実固有値解析',exact=True).count()>=1

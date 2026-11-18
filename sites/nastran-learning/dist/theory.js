@@ -8,10 +8,12 @@
   const [caption,columns,rows]=table;
   return window.LessonArticle.table(columns,rows,{caption});
  }
- function render(){const e=entries.find(e=>e.key===location.hash.slice(1))||entries.find(e=>e.key===picker.options[0]?.value)||entries[0];picker.value=e.key;document.title=e.title+' — FEM Guide';
-  const damping=e.key==='damping';
-  detail.closest('main').classList.toggle('elements-main',damping);
-  picker.closest('label').hidden=damping;
+ function render(){const [key,section]=location.hash.slice(1).split('/');const e=entries.find(e=>e.key===key)||entries.find(e=>e.key===picker.options[0]?.value)||entries[0];picker.value=e.key;document.title=e.title+' — FEM Guide';
+  const damping=e.key==='damping',materials=e.key==='materials';
+  detail.closest('main').classList.toggle('elements-main',damping||materials);
+  picker.closest('label').hidden=damping||materials;
+  if(materials){if(detail.dataset.chapter!=='materials'){window.MaterialChapter.mount(detail);detail.dataset.chapter='materials';}if(section)window.MaterialChapter.focusSection(section);return;}
+  delete detail.dataset.chapter;
   if(damping){window.DampingChapter.mount(detail);return;}
   const visual=e.visual==='eigenvalues'?window.EigenvalueVisuals:null;
   const materialVisuals=e.visual==='materials'?window.MaterialVisuals:null;
@@ -37,11 +39,11 @@
   const nav=window.NASTRAN_LEARNING.navigation;
   const groups=new Map();
   const used=new Set();
-  for(const item of [...nav.common,...nav.materials]){
+  for(const item of [...nav.materialTheory,...nav.common,...nav.materials]){
    if(item.path!=='theory.html')continue;
-   const entry=entries.find(e=>e.key===item.hash.slice(1));
-   if(!entry)continue;
-   const group=item.group||'共通の解析技術論';
+   const entry=entries.find(e=>e.key===item.hash.slice(1).split('/')[0]);
+   if(!entry||used.has(entry.key))continue;
+   const group=entry.key==='materials'?'材料理論':item.group||'共通の解析技術論';
    if(!groups.has(group))groups.set(group,[]);
    groups.get(group).push(entry);
    used.add(entry.key);
