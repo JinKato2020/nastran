@@ -9,6 +9,10 @@
   return window.LessonArticle.table(columns,rows,{caption});
  }
  function render(){const e=entries.find(e=>e.key===location.hash.slice(1))||entries.find(e=>e.key===picker.options[0]?.value)||entries[0];picker.value=e.key;document.title=e.title+' — FEM Guide';
+  const damping=e.key==='damping';
+  detail.closest('main').classList.toggle('elements-main',damping);
+  picker.closest('label').hidden=damping;
+  if(damping){window.DampingChapter.mount(detail);return;}
   const visual=e.visual==='eigenvalues'?window.EigenvalueVisuals:null;
   const materialVisuals=e.visual==='materials'?window.MaterialVisuals:null;
   const topicVisuals=window.TheoryTopicVisuals?.[e.key];

@@ -93,7 +93,7 @@ with sync_playwright() as p:
     page.locator('#copy-card').click()
     page.wait_for_function('messages.some(m=>m.type==="copy"&&m.text==="LOAD = 20\\n")')
     page.close()
-    for name,target in [('dynamics.html','theory.html#modes'),('damping.html','theory.html#damping'),('fracture.html','theory.html#fracture'),('relations.html','analysis.html#static/beam/input')]:
+    for name,target in [('dynamics.html','theory.html#modes'),('fracture.html','theory.html#fracture'),('relations.html','analysis.html#static/beam/input')]:
         page=reader(name)
         assert page.locator('script').count()==1,name  # only the native bridge; retired pages carry no code
         page.locator(f'a[href="{target}"]').click()
@@ -108,9 +108,11 @@ with sync_playwright() as p:
     page.select_option('[data-lab="lab-frf"] select','0.05')
     assert 'U = 10 mm' in page.locator('[data-lab="lab-frf"] .theory-lab-readout').inner_text()
     page.evaluate("location.hash='#damping'")
-    page.locator('[data-lab="lab-convert"] select').select_option('0.05')
-    assert page.locator('[data-lab="lab-convert"] td').all_inner_texts()[:4]==['0.1 N·s/mm','0.05','0.1','10']
-    assert page.locator('[data-lab="lab-rayleigh"] svg').count()==1
+    conversion=page.locator('[data-damping-lab="conversion"]')
+    conversion.locator('input').evaluate('e=>{e.value=5;e.dispatchEvent(new Event("input",{bubbles:true}));}')
+    assert '5% = 0.05' in conversion.inner_text()
+    assert conversion.locator('tr').filter(has_text='TABDMP1: Q').inner_text().find('10')>=0
+    assert page.locator('[data-damping-lab="rayleigh"] svg').count()==1
     page.locator('.theory-quiz summary').first.click()
     assert page.locator('.theory-quiz details[open]').count()==1
     page.evaluate("location.hash='#transient'")
@@ -119,6 +121,12 @@ with sync_playwright() as p:
     page.evaluate("location.hash='#fracture'")
     assert '398.9 MPa' in page.locator('[data-lab="lab-crack"] .theory-lab-readout').inner_text()
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+    page.close()
+    page=reader('damping.html')
+    assert page.locator('#damping-chapter .theory-section').count()==19
+    page.locator('[data-jump="damping-units"]').click()
+    page.locator('a[href="bulk.html#TABDMP1"]').first.click()
+    page.wait_for_function('messages.some(m=>m.type==="navigate"&&m.path==="bulk.html"&&m.hash==="#TABDMP1")')
     page.close()
     # Beam article: every interactive figure draws, and the headline numbers match the hand calculations.
     page=reader('elements.html')

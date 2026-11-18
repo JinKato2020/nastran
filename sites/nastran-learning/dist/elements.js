@@ -13,12 +13,7 @@
   if(target&&target!==shown)requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));
  }
  picker.addEventListener('change',()=>{location.hash=picker.value;scrollTo(0,0);});
- document.addEventListener('click',event=>{
-  const jump=event.target.closest('[data-jump]');
-  if(!jump)return;
-  event.preventDefault();
-  document.getElementById(jump.dataset.jump)?.scrollIntoView({block:'start'});
- });
+ window.LessonArticle.bindNavigation(document);
  addEventListener('hashchange',render);
  document.addEventListener('DOMContentLoaded',()=>{
   for(const placeholder of document.querySelectorAll('[data-element-sketch]')){

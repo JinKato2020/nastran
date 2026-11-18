@@ -156,7 +156,7 @@
     },
     {
       "title": "減衰の理論",
-      "description": "c・ζ・g・Qの換算、粘性と構造、モードとRayleigh",
+      "description": "減衰の意味・単位・同定・モデル選定から、入力と結果の検証まで18節で学ぶ",
       "path": "theory.html",
       "hash": "#damping",
       "goal": "入力する減衰の数字の意味を区別できる"
@@ -639,7 +639,7 @@
       },
       {
         "title": "減衰の理論",
-        "description": "エネルギー散逸・減衰比・減衰モデル",
+        "description": "減衰の意味・単位・同定・モデル選定から、入力と結果の検証まで18節で学ぶ",
         "path": "theory.html",
         "hash": "#damping",
         "kind": "共通理論"

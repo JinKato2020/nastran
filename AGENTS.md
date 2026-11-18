@@ -115,3 +115,8 @@
 - connection-labs.jsに9つの独立した理論比較（結合部の直列コンプライアンス、パッチ補間、凝着の面積と合力、RBE2の剛体回転、1方向の共通変位/平均変位、従属の衝突、GENELの連成・入力順・剛体運動の差引き）を追加。BeamLabs.uiとgraphics、LessonArticleを直接使用し、独自のレイアウトCSSは追加しない。各記事末尾に手計算・判断の問い4問。DATの作成・配布やMSC本体の実行検証は行っていない。1方向の平均化を3次元RBE3全体の公式として流用しない。
 - 今回の仕様照合はMSC 2025.1 QRGのGENEL（PDF1954〜1956）、MCOHE（2229）、PFAST（2605〜2607）、RBE2（2745〜2746）、RBE3（2750〜2752）と線形静解析ガイドの該当節。PFASTのD/KT/方向、RBE3のUM・配置、GENELのUI/UD/Sを区別する。R型要素は常にサブケース選択不可、RBE3の全点は必ず123、といった無条件の断定をしない。
 - 追加検算はcheck-connection-labs.cjs（test:coreから実行）。画面検査check-connection-labs.pyは共通部品と梁の計算済みスタイル、全9操作例、12問、選択による数値変化、スライダー端値、図中文字、320/390/768pxを検査する。図の数値とラベルは本文の想定・単位に一致させ、差が小さい場合は明示した拡大図を使う。
+- ユーザー指定（2026-11-18、減衰の独立章）：減衰を要素記事と同じ品質・デザインの独立章にし、節ごとに初学者の疑問・失敗と中堅の実務判断を丁寧に扱う。damping.htmlを統合済み案内から独立教材へ戻したので、今後のネイティブ整理でもPAGE_IDSからdamping.htmlを削除しない。新本文の正本はdamping-chapter.jsで、既存アプリの入口theory.html#dampingも同じ部品を表示する。自動転送の往復や本文の二重管理を作らない。
+- 減衰章は18節＋出典、操作例8つ、既存の比較図3つ、確認問題12問。LessonArticleとBeamLabs.ui/graphics、要素記事のCSSを直接共用する。既存3比較図の形・線・スケールはそのまま、図内の説明語と端で欠ける軸文字だけを修正する。局所ダンパーは相対速度・モード間連成、Rayleighは係数と帯域外、過渡換算はrad/s・Wの0既定・WMODALの制限まで説明する。c/ζ/g/Qの換算を全周波数で同一の物理と断定しない。
+- 仕様根拠はMSC 2025.1動解析ガイドPDF288〜303・305〜306・315〜316、QRGのSDAMPING/TABDMP1、ALPHA1/2、KDAMP、SHLDAMP、WMODAL/W3/W4、DAMPING/HYBDAMP/PBUSHT。新しい操作例は一般理論の計算で、実験値・Nastran実行結果ではない。数式と入力リンクはcheck-damping-chapter.cjs、全操作・旧入口・梁とのスタイル一致・既存図形の一致はcheck-damping-chapter.pyで検査する。教材OTAだけで届く既存入口と、次回ビルドで変わるネイティブ一覧の表示名を混同しない。
+
+- 減衰章の目次生成・移動もLessonArticle.toc/bindNavigationを共通化し、要素記事と同じdata-jumpを使う。配布中アプリのネイティブ見出しとの互換性を保つため、通常の教材一覧はtheory.html#dampingを維持し、そこへ独立章全体を表示する。damping.htmlも同じ本文の独立ページとして復元する。旧ネイティブのdamping.htmlの見出しをOTAだけで更新したとは報告しない。

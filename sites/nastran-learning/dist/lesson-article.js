@@ -26,5 +26,18 @@ ${points.map(s=>'<li>'+s+'</li>').join('\n')}
   const prerequisite=box.innerHTML.split('<strong>前提として読む記事</strong>')[1]?.split('<ol>')[0]?.trim().replace(/^：/,'');
   if(goals.length&&points.length&&prerequisite)box.outerHTML=introHTML(goals,prerequisite,points);
  }
- window.LessonArticle={intro,section,table,adoptIntro};
+ const toc=items=>'<ul class="element-toc" aria-label="この解説の目次">'+items.map(([id,label])=>`<li><button type="button" data-jump="${esc(id)}">${esc(label)}</button></li>`).join('')+'</ul>';
+ const navigationRoots=new WeakSet();
+ function bindNavigation(root){
+  if(navigationRoots.has(root))return;
+  navigationRoots.add(root);
+  root.addEventListener('click',event=>{
+   const jump=event.target.closest('button[data-jump]');
+   if(!jump)return;
+   event.preventDefault();
+   const doc=root.ownerDocument||root;
+   doc.getElementById(jump.dataset.jump)?.scrollIntoView({block:'start'});
+  });
+ }
+ window.LessonArticle={intro,section,table,adoptIntro,toc,bindNavigation};
 })();

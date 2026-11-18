@@ -54,7 +54,7 @@ try:
         page.go_back()
         assert page.locator('#analysis-common-model-verification').count()==1
         page.goto(base+'theory.html#damping')
-        page.locator('a[href="analysis.html#damping-check"]').click()
+        page.locator('a[href="analysis.html#damping-check"]').first.click()
         assert page.locator('#analysis-common-damping-check').count()==1
         page.goto(base+'theory.html#contact')
         page.locator('a[href="analysis.html#contact-check"]').click()

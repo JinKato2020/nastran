@@ -44,7 +44,7 @@ assert.equal(content.titleFor({path:'theory.html',hash:'#complex-modes',y:0}),'�
 assert.equal(content.titleFor({path:'comparisons.html',hash:'#eigensolvers',y:0}),'EIGRL・EIGR・EIGC');
 assert.deepEqual(content.NAVIGATION.operations.map(e=>e.path),['modeling.html','include.html','batch.html','workflow.html']);
 assert.ok(!content.NAVIGATION.common.some(e=>content.NAVIGATION.operations.some(item=>item.path===e.path)));
-assert.deepEqual(content.NAVIGATION.common.map(e=>e.hash),['#materials','#boundary','#common-loads','#contact','#damping','#restart','#beam']);
+assert.deepEqual(content.NAVIGATION.common.map(e=>e.path+e.hash),['theory.html#materials','theory.html#boundary','theory.html#common-loads','theory.html#contact','theory.html#damping','theory.html#restart','comparisons.html#beam']);
 assert.equal(content.titleFor({path:'comparisons.html',hash:'#beam/compare',y:0}),'棒・梁の選び方（CROD・CONROD・CBAR・CBEAM）');
 assert.equal(content.titleFor({path:'comparisons.html',hash:'#rigid-interpolation',y:0}),'支持・拘束の選び方（SPC・RBE2・RBE3・MPC）');
 assert.equal(content.titleFor({path:'comparisons.html',hash:'#support-or-rigid',y:0}),'支持・拘束の選び方（SPC・RBE2・RBE3・MPC）');
@@ -74,6 +74,7 @@ for(const [rel,f]of Object.entries(content.DOWNLOADS))assert.deepEqual(Buffer.fr
 require('./check-input-catalog.cjs');
 require('./check-element-labs.cjs');
 require('./check-connection-labs.cjs');
+require('./check-damping-chapter.cjs');
 require('./check-content-rights.cjs').checkRights(require('../src/generated/lessons.json').pages);
 require('./check-release-preflight.cjs');
 console.log('PASS: routes, progress restore, outbound URLs, filename/base64 checks, all offline documents, script-safe bootstrap, exact ZIP/BAT bytes.');
