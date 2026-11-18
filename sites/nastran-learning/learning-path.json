@@ -610,13 +610,6 @@
     ],
     "common": [
       {
-        "title": "静荷重と荷重ケース",
-        "description": "力・圧力・慣性・温度・結果の重ね合わせ",
-        "path": "theory.html",
-        "hash": "#common-loads",
-        "kind": "共通理論"
-      },
-      {
         "title": "接触・摩擦・締付けの力学",
         "description": "接触は、どこを押し合うかが未知となる境界条件。ボルト締結では、その状態が締付け履歴と接合部の変形に依存する。",
         "path": "theory.html",
@@ -731,6 +724,50 @@
         "path": "theory.html",
         "hash": "#boundary/questions",
         "kind": "境界条件と拘束"
+      }
+    ],
+    "loadTheory": [
+      {
+        "title": "荷重の基本・集中荷重",
+        "description": "第1〜5節：単位・方向・座標・偏心とモーメント",
+        "path": "theory.html",
+        "hash": "#common-loads",
+        "kind": "荷重の理論"
+      },
+      {
+        "title": "分布荷重と等価節点荷重",
+        "description": "第6〜11節：線・面・投影・仮想仕事・荷重分配",
+        "path": "theory.html",
+        "hash": "#common-loads/distributed",
+        "kind": "荷重の理論"
+      },
+      {
+        "title": "自重・加速度・回転",
+        "description": "第12〜14節：密度・質量・重力・遠心荷重",
+        "path": "theory.html",
+        "hash": "#common-loads/inertia",
+        "kind": "荷重の理論"
+      },
+      {
+        "title": "初期ひずみ・温度荷重",
+        "description": "第15〜17節：自由伸び、熱ひずみ、温度分布の受け渡し",
+        "path": "theory.html",
+        "hash": "#common-loads/initial",
+        "kind": "荷重の理論"
+      },
+      {
+        "title": "ケース・組合せ・応用",
+        "description": "第18〜24節：組合せ・部分モデル・予荷重・疲労・動荷重",
+        "path": "theory.html",
+        "hash": "#common-loads/cases",
+        "kind": "荷重の理論"
+      },
+      {
+        "title": "検証・確認問題",
+        "description": "第25〜27節：診断・12問・参照資料",
+        "path": "theory.html",
+        "hash": "#common-loads/verification",
+        "kind": "荷重の理論"
       }
     ]
   }

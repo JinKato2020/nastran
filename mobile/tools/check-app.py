@@ -58,6 +58,20 @@ with sync_playwright() as p:
  for title in ['モデル化の考え方','並列計算・バッチ実行','INCLUDEとファイル分割','関連ファイル・結果の読み込み']:
   assert page.get_by_role('button',name=title,exact=True).count()==0
  page.screenshot(path='.qa/five-tabs-materials.png')
+ page.get_by_role('button',name='荷重の理論',exact=True).click()
+ for title in ['荷重の基本・集中荷重','分布荷重と等価節点荷重','自重・加速度・回転','初期ひずみ・温度荷重','ケース・組合せ・応用','検証・確認問題']:
+  assert page.get_by_role('button',name=title,exact=True).count()==1,title
+ page.screenshot(path='.qa/load-chapter-menu.png')
+ page.get_by_role('button',name='自重・加速度・回転',exact=True).click()
+ frame=page.frame_locator('iframe')
+ frame.locator('#load-mass').wait_for(state='visible')
+ assert frame.locator('.theory-section').count()==27
+ assert frame.locator('#load-mass').evaluate('e=>Math.abs(e.getBoundingClientRect().top)<140')
+ frame.locator('a[href="bulk.html#GRAV"]').first.click()
+ assert page.frame_locator('iframe').locator('#card-picker').input_value()=='GRAV'
+ page.get_by_role('button',name='‹ 戻る',exact=True).click()
+ page.frame_locator('iframe').locator('#theory-detail').wait_for(state='visible');bottom()
+ root('教材')
  page.get_by_role('button',name='境界条件と拘束',exact=True).click()
  for title in ['境界条件の基本','SPC・指定変位','MPC・独立と従属','結合と支持の選択','自動拘束と結果の検証','確認問題・参照資料']:
   assert page.get_by_role('button',name=title,exact=True).count()==1,title

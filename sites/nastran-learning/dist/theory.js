@@ -9,7 +9,7 @@
   return window.LessonArticle.table(columns,rows,{caption});
  }
  function render(){let [key,section]=location.hash.slice(1).split('/');const alias=entries.find(e=>e.key===key&&e.chapter);if(alias){key=alias.chapter;section=alias.section;}const e=entries.find(e=>e.key===key)||entries.find(e=>e.key===picker.options[0]?.value)||entries[0];picker.value=e.key;document.title=e.title+' — FEM Guide';
-  const damping=e.key==='damping',chapter={materials:window.MaterialChapter,boundary:window.BoundaryChapter}[e.key];
+  const damping=e.key==='damping',chapter={materials:window.MaterialChapter,boundary:window.BoundaryChapter,'common-loads':window.LoadChapter}[e.key];
   detail.closest('main').classList.toggle('elements-main',damping||!!chapter);
   picker.closest('label').hidden=damping||!!chapter;
   if(chapter){if(detail.dataset.chapter!==e.key){chapter.mount(detail);detail.dataset.chapter=e.key;}if(section)chapter.focusSection(section);return;}
@@ -39,11 +39,11 @@
   const nav=window.NASTRAN_LEARNING.navigation;
   const groups=new Map();
   const used=new Set();
-  for(const item of [...nav.materialTheory,...nav.boundaryTheory,...nav.common,...nav.materials]){
+  for(const item of [...nav.materialTheory,...nav.boundaryTheory,...nav.loadTheory,...nav.common,...nav.materials]){
    if(item.path!=='theory.html')continue;
    const entry=entries.find(e=>e.key===item.hash.slice(1).split('/')[0]);
    if(!entry||used.has(entry.key))continue;
-   const group=entry.key==='materials'?'材料理論':entry.key==='boundary'?'境界条件と拘束':item.group||'共通の解析技術論';
+   const group=entry.key==='materials'?'材料理論':entry.key==='boundary'?'境界条件と拘束':entry.key==='common-loads'?'荷重の理論':item.group||'共通の解析技術論';
    if(!groups.has(group))groups.set(group,[]);
    groups.get(group).push(entry);
    used.add(entry.key);

@@ -149,6 +149,16 @@ with sync_playwright() as p:
     assert page.evaluate('document.activeElement.closest("section").id')=='boundary-questions'
     page.locator('a[href="bulk.html#MPC"]').first.click()
     page.wait_for_function('messages.some(m=>m.type==="navigate"&&m.path==="bulk.html"&&m.hash==="#MPC")')
+    page.evaluate("location.hash='#common-loads/inertia'")
+    page.locator('#load-mass').wait_for()
+    assert page.locator('.theory-section').count()==27
+    page.locator('[data-load-lab="mass"] select').select_option('kg')
+    page.locator('.element-toc a[data-jump="load-questions"]').click()
+    assert page.evaluate('location.hash')=='#common-loads/inertia'
+    assert page.locator('[data-load-lab="mass"] select').input_value()=='kg'
+    assert page.evaluate('document.activeElement.closest("section").id')=='load-questions'
+    page.locator('a[href="bulk.html#GRAV"]').first.click()
+    page.wait_for_function('messages.some(m=>m.type==="navigate"&&m.path==="bulk.html"&&m.hash==="#GRAV")')
     page.close()
     page=reader('damping.html')
     assert page.locator('#damping-chapter .theory-section').count()==19
