@@ -1,0 +1,36 @@
+{
+  "source": "https://github.com/lucide-icons/lucide",
+  "commit": "de8d11aac831d519d2377ff516868244475fac06",
+  "icons": [
+    "route",
+    "braces",
+    "axis-3d",
+    "move",
+    "git-fork",
+    "move-3d",
+    "files",
+    "boxes",
+    "folder-tree",
+    "cpu",
+    "chart-no-axes-combined",
+    "bookmark",
+    "search",
+    "arrow-up-right",
+    "arrow-right",
+    "book-open",
+    "house",
+    "activity",
+    "settings-2",
+    "check",
+    "chevron-down",
+    "chevron-right",
+    "plus",
+    "arrow-left",
+    "trash-2"
+  ],
+  "license": "ISC; Feather-derived icons also retain MIT. See LICENSE.txt.",
+  "rasterization": "72px transparent PNG, 1.6-unit stroke, tinted by native Image.",
+  "aliases": {
+    "trash-2": "trash"
+  }
+}

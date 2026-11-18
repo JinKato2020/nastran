@@ -10,7 +10,7 @@ with sync_playwright() as p:
  page.goto('http://127.0.0.1:8766',wait_until='networkidle')
  labels=['ホーム','教材','解析','Inputデータ','設定']
  page.get_by_role('tab',name='ホーム',exact=True).wait_for()
- assert page.get_by_role('tab').count()==5
+ assert page.get_by_role('tablist',name='メインナビゲーション').get_by_role('tab').count()==5
  def nav(label):
   page.get_by_role('tab',name=label,exact=True).click()
   page.evaluate('()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
@@ -26,7 +26,7 @@ with sync_playwright() as p:
   chapter(next(a['group'] for a in analyses if a['title']==title))
   page.get_by_role('button',name=title,exact=True).click()
  def bottom():
-  assert page.get_by_role('tab').count()==5
+  assert page.get_by_role('tablist',name='メインナビゲーション').get_by_role('tab').count()==5
   for label in labels:
    box=page.get_by_role('tab',name=label,exact=True).bounding_box()
    assert box and 0<=box['x'] and box['x']+box['width']<=page.viewport_size['width']+1
@@ -39,10 +39,12 @@ with sync_playwright() as p:
    bottom()
  page.set_viewport_size({'width':390,'height':844})
  root('ホーム')
- assert page.get_by_role('button',name='エラーメッセージ',exact=True).count()==1
- for title in ['初めての解析','MSC Nastranファイルの構成','入力規則','節点・スカラー点','座標','要素の向き','応力方向','資料・サポート',
-               'モデル化の考え方','並列計算・バッチ実行','INCLUDEとファイル分割','関連ファイル・結果の読み込み']:
+ for title in ['初めての解析','MSC Nastranファイルの構成','入力規則','節点・スカラー点','座標','要素の向き','応力方向','資料・サポート']:
   assert page.get_by_role('button',name=title,exact=True).count()==1,title
+ page.get_by_role('tab',name='実務で調べる',exact=True).click()
+ for title in ['エラーメッセージ','モデル化の考え方','並列計算・バッチ実行','INCLUDEとファイル分割','関連ファイル・結果の読み込み']:
+  assert page.get_by_role('button',name=title,exact=True).count()==1,title
+ page.get_by_role('tab',name='基礎を学ぶ',exact=True).click()
  page.screenshot(path='.qa/five-tabs-home.png')
  page.get_by_role('button',name='初めての解析',exact=True).click()
  assert '解析経験者は読み飛ばして構いません' in page.frame_locator('iframe').locator('#first-analysis').inner_text()
@@ -201,8 +203,9 @@ with sync_playwright() as p:
  assert page.frame_locator('iframe').locator('h1').inner_text()=='実固有値解析'
  assert page.frame_locator('iframe').locator('#analysis-detail .element-key li').first.evaluate('e=>getComputedStyle(e).fontSize')=='19.5px'
  # Home bookmark list and error search remain reachable without another bottom tab.
- root('ホーム');page.get_by_role('button',name='しおり一覧').click()
+ root('ホーム');page.get_by_role('tab',name='しおり一覧').click()
  assert page.get_by_text('実固有値解析',exact=True).count()>=1
+ page.get_by_role('tab',name='実務で調べる',exact=True).click()
  page.get_by_role('button',name='エラーメッセージ',exact=True).click()
  frame=page.frame_locator('iframe');frame.locator('#error-query').fill('2025.0');frame.locator('#error-search-form button[type=submit]').click();frame.locator('[data-key="2025.0"]').click()
  assert frame.locator('#error-detail .error-id').inner_text()=='2025.0'
@@ -217,6 +220,7 @@ with sync_playwright() as p:
  assert page.locator('iframe').count()==0
  assert page.get_by_test_id('tab-title').inner_text()=='Inputデータ'
  nav('ホーム')
+ page.get_by_role('tab',name='実務で調べる',exact=True).click()
  assert page.get_by_role('button',name='エラーメッセージ',exact=True).is_visible()
  assert not errors,errors
  browser.close()

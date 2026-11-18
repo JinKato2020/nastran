@@ -28,6 +28,21 @@ for(const [oldPath,oldHash,path,hash] of [
 assert.equal(p.restore('{}').textScale,1);
 assert.equal(p.restore('{"textScale":99}').textScale,1);
 assert.equal(p.restore('{"textScale":1.3}').textScale,1.3);
+// Appearance is additive to the existing storage record: old learning data survives.
+for(const homeDesign of ['graphite','blueprint','minimal']){
+ const previous={homeDesign,progress:'[1,3]',courseProgress:'["model"]',textScale:1.3,last:{path:'elements.html',hash:'#solid',y:180},bookmarks:[{path:'coordinates.html',hash:'#systems',y:120}]};
+ const restored=p.restore(JSON.stringify(previous));
+ assert.equal(restored.homeDesign,homeDesign);assert.equal(restored.progress,previous.progress);assert.equal(restored.courseProgress,previous.courseProgress);assert.equal(restored.textScale,previous.textScale);assert.deepEqual(restored.last,previous.last);assert.deepEqual(restored.bookmarks,previous.bookmarks);
+}
+for(const value of [null,42,{},[],false,'legacy','__proto__'])assert.equal(p.restore(JSON.stringify({homeDesign:value,progress:'[1]'})).homeDesign,'blueprint');
+assert.equal(p.restore('{"progress":"[1]"}').homeDesign,'blueprint');
+const {PALETTES}=require('../src/appearance.ts');
+const luminance=hex=>{const rgb=hex.slice(1).match(/../g).map(x=>parseInt(x,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];};
+const contrast=(a,b)=>{const values=[luminance(a),luminance(b)].sort((a,b)=>b-a);return(values[0]+.05)/(values[1]+.05);};
+for(const colors of Object.values(PALETTES)){
+ for(const bg of [colors.background,colors.surface,colors.soft])for(const fg of [colors.text,colors.muted])assert(contrast(fg,bg)>=4.5,`${fg} on ${bg}`);
+ assert(contrast(colors.onAccent,colors.accent)>=4.5);
+}
 assert.equal(content.NAVIGATION.analyses.length,18);
 assert.ok(!content.NAVIGATION.analyses.some(e=>e.hash==='#common'));
 assert.deepEqual(content.NAVIGATION.analyses.slice(-3).map(e=>e.hash),['#model-verification','#restart','#database']);
