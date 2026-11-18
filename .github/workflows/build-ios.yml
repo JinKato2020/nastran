@@ -8,12 +8,12 @@ on:
         description: アプリのバージョン（app.jsonと一致させる）
         type: string
         required: true
-        default: '1.2.1'
+        default: '1.3.1'
       build_number:
         description: 同じバージョンのビルド番号（再ビルドは増加）
         type: string
         required: true
-        default: '1002'
+        default: '1001'
       testflight:
         description: TestFlightへアップロードする（App Store審査申請はしない）
         type: boolean
