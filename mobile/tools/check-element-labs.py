@@ -8,28 +8,61 @@ DIST = ROOT / 'sites/nastran-learning/dist'
 OUT = ROOT / 'mobile/.qa/element-labs-review'
 OUT.mkdir(exist_ok=True, parents=True)
 errors, report = [], []
+# Compare actual shared article components with the beam reference, not a second
+# set of hand-maintained colors. Content and diagram geometry may differ.
+def article_format(page, key):
+    return page.locator('article[data-element='+key+']').evaluate('''a=>{
+        const selectors={head:'.analysis-head',title:'.analysis-head h1',intro:'.element-key',
+          toc:'.element-toc',tocButton:'.element-toc button',section:'.theory-section',
+          heading:'.theory-section h2',formula:'.element-formula',table:'.element-table',
+          tableWrap:'.element-table-wrap',quiz:'.theory-quiz',
+          question:'[id$="-quiz"] summary',answer:'[id$="-quiz"] details p',
+          lab:'.theory-lab',controls:'.theory-lab-controls',label:'.theory-lab-controls label',
+          select:'.theory-lab-controls select',readout:'.theory-lab-readout',caption:'.theory-lab figcaption'};
+        const properties=['fontFamily','fontSize','fontWeight','lineHeight','color','backgroundColor',
+          'borderTop','borderLeft','borderRadius','padding','margin','display','gap','flexWrap'];
+        return Object.fromEntries(Object.entries(selectors).map(([name,selector])=>{
+          const e=a.querySelector(selector);if(!e)throw Error(name+' missing');
+          const s=getComputedStyle(e);
+          return [name,{tag:e.tagName,style:Object.fromEntries(properties.map(p=>[p,s[p]]))}];
+        }));
+    }''')
+
 with sync_playwright() as pw:
     browser = pw.chromium.launch(headless=True, executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')
     page = browser.new_page(viewport={'width': 390, 'height': 844})
     page.on('pageerror', lambda e: errors.append(str(e)))
+    page.goto((DIST/'elements.html').as_uri()+'#beam', wait_until='domcontentloaded')
+    page.locator('article[data-element=beam]').wait_for(state='visible')
+    beam_format = article_format(page, 'beam')
+    # Prerequisite link count is article content; the surrounding template is shared.
+    beam_intro = page.locator('#beam > .element-key').evaluate('e=>Array.from(e.children,x=>x.tagName).filter(t=>t!=="A")')
+    beam_frame = page.locator('#beam [data-beam-lab]').first.evaluate('e=>Array.from(e.children,x=>[x.tagName,x.className])')
     for key, expected in [('scalar', 5), ('shell', 6), ('solid', 7)]:
         page.goto((DIST/'elements.html').as_uri()+'#'+key, wait_until='domcontentloaded')
         page.reload(wait_until='domcontentloaded')
         page.set_viewport_size({'width': 390, 'height': 844})
         article = page.locator('article[data-element='+key+']')
         article.wait_for(state='visible')
+        current_format = article_format(page, key)
+        assert current_format == beam_format, (key, {k: v for k, v in current_format.items() if v != beam_format[k]})
+        assert article.locator(':scope > .element-key').evaluate('e=>Array.from(e.children,x=>x.tagName).filter(t=>t!=="A")') == beam_intro
+        assert article.locator('div.element-formula,.el-checks,.el-intro,.analysis-links').count() == 0
+        for selector, name in [(':scope > .element-key','intro'),('[id$="-quiz"]','quiz')]:
+            article.locator(selector).screenshot(path=str(OUT/(key+'-'+name+'.png')))
         figures = article.locator('[data-element-lab]')
         assert figures.count() == expected
         names = []
         for fig in figures.all():
             name = fig.get_attribute('data-element-lab')
             names.append(name)
+            assert fig.evaluate('e=>Array.from(e.children,x=>[x.tagName,x.className])') == beam_frame, name
             def check_labels():
                 clipped=fig.locator('svg text').evaluate_all('''es=>es.flatMap(t=>{const b=t.getBoundingClientRect(),s=t.closest('svg').getBoundingClientRect();return b.width&&(b.left<s.left-1||b.right>s.right+1||b.top<s.top-1||b.bottom>s.bottom+1)?[t.textContent]:[]})''')
                 assert not clipped,(name,clipped)
             assert fig.locator('svg').count() > 0, (name, errors)
             assert not fig.locator('svg text').evaluate_all(r'es=>es.some(e=>/[\u3040-\u30ff\u3400-\u9fff]/u.test(e.textContent))'), name
-            fig.locator('.el-plot').screenshot(path=str(OUT/(name+'.png')))
+            fig.locator('.theory-lab-plot').screenshot(path=str(OUT/(name+'.png')))
             check_labels()
             for control in fig.locator('input[type=range]').all():
                 for value in [control.get_attribute('min'), control.get_attribute('max')]:
@@ -39,10 +72,10 @@ with sync_playwright() as pw:
                 for value in control.locator('option').evaluate_all('es=>es.map(e=>e.value)'):
                     control.select_option(value)
                     check_labels()
-            for button in fig.locator('[data-el-preset]').all():
+            for button in fig.locator('[data-lab-action]').all():
                 button.click()
                 assert 'NaN' not in fig.inner_text() and 'Infinity' not in fig.inner_text(), name
-            assert 'NaN' not in fig.inner_text() and 'Infinity' not in fig.inner_text(), name
+            assert all(bad not in fig.inner_text() for bad in ['NaN','Infinity','図を描けませんでした']), name
         for width in [320, 390, 768]:
             page.set_viewport_size({'width': width, 'height': 844})
             assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'), (key, width)

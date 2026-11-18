@@ -8,7 +8,18 @@
 <p>節点の成分どうしをつなぐ CELAS と、要素座標を持つ CBUSH を比較します。剛性の値が同じでも、接続位置と成分が違うと結果は変わります。</p></div>
 
 
-<div class="element-key"><strong>この記事で分かること</strong><p>相対変位から力とエネルギーを求める。直列・並列・方向・節点のずれを比較する。CELASとCBUSHを状況で選ぶ。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html#points">GRID・SPOINT</a>、<a href="coordinates.html">位置と変位の座標</a></p><p><strong>ばねの力は「距離」ではなく「選んだ自由度の差」から決まる。</strong></p><p><strong>3行の要点</strong></p><ol><li>Kだけを与えるモデルでは、応力分布や実物の形は自動では求まらない。</li><li>自由度、座標系、力の作用線をセットで確認する。</li><li>変位・力のつり合い・エネルギーを手計算で確かめる。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
+<div class="element-key"><strong>この記事で分かること</strong>
+<ul>
+<li>ばねの力は「距離」ではなく「選んだ自由度の差」から決まる。相対変位から力とエネルギーを求める。</li>
+<li>直列・並列・方向・節点のずれを比較する。</li>
+<li>CELASとCBUSHを状況で選ぶ。</li>
+</ul>
+<strong>前提として読む記事</strong>：<a href="coordinates.html#points">GRID・SPOINT</a>、<a href="coordinates.html">位置と変位の座標</a>。
+<ol>
+<li>Kだけを与えるモデルでは、応力分布や実物の形は自動では求まらない。</li>
+<li>自由度、座標系、力の作用線をセットで確認する。</li>
+<li>変位・力のつり合い・エネルギーを手計算で確かめる。</li>
+</ol></div>
 <ul class="element-toc" aria-label="この解説の目次">
 <li><button type="button" data-jump="scalar-overview">要素ファミリーの全体像</button></li>
 <li><button type="button" data-jump="scalar-concept">形を持たない要素</button></li>
@@ -38,7 +49,7 @@
 <p>表の「性質の決まり方」の列が、この記事全体を貫くポイントです。CROD なら、Nastran が断面積（<a href="bulk.html#PROD">PROD</a>）、縦弾性係数（<a href="bulk.html#MAT1">MAT1</a>）、両端の節点の位置から軸の剛さ EA/L を<strong>自分で計算</strong>します。スカラーのばねでは、この計算をユーザーが済ませておき、結果のばね定数だけを入れます。GENEL はそれをさらに押し進めて、行列ごと入れる要素です。つまり、形の情報が少ない要素ほど、Nastran が自動で守ってくれること（座標の向き、剛体として動いたときに力が出ないこと）をユーザーが自分で守る必要があります。</p>
 
 <p class="element-key">要点：要素を選ぶ最初の問いは「その部品の形を、点・線・面・立体のどれで表せば十分か」です。形の情報を減らすほどモデルは軽くなりますが、向きや釣合いの管理がユーザー側の責任になります。</p>
-<details class="guide-details"><summary>第4章の各テーマから読み進める</summary><div>
+<div class="theory-quiz"><details><summary>第4章の各テーマから読み進める</summary><div>
 <ul>
 <li><a href="#scalar-concept">スカラー要素</a>：CELASとCBUSH。つないだ成分が動いたとき、どこへ力が伝わるかを確認する。</li>
 <li><a href="elements.html#beam">棒・梁</a>：CROD・CBAR・CBEAMの使い分けから、任意断面・複合材・曲がり梁へ進む。</li>
@@ -47,7 +58,7 @@
 <li><a href="elements.html#genel">GENEL</a>：離れた節点の変位と力の関係を、剛性または柔性行列で与える。</li>
 <li><a href="elements.html#connector">コネクタ</a>と<a href="elements.html#connector-cohesive">凝着界面</a>：点・線・面で結合する違いと、開口・すべりで界面力がどう変わるかを学ぶ。</li>
 </ul><p><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide.pdf#page=73" target="_blank" rel="noopener">線形静解析ユーザーガイド2024.1 第4章（PDF 73–202ページ） ↗</a></p>
-</div></details>
+</div></details></div>
 </section>
 
 <section class="theory-section" id="scalar-concept"><h2>2. スカラー要素 — 形を持たない要素</h2>
@@ -59,17 +70,17 @@
 
 <h3>両端が動く場合：1本のばねに2つの自由度</h3>
 <p>端1と端2で同じ正方向を選んだ並進ばねを考えます。u₁ と u₂ は各端で選んだ方向の変位です。端1を端2より 0.30 mm 正方向へ動かすと、K = 100 N/mm のばねには 30 N の力が生じます。両端を保つ力 f₁・f₂ は、大きさが同じで向きは逆です。</p>
-<div class="element-formula">端1：f₁ = K(u₁ − u₂) = Ku₁ − Ku₂
+<p class="element-formula">端1：f₁ = K(u₁ − u₂) = Ku₁ − Ku₂
 端2：f₂ = K(u₂ − u₁) = −Ku₁ + Ku₂
 
 [  K   −K ] [ u₁ ]   [ f₁ ]
-[ −K    K ] [ u₂ ] = [ f₂ ]</div>
+[ −K    K ] [ u₂ ] = [ f₂ ]</p>
 <p><strong>力の式が2本あり、どちらの式にも u₁ と u₂ が現れる</strong>ので、係数を並べると 2×2 です。行は力の式、列は変位成分です。行列に現れる4個の係数は、1本のばねの同じ K から決まります。両端とも ＋0.30 mm 動く場合、変位差は 0 なので、このばねが伝える力も 0 です。</p>
 <h3>片端を接地する場合：求める自由度は1つ</h3>
 <p>端2を地面につなぐとは、端2の変位を <strong>u₂ = 0</strong> と決めることです。これを端1の式 f₁ = K(u₁ − u₂) に代入すると、<strong>f₁ = Ku₁</strong> が残ります。求める変位が u₁ だけなので、このばねが未知の自由度に加える剛性は 1×1 の [K] です。</p>
-<div class="element-formula">K = 100 N/mm、端1の荷重 f₁ = ＋30 N
+<p class="element-formula">K = 100 N/mm、端1の荷重 f₁ = ＋30 N
 端1の変位：u₁ = f₁/K = 30/100 = ＋0.30 mm
-固定側の反力：f₂ = K(0 − u₁) = −30 N</div>
+固定側の反力：f₂ = K(0 − u₁) = −30 N</p>
 <p><strong>固定側は動かなくても力を受けます。</strong>上の反力は地面がばねを支える向きで、端1の荷重とつり合います。式の f₁・f₂ は両端を保つ力の符号です。Nastran の要素力を読むときは、カードの端1・端2と出力の符号規約を確認してください。</p>
 <h3>2つの節点は同じ位置に置く</h3>
 <p>節点どうしをスカラー要素でつなぐ時は、2つの節点を<strong>同じ位置に置く</strong>ことを強く勧めています。位置がずれていると、ばねが節点に及ぼす力が構造にモーメントを生み、結果が不正確になるからです。この理由は第5節で図を使って説明します。</p>
@@ -99,7 +110,7 @@
 <tr><th scope="row">地面</th><td>0 または空欄</td><td>0 または空欄</td></tr>
 </tbody></table></div>
 <p><strong>SPOINT の C2 = 0 は、変位ゼロを意味しません。</strong>点番号が入っていれば、その点の1つの自由度を使います。G2 と C2 の両方が 0 または空欄なら接地です。両端がスカラー点または接地だけなら、成分欄のない CELAS3・CELAS4 も使えます。</p>
-<div class="analysis-links"><a href="coordinates.html#points">節点・スカラー点の基礎へ →</a><a href="#scalar-spring1" data-jump="scalar-spring1">2本のばねの変位と力を検算する →</a></div>
+<p><a href="coordinates.html#points">節点・スカラー点の基礎へ →</a>　<a href="#scalar-spring1" data-jump="scalar-spring1">2本のばねの変位と力を検算する →</a></p>
 <div class="element-table-wrap"><table class="element-table narrow">
 <thead><tr><th>欄</th><th>意味</th><th>結果への表れ方</th></tr></thead>
 <tbody>
@@ -115,7 +126,7 @@
 
 <section class="theory-section" id="scalar-spring1"><h2>4. 検算：直列ばねの変位と力</h2>
 <p><a href="#scalar-spring-points" data-jump="scalar-spring-points">GRID・SPOINT・接地の図</a>と同じ接続で、GRID 10 側のばねを K₁ = 120 N/mm、地面側を K₂ = 80 N/mm とします。GRID 10 に ＋X 方向へ 48 N を加えます。中間の SPOINT 20 に外力はかからないので、2本のばねは同じ大きさの力を伝えます。</p>
-<div class="element-formula">ばね1 の変形量：u₁ − q = 48/120 = 0.40 mm<br>ばね2 の変形量：q − 0 = 48/80 = 0.60 mm<br>SPOINT 20 の変位：q = ＋0.60 mm<br>GRID 10 の変位：u₁ = q + 0.40 = ＋1.00 mm<br>支持反力：−48 N</div>
+<p class="element-formula">ばね1 の変形量：u₁ − q = 48/120 = 0.40 mm<br>ばね2 の変形量：q − 0 = 48/80 = 0.60 mm<br>SPOINT 20 の変位：q = ＋0.60 mm<br>GRID 10 の変位：u₁ = q + 0.40 = ＋1.00 mm<br>支持反力：−48 N</p>
 <p><strong>GRID 10 と SPOINT 20 の変位の差 0.40 mm は、2点の間にあるばね1の変形量です。</strong>一般に、中間点で力がつり合うと K₁(u₁ − q) = K₂q です。展開すると K₁u₁ − K₁q = K₂q、q の項をまとめると K₁u₁ = (K₁ + K₂)q なので、q = K₁u₁/(K₁ + K₂) になります。</p>
 <h3>中間に SPOINT を置くとき</h3>
 <p>中間の変位や各ばねの変形を確認したいとき、または中間に別のばね・集中質量・ダンパーをつなぐなど、独立して動く位置をモデルに残したいときに使います。たとえば振動解析で中間の部品に質量がある場合、その部品がどれだけ動くかを1成分で求められます。</p>
@@ -138,7 +149,7 @@
 </ol>
 <p>離れていること自体より、見たい動きで<strong>選んだ成分に差が出るか</strong>が重要です。たとえば2点が X 方向に並び、同じ X 成分をつないでいれば、Z まわりの微小回転では1次の X 変位差は出ません。</p>
 <p>CELAS で相対変位を受ける継ぎ手を作るときは、接続する2点を同じ位置に置き、変位軸の向きをそろえるのが基本です。離れた節点間の接続を表すなら、CBUSH の座標系とばねの位置を検討します。検算では、合力と同じ原点まわりの合モーメントを確認します。</p>
-<div class="analysis-links"><a href="#scalar-bushweld" data-jump="scalar-bushweld">数字で確認する →</a><a href="#scalar-cbush" data-jump="scalar-cbush">CBUSH のしくみへ →</a></div>
+<p><a href="#scalar-bushweld" data-jump="scalar-bushweld">数字で確認する →</a>　<a href="#scalar-cbush" data-jump="scalar-cbush">CBUSH のしくみへ →</a></p>
 </section>
 
 <section class="theory-section" id="scalar-cbush"><h2>6. CBUSH — 要素座標を持つばね・ダンパー</h2>
@@ -201,7 +212,7 @@
 
 <section class="theory-section" id="scalar-bushweld"><h2>8. 検算：離れた節点をつなぐ</h2>
 <p><a href="#scalar-offset" data-jump="scalar-offset">上下にずれた2点の図</a>と同じ条件で、A と B の間隔を d = 30 mm、X 方向の剛性を K = 120 N/mm とします。A のまわりに反時計回りに 0.01 rad 回したときの力を、微小回転の近似で求めます。</p>
-<div class="element-formula">A の X 変位：0 mm<br>B の X 変位：−dθ ≈ −30 × 0.01 = −0.30 mm<br>X 変位差の大きさ：0.30 mm<br>ばね力の大きさ：120 × 0.30 = 36 N<br>回転に抵抗するモーメントの大きさ：36 × 30 = 1,080 N·mm</div>
+<p class="element-formula">A の X 変位：0 mm<br>B の X 変位：−dθ ≈ −30 × 0.01 = −0.30 mm<br>X 変位差の大きさ：0.30 mm<br>ばね力の大きさ：120 × 0.30 = 36 N<br>回転に抵抗するモーメントの大きさ：36 × 30 = 1,080 N·mm</p>
 <p>この例では2点間の距離は変わりません。生じた36 Nは、CELAS が X 方向の変位差をばねの変形として扱った結果です。</p>
 </section>
 
@@ -229,8 +240,16 @@
 </ul>
 </section>
 
-<section class="theory-section el-checks" id="scalar-quiz"><h2>自分で確かめる</h2><details><summary>K = 100 N/mm。u₁ = u₂ = 0.7 mmなら、力と蓄積エネルギーは？</summary><p>変位差は0なので、どちらも0。両端が動くことと、ばねが変形することは別です。</p></details><details><summary>K₁ = 120、K₂ = 80 N/mm、P = 48 N。直列のuとq、並列のuは？</summary><p>直列はK = 48、u = 1.00 mm、地面側がK₂ならq = 0.60 mm。並列はK = 200、u = 0.24 mm、力は28.8 Nと19.2 N。</p></details><details><summary>離れたCELASの節点間隔だけを2倍にすると、同じ微小回転に対するモーメントは？</summary><p>変位差が2倍、力が2倍、腕の長さも2倍なので4倍。K回転 = Kd²です。</p></details><details><summary>同じ振幅で、強制変位の周波数を2倍にすると粘性力と1周期の損失は？</summary><p>速度振幅ωUが2倍なので粘性力も2倍。πcωU²も2倍。ばね力の振幅KUは変わりません。</p></details></section>
+<section class="theory-section" id="scalar-quiz"><h2>自分で確かめる</h2>
+<div class="theory-quiz">
+<details><summary>問1　K = 100 N/mm。u₁ = u₂ = 0.7 mmなら、力と蓄積エネルギーは？</summary><p>変位差は0なので、どちらも0。両端が動くことと、ばねが変形することは別です。</p></details>
+<details><summary>問2　K₁ = 120、K₂ = 80 N/mm、P = 48 N。直列のuとq、並列のuは？</summary><p>直列はK = 48、u = 1.00 mm、地面側がK₂ならq = 0.60 mm。並列はK = 200、u = 0.24 mm、力は28.8 Nと19.2 N。</p></details>
+<details><summary>問3　離れたCELASの節点間隔だけを2倍にすると、同じ微小回転に対するモーメントは？</summary><p>変位差が2倍、力が2倍、腕の長さも2倍なので4倍。K回転 = Kd²です。</p></details>
+<details><summary>問4　同じ振幅で、強制変位の周波数を2倍にすると粘性力と1周期の損失は？</summary><p>速度振幅ωUが2倍なので粘性力も2倍。πcωU²も2倍。ばね力の振幅KUは変わりません。</p></details>
+</div>
+</section>
 <section class="theory-section" id="scalar-sources"><h2>仕様を調べる</h2>
+<p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p>
 <p>各カード名からInputデータの書式・適用条件を確認できます。計算例は手計算用の条件です。</p>
 
 <p>仕様の照合：<a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=77" target="_blank" rel="noopener">MSC Nastran 2025.1 線形静解析ガイド 第4章（PDF 77ページから）</a>。図・対話計算は独自作成。個々の欄・既定値はInputデータへ移動して確認してください。</p>
@@ -596,7 +615,18 @@
 <p>薄肉部材を面で表します。中立面、法線、板厚、材料方向が、力と表裏の応力にどう表れるかを追います。</p></div>
 
 
-<div class="element-key"><strong>この記事で分かること</strong><p>板厚の効果、法線の反転、材料軸、要素のゆがみ、サンドイッチ構造を図で比較する。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html#elements">要素の向き</a>、<a href="coordinates.html#signs">応力方向</a></p><p><strong>基準面と板厚で、膜力・曲げ・表裏の応力をつなぐ。</strong></p><p><strong>3行の要点</strong></p><ol><li>板厚は膜剛性に1乗、曲げ剛性に3乗で効く。</li><li>Z1・Z2の名前だけでなく、実物のどちらの面かを確認する。</li><li>材料の向きを変える操作と、結果の表示軸を変える操作を区別する。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
+<div class="element-key"><strong>この記事で分かること</strong>
+<ul>
+<li>基準面と板厚で、膜力・曲げ・表裏の応力をつなぐ。</li>
+<li>板厚の効果、法線の反転、材料軸を図で比較する。</li>
+<li>要素のゆがみ、サンドイッチ構造を図で比較する。</li>
+</ul>
+<strong>前提として読む記事</strong>：<a href="coordinates.html#elements">要素の向き</a>、<a href="coordinates.html#signs">応力方向</a>。
+<ol>
+<li>板厚は膜剛性に1乗、曲げ剛性に3乗で効く。</li>
+<li>Z1・Z2の名前だけでなく、実物のどちらの面かを確認する。</li>
+<li>材料の向きを変える操作と、結果の表示軸を変える操作を区別する。</li>
+</ol></div>
 <ul class="element-toc" aria-label="この解説の目次">
 <li><button type="button" data-jump="shell-overview">全体像</button></li>
 <li><button type="button" data-jump="shell-when">シェルが使える条件</button></li>
@@ -646,9 +676,9 @@
 </ol>
 <h3>板厚と寸法の比の目安</h3>
 <p>横せん断（厚さ方向のずれ）による変形が曲げの変形に比べてどれくらいかを、片持ちの帯板で見積もると次のようになります（一般的な理論の補足）。</p>
-<div class="element-formula">曲げのたわみ δb = P·L³/(3EI)、横せん断のたわみ δs = P·L/(κ·G·A)
+<p class="element-formula">曲げのたわみ δb = P·L³/(3EI)、横せん断のたわみ δs = P·L/(κ·G·A)
 δs/δb = 3EI/(κ·G·A·L²) = (E/(4κG))·(t/L)²
-ν = 0.3（E/G = 2.6）、κ = 5/6 なら　δs/δb ≈ 0.78·(t/L)²</div>
+ν = 0.3（E/G = 2.6）、κ = 5/6 なら　δs/δb ≈ 0.78·(t/L)²</p>
 <div class="element-table-wrap"><table class="element-table narrow">
 <thead><tr><th>t/L</th><th>δs/δb</th><th>向いている扱い</th></tr></thead>
 <tbody>
@@ -682,8 +712,8 @@
 <figure data-element-lab="thickness"></figure>
 <p class="element-note">この節の式は板理論の教科書にある一般的な内容の補足です。</p>
 <p>シェルの変形は、厚さ方向の中央の面（基準面）の動きと、法線の傾きだけで表します。基準面から z の位置の面内変位は、中央面の変位に「z × 法線の傾き」を足したものです（式4-5、4-6）。これを微分すると、ひずみは次の形になります。</p>
-<div class="element-formula">ε(z) = ε⁰ + z·κ　（Nastran の出力の符号では ε(z) = ε⁰ − z·κ。下の strain2 の例題で確認）
-ε⁰：中央面のひずみ（膜ひずみ）、κ：曲率</div>
+<p class="element-formula">ε(z) = ε⁰ + z·κ　（Nastran の出力の符号では ε(z) = ε⁰ − z·κ。下の strain2 の例題で確認）
+ε⁰：中央面のひずみ（膜ひずみ）、κ：曲率</p>
 
 <h3>4種類の剛さ</h3>
 <div class="element-table-wrap"><table class="element-table">
@@ -738,7 +768,7 @@
 
 <section class="theory-section" id="shell-axes"><h2>6. 節点順・法線・材料方向</h2>
 <figure data-element-lab="surfaces"></figure>
-<div class="analysis-links"><a href="coordinates.html#elements">最初に学ぶ「要素の向き」へ →</a></div>
+<p><a href="coordinates.html#elements">最初に学ぶ「要素の向き」へ →</a></p>
 <p>右手の指を節点順に回したとき、親指が局所＋zを示します。Z1・Z2は要素基準面からの符号付き距離です。既定の対称断面では−z側と＋z側に対応します。オフセットや出力点を指定した場合は距離を確認します。</p><p>要素xは、四辺形では一般にG1→G2と一致するとは限りません。三角形と四辺形で面内軸の決め方が異なります。一方、THETAで指定する材料方向はG1→G2を基準に法線まわりに回します。MCIDを使う場合は指定座標系のx軸を要素面へ投影します。投影が小さくなる向きは避けます。</p><p>圧力はプリプロセッサの矢印と合反力で実空間の向きを確認します。座標系を変えると、等方材でも出力する応力成分の表示が変わる場合があります。隣接要素のNORMAL-Xを比べる前に、共通の方向へそろえます。</p>
 
 <h3>膜力から表裏の応力へ</h3><p>一様な膜応力はNx = ∫σ dz = σ膜tからσ膜 = Nx/t。直線分布をσ曲げ = C zと置くと、M* = ∫zσ曲げ dz = C t³/12。よってC = 12M*/t³、表裏z = ±t/2でσ = Nx/t ± 6M*/t²です。法線を反転するとzとM*が同時に反転するため、同じ物理的な面の応力は変わりません。</p>
@@ -769,9 +799,9 @@
 <tr><td>VON MISES</td><td>ミーゼス相当応力。STRESS(MAXS) なら最大せん断応力</td></tr>
 </tbody></table></div>
 <p>主応力・角度・ミーゼス応力は、σx・σy・τxy から計算されます（平面応力なので σz = 0）。計算式は次のとおりです（一般的な理論の補足。定義を別章の出力の説明に譲っています）。</p>
-<div class="element-formula">中心 c = (σx+σy)/2、半径 R = √{((σx−σy)/2)² + τxy²}
+<p class="element-formula">中心 c = (σx+σy)/2、半径 R = √{((σx−σy)/2)² + τxy²}
 MAJOR = c + R、MINOR = c − R、ANGLE = ½·atan2(2τxy, σx−σy)（角度は度に換算。2つの主応力が等しいと方向は定まらない）
-VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</div>
+VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</p>
 <h3>中心だけか、角も出すか（CORNER）</h3>
 <p>CQUAD4 と CTRIA3 は、既定では要素の中心（図心）の値だけを出力します。CQUAD4 では STRESS(CORNER) = ALL のように要求すると、角の節点の値も出ます。適用時の注意点は次の2つです。</p>
 <ul>
@@ -795,11 +825,11 @@ VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</div>
 </section>
 
 <section class="theory-section" id="shell-plate2"><h2>9. 検算：単位幅の膜力と曲げ</h2>
-<p>板厚4 mmの一様板で、局所x方向の膜力 Nₓ=48 N/mm、応力が＋z側に増える曲げの大きさ Mₓ=32 N·mm/mm を考えます。ここでの曲げの符号は応力分布で定義します。</p><div class="element-formula">膜応力 Nₓ/t = 12 MPa<br>表面の曲げ応力の大きさ 6Mₓ/t² = 12 MPa<br>＋z側：24 MPa、−z側：0 MPa</div><p>分布が一様な幅25 mmを取れば、膜力の合計は1,200 Nです。分布が変わる場合は断面に沿って積分します。出力表の曲げ符号は使用する要素と出力の定義を確認します。</p>
+<p>板厚4 mmの一様板で、局所x方向の膜力 Nₓ=48 N/mm、応力が＋z側に増える曲げの大きさ Mₓ=32 N·mm/mm を考えます。ここでの曲げの符号は応力分布で定義します。</p><p class="element-formula">膜応力 Nₓ/t = 12 MPa<br>表面の曲げ応力の大きさ 6Mₓ/t² = 12 MPa<br>＋z側：24 MPa、−z側：0 MPa</p><p>分布が一様な幅25 mmを取れば、膜力の合計は1,200 Nです。分布が変わる場合は断面に沿って積分します。出力表の曲げ符号は使用する要素と出力の定義を確認します。</p>
 </section>
 
 <section class="theory-section" id="shell-strain2"><h2>10. 検算：中央面ひずみと曲率</h2>
-<p>ひずみが板厚に沿って直線的に変化する場合、εₓ(z)=ε₀+zκₓ とします。ε₀=0.0006、κₓ=−0.0002 mm⁻¹、厚さ4 mmの例です。</p><div class="element-formula">z=+2 mm：εₓ=0.0002<br>z=−2 mm：εₓ=0.0010<br>2面の平均：0.0006、差を板厚で割ると −0.0002 mm⁻¹</div><p>両面とも引張ひずみでも、値に差があれば曲げがあります。法線を反転したら、同じ物理面を取り直して照合します。</p>
+<p>ひずみが板厚に沿って直線的に変化する場合、εₓ(z)=ε₀+zκₓ とします。ε₀=0.0006、κₓ=−0.0002 mm⁻¹、厚さ4 mmの例です。</p><p class="element-formula">z=+2 mm：εₓ=0.0002<br>z=−2 mm：εₓ=0.0010<br>2面の平均：0.0006、差を板厚で割ると −0.0002 mm⁻¹</p><p>両面とも引張ひずみでも、値に差があれば曲げがあります。法線を反転したら、同じ物理面を取り直して照合します。</p>
 </section>
 
 <section class="theory-section" id="shell-small"><h2>11. 小変形の仮定</h2><p>線形解析では元の形状を使って剛性と荷重方向を評価します。たわみが増えると、板の傾きや面内の伸びによって荷重とたわみが比例しなくなることがあります。周囲を拘束した板では膜力、自由端を持つ板では断面の回転と荷重の作用方向にも着目します。</p><p>判断に迷うときは、荷重を段階的に増やしたときの変位と反力を線形・幾何学的非線形で比較します。変形表示倍率を1に戻して、実際の傾きも確認します。<a href="theory.html#large-deformation">大変形の理論</a></p></section>
@@ -876,9 +906,9 @@ VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</div>
 </tbody></table></div>
 <h3>F1・F2 — パネルの伸びの剛さを辺の棒に置き換える</h3>
 <p>F1・F2 は、パネルが伸びの荷重に対して持つ剛さを、周囲の辺に置いた等価な棒で表すための係数です。</p>
-<div class="element-formula">F1 ≤ 1.01 のとき：辺 1-2 と辺 3-4 の棒の断面積 = 0.5 × F1 × T × w1（w1 はパネルの平均の幅）
+<p class="element-formula">F1 ≤ 1.01 のとき：辺 1-2 と辺 3-4 の棒の断面積 = 0.5 × F1 × T × w1（w1 はパネルの平均の幅）
 F1 > 1.01 のとき：辺 1-2 と辺 3-4 の棒の断面積 = それぞれ 0.5 × F1 × T²
-F2 も辺 2-3・1-4 について同様</div>
+F2 も辺 2-3・1-4 について同様</p>
 <p>F1 = 1.0 のとき、上下の2本の棒の面積の合計は T × w1、つまりパネルの断面積と同じになり、「1-2方向に完全に有効」な状態です。F1 > 1.01 の形は、板厚の何倍かの幅だけが有効という考え方（座屈後の有効幅の考え方。一般論）に当たります。F1 を小さくすると、パネルは伸びをほとんど受け持たず、純粋なせん断パネルに近づきます。</p>
 
 <h3>出力</h3>
@@ -940,11 +970,19 @@ F2 も辺 2-3・1-4 について同様</div>
 <li><strong>たわみが板厚よりずっと大きいのに線形解析で済ませる。</strong>plate2 では 20 lb で線形が約 10 in、非線形が約 9 in と約1割違います。</li>
 <li><strong>厚い部材をシェルで表す。</strong>板厚方向応力や接合部の詳細が必要ならソリッドを検討します。板厚と変形の波長の比を先に確かめます。</li>
 </ul>
-<div class="analysis-links"><a href="coordinates.html#elements">要素座標と応力の向き →</a><a href="elements.html#beam-compare">梁・板・ソリッドの比較 →</a><a href="modeling.html">片持ち梁をばね・梁・立体で比べる →</a></div>
+<p><a href="coordinates.html#elements">要素座標と応力の向き →</a>　<a href="elements.html#beam-compare">梁・板・ソリッドの比較 →</a>　<a href="modeling.html">片持ち梁をばね・梁・立体で比べる →</a></p>
 </section>
 
-<section class="theory-section el-checks" id="shell-quiz"><h2>自分で確かめる</h2><details><summary>同じ材料で板厚を2倍。膜剛性、曲げ剛性、質量は？</summary><p>膜は2倍、曲げは8倍、質量は2倍。同じ荷重なら変形はそれぞれ逆数になります。</p></details><details><summary>t = 4 mm、Nx = 100 N/mm、M* = 100 N。表裏の応力は？</summary><p>膜は25 MPa、曲げは±37.5 MPa。上面62.5 MPa、下面−12.5 MPa。法線を反転しても、実物の面ごとの値は変わりません。</p></details><details><summary>一軸100 MPaを45°の軸で見ると？</summary><p>σ₁ = σ₂ = 50 MPa、τ₁₂ = −50 MPa。主応力100、0 MPaは変わらず、変換で応力状態が増えたわけではありません。</p></details><details><summary>det Jが正なら、要素の精度は確認済み？</summary><p>いいえ。反転していないことと、精度が十分なことは別です。細長さ、曲面・荷重の表現、分割を変えた結果も確認します。</p></details></section>
+<section class="theory-section" id="shell-quiz"><h2>自分で確かめる</h2>
+<div class="theory-quiz">
+<details><summary>問1　同じ材料で板厚を2倍。膜剛性、曲げ剛性、質量は？</summary><p>膜は2倍、曲げは8倍、質量は2倍。同じ荷重なら変形はそれぞれ逆数になります。</p></details>
+<details><summary>問2　t = 4 mm、Nx = 100 N/mm、M* = 100 N。表裏の応力は？</summary><p>膜は25 MPa、曲げは±37.5 MPa。上面62.5 MPa、下面−12.5 MPa。法線を反転しても、実物の面ごとの値は変わりません。</p></details>
+<details><summary>問3　一軸100 MPaを45°の軸で見ると？</summary><p>σ₁ = σ₂ = 50 MPa、τ₁₂ = −50 MPa。主応力100、0 MPaは変わらず、変換で応力状態が増えたわけではありません。</p></details>
+<details><summary>問4　det Jが正なら、要素の精度は確認済み？</summary><p>いいえ。反転していないことと、精度が十分なことは別です。細長さ、曲面・荷重の表現、分割を変えた結果も確認します。</p></details>
+</div>
+</section>
 <section class="theory-section" id="shell-sources"><h2>仕様を調べる</h2>
+<p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p>
 <p>各カード名からInputデータの書式・適用条件を確認できます。計算例は手計算用の条件です。</p>
 
 <p>仕様の照合：<a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=153" target="_blank" rel="noopener">MSC Nastran 2025.1 線形静解析ガイド 第4章（PDF 153ページから）</a>。図・対話計算は独自作成。個々の欄・既定値はInputデータへ移動して確認してください。</p>
@@ -955,7 +993,18 @@ F2 も辺 2-3・1-4 について同様</div>
 <p>立体内部の変位・応力を求める要素です。節点順、面にかかる荷重、他の要素との接続、比較する応力の位置を確認します。</p></div>
 
 
-<div class="element-key"><strong>この記事で分かること</strong><p>横拘束、1次・2次補間、要素のつぶれ、モーメントの伝達、圧力とせん断を比較する。</p><p><strong>前提として読む記事：</strong><a href="coordinates.html">座標</a>、<a href="coordinates.html#signs">応力方向</a>、<a href="elements.html#shell">シェルが使える範囲</a></p><p><strong>立体の節点変位から、3次元のひずみと応力を読む。</strong></p><p><strong>3行の要点</strong></p><ol><li>ソリッドの剛性に直接つながるのは節点の並進で、回転は周囲の並進で表す。</li><li>中間節点と細分化はひずみの変化を表す手段。要素数だけで精度を決めない。</li><li>最大応力を比べる前に座標・位置・平均化・拘束条件をそろえる。</li></ol><p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p></div>
+<div class="element-key"><strong>この記事で分かること</strong>
+<ul>
+<li>立体の節点変位から、3次元のひずみと応力を読む。</li>
+<li>横拘束、1次・2次補間、要素のつぶれを比較する。</li>
+<li>モーメントの伝達、圧力とせん断を比較する。</li>
+</ul>
+<strong>前提として読む記事</strong>：<a href="coordinates.html">座標</a>、<a href="coordinates.html#signs">応力方向</a>、<a href="elements.html#shell">シェルが使える範囲</a>。
+<ol>
+<li>ソリッドの剛性に直接つながるのは節点の並進で、回転は周囲の並進で表す。</li>
+<li>中間節点と細分化はひずみの変化を表す手段。要素数だけで精度を決めない。</li>
+<li>最大応力を比べる前に座標・位置・平均化・拘束条件をそろえる。</li>
+</ol></div>
 <ul class="element-toc" aria-label="この解説の目次">
 <li><button type="button" data-jump="solid-overview">全体像</button></li>
 <li><button type="button" data-jump="solid-nodes">節点の並びと中間節点</button></li>
@@ -1060,7 +1109,7 @@ F2 も辺 2-3・1-4 について同様</div>
 </section>
 
 <section class="theory-section" id="solid-taper"><h2>6. 検算：厚さ方向の分割と曲げ</h2>
-<p>端面で240 N·mmの純曲げを与えるなら、上下の荷重群の作用線を12 mm離し、各群に20 Nずつ逆向きの力を分配します。合力は0です。単一節点の回転成分にモーメントを与えると、並進を持つソリッドの応答として適切に伝わりません。</p><div class="element-formula">曲げモーメント：20 × 12 = 240 N·mm<br>幅20 mm・厚さ12 mmの矩形断面：I = 20 × 12³/12 = 2,880 mm⁴<br>荷重点・固定端から離れた断面の表面公称応力：240 × 6/2,880 = 0.50 MPa</div><p>厚さ方向1、2、4層で、同一断面の軸方向応力と先端変位を照合します。層数を増やしても角の最大値だけが変わり続ける場合は、荷重点・拘束端の特異性と、メッシュによる全体応答の収束を分けて判断します。積分点・角・節点平均を混ぜて比べないようにします。</p>
+<p>端面で240 N·mmの純曲げを与えるなら、上下の荷重群の作用線を12 mm離し、各群に20 Nずつ逆向きの力を分配します。合力は0です。単一節点の回転成分にモーメントを与えると、並進を持つソリッドの応答として適切に伝わりません。</p><p class="element-formula">曲げモーメント：20 × 12 = 240 N·mm<br>幅20 mm・厚さ12 mmの矩形断面：I = 20 × 12³/12 = 2,880 mm⁴<br>荷重点・固定端から離れた断面の表面公称応力：240 × 6/2,880 = 0.50 MPa</p><p>厚さ方向1、2、4層で、同一断面の軸方向応力と先端変位を照合します。層数を増やしても角の最大値だけが変わり続ける場合は、荷重点・拘束端の特異性と、メッシュによる全体応答の収束を分けて判断します。積分点・角・節点平均を混ぜて比べないようにします。</p>
 </section>
 
 <section class="theory-section" id="solid-triax"><h2>7. CTRIAX6 ― 軸対称の回転体</h2>
@@ -1124,11 +1173,19 @@ F2 も辺 2-3・1-4 について同様</div>
 <li><strong>積分法の既定を理由なく変える。</strong>理論に詳しく特別な理由があるとき以外は既定のままにします。</li>
 <li><strong>CTRIAX6 に軸対称でない荷重をかけようとする。</strong>そういう場合は立体のモデルか巡回対称の機能を使います。</li>
 </ul>
-<div class="analysis-links"><a href="elements.html#beam">梁要素とテーパー梁 →</a><a href="modeling.html">片持ち梁をばね・梁・立体で比べる →</a><a href="coordinates.html#elements">要素座標と応力の向き →</a></div>
+<p><a href="elements.html#beam">梁要素とテーパー梁 →</a>　<a href="modeling.html">片持ち梁をばね・梁・立体で比べる →</a>　<a href="coordinates.html#elements">要素座標と応力の向き →</a></p>
 </section>
 
-<section class="theory-section el-checks" id="solid-quiz"><h2>自分で確かめる</h2><details><summary>ν = 0.3で横2方向を止めると、見かけの軸剛性はEの何倍？</summary><p>(1−0.3)/[(1+0.3)(1−0.6)] = 1.346倍。ν = 0.49では約17.1倍です。</p></details><details><summary>1,000 N·mmを上下40 mm離れた2点の偶力で渡す。各点の力は？</summary><p>±25 N。合力0、モーメント25×40 = 1,000 N·mm。4点に対称に配れば各点±12.5 Nです。</p></details><details><summary>u = δ(x/L)²を端点だけで補間。分割数を2倍にすると最大変位誤差は？</summary><p>δ/(4n²)なので1/4。ひずみの誤差は微分で別の挙動となるため、変位の収束だけで応力の収束を判断しません。</p></details><details><summary>p = 50 MPa、τ = 20 MPa。von Misesは？ pだけ2倍にしたら？</summary><p>√3×20 = 約34.6 MPa。pだけ増やしても変わりません。主応力と体積ひずみは変わります。</p></details></section>
+<section class="theory-section" id="solid-quiz"><h2>自分で確かめる</h2>
+<div class="theory-quiz">
+<details><summary>問1　ν = 0.3で横2方向を止めると、見かけの軸剛性はEの何倍？</summary><p>(1−0.3)/[(1+0.3)(1−0.6)] = 1.346倍。ν = 0.49では約17.1倍です。</p></details>
+<details><summary>問2　1,000 N·mmを上下40 mm離れた2点の偶力で渡す。各点の力は？</summary><p>±25 N。合力0、モーメント25×40 = 1,000 N·mm。4点に対称に配れば各点±12.5 Nです。</p></details>
+<details><summary>問3　u = δ(x/L)²を端点だけで補間。分割数を2倍にすると最大変位誤差は？</summary><p>δ/(4n²)なので1/4。ひずみの誤差は微分で別の挙動となるため、変位の収束だけで応力の収束を判断しません。</p></details>
+<details><summary>問4　p = 50 MPa、τ = 20 MPa。von Misesは？ pだけ2倍にしたら？</summary><p>√3×20 = 約34.6 MPa。pだけ増やしても変わりません。主応力と体積ひずみは変わります。</p></details>
+</div>
+</section>
 <section class="theory-section" id="solid-sources"><h2>仕様を調べる</h2>
+<p class="element-note">動く図の数値は明示した理論式・補間から計算しています。MSC Nastranの実行結果ではありません。概念はNastran共通、入力仕様の参照はMSC 2025.1です。</p>
 <p>各カード名からInputデータの書式・適用条件を確認できます。計算例は手計算用の条件です。</p>
 
 <p>仕様の照合：<a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=172" target="_blank" rel="noopener">MSC Nastran 2025.1 線形静解析ガイド 第4章（PDF 172ページから）</a>。図・対話計算は独自作成。個々の欄・既定値はInputデータへ移動して確認してください。</p>

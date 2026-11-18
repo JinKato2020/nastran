@@ -334,10 +334,8 @@
  };
 
  /* ---------- 画面とのつなぎ ---------- */
- function connect(root){
-  for(const fig of root.querySelectorAll('[data-beam-fig]')){const t=document.createElement('template');t.innerHTML=figs[fig.dataset.beamFig]().trim();const node=t.content.firstElementChild;if(fig.id)node.id=fig.id;fig.replaceWith(node);}
-  for(const fig of root.querySelectorAll('figure[data-beam-lab]')){
-   const lab=labs[fig.dataset.beamLab];fig.classList.add('theory-lab','beam-lab');fig.innerHTML=lab.html();
+ function mount(fig,lab){
+   fig.classList.add('theory-lab','beam-lab');fig.innerHTML=lab.html();
    const el={plot:fig.querySelector('.theory-lab-plot'),readout:fig.querySelector('.theory-lab-readout'),inputs:{},out:{}};
    for(const input of fig.querySelectorAll('[data-lab-input]'))el.inputs[input.dataset.labInput]=input;
    for(const o of fig.querySelectorAll('[data-out]'))el.out[o.dataset.out]=o;
@@ -346,8 +344,13 @@
    fig.addEventListener('input',draw);fig.addEventListener('change',draw);
    fig.addEventListener('click',event=>{const b=event.target.closest('[data-lab-action]');if(!b)return;const [name,val]=b.dataset.labAction.split(':');lab.action(el,name,val);draw();});
    draw();
+ }
+ function connect(root){
+  for(const fig of root.querySelectorAll('[data-beam-fig]')){const t=document.createElement('template');t.innerHTML=figs[fig.dataset.beamFig]().trim();const node=t.content.firstElementChild;if(fig.id)node.id=fig.id;fig.replaceWith(node);}
+  for(const fig of root.querySelectorAll('figure[data-beam-lab]')){
+   mount(fig,labs[fig.dataset.beamLab]);
   }
  }
- window.BeamLabs={connect,labs,figs,graphics:{render3d,camera,chart,extrude,wall},core:{cantilever,orient,ORIENT,composite,shearRatio,SHEAR,twistFree,twistRestrained,WARP,taperRatio,CH,H300,MESH,BETA}};
+ window.BeamLabs={connect,labs,figs,ui:{box,slider,select,presets,mount},graphics:{render3d,camera,chart,extrude,wall},core:{cantilever,orient,ORIENT,composite,shearRatio,SHEAR,twistFree,twistRestrained,WARP,taperRatio,CH,H300,MESH,BETA}};
  if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',()=>connect(document));
 })();

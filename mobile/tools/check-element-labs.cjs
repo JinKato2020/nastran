@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const dist=path.resolve(__dirname,'../../sites/nastran-learning/dist'),ctx={window:{}};
 vm.createContext(ctx);
-for(const f of ['element-labs.js','analysis-mode-quiz.js','analysis-quiz.js','analysis-model-quiz.js','analysis-original-decks.js'])vm.runInContext(fs.readFileSync(path.join(dist,f),'utf8'),ctx,{filename:f});
+for(const f of ['beam-labs.js','element-labs.js','analysis-mode-quiz.js','analysis-quiz.js','analysis-model-quiz.js','analysis-original-decks.js'])vm.runInContext(fs.readFileSync(path.join(dist,f),'utf8'),ctx,{filename:f});
 const c=ctx.window.ElementLabs.core,m=ctx.window.AnalysisModeQuiz.core;
 const close=(a,b,tol=1e-10)=>assert(Math.abs(a-b)<=tol*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 for(const shift of [-10,0,7]){const r=c.spring(120,.6+shift,.2+shift);close(r.f1,48);close(r.f1+r.f2,0);close(r.energy,9.6);}
