@@ -48,8 +48,10 @@
 .ev-key summary{cursor:pointer;min-height:44px;padding:9px 0;box-sizing:border-box}
 @media(min-width:760px){.ev-panels{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}
 @media print{.ev-key{display:none}.ev-panel{break-inside:avoid}}
-.elements-main ol{padding-left:22px}
-.elements-main .theory-section ol li{font-size:15px;line-height:1.95;color:#435c79;margin:8px 0}
+.elements-main ol,.theory-section ol,.element-key ol{padding-left:22px}
+.theory-section ol li{font-size:15px;line-height:1.95;color:#435c79;margin:8px 0}
+.element-table caption{text-align:left;padding:0 0 8px;color:#334e6e}
+.element-table tr[aria-current=true]{background:#edf8f5}
 /* 梁の記事の動く図（beam-labs.js） */
 .beam-lab .theory-lab-controls output{min-width:3.6em;font-variant-numeric:tabular-nums;color:#1f4f9a;font-weight:600}
 .beam-lab-presets{display:flex;flex-wrap:wrap;gap:6px}

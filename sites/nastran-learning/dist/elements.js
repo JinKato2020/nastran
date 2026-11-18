@@ -29,6 +29,7 @@
   const listed=order.map(key=>articles.find(article=>article.dataset.element===key)).filter(Boolean);
   picker.innerHTML=[...listed,...articles.filter(article=>!listed.includes(article))]
    .map(a=>`<option value="${a.dataset.element}">${esc(a.dataset.title)}</option>`).join('');
+  for(const article of articles)window.LessonArticle.adoptIntro(article);
   render();
  });
 })();

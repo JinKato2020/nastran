@@ -8,14 +8,46 @@
  const picker=byId('analysis-picker');
  const detail=byId('analysis-detail');
  const list=items=>`<ul>${items.map(item=>`<li>${esc(item)}</li>`).join('')}</ul>`;
- const conditions=(rows,cardLabels=false)=>`<dl class="analysis-inputs">${rows.map(([label,body])=>`<div><dt>${cardLabels?label:esc(label)}</dt><dd>${esc(body)}</dd></div>`).join('')}</dl>`;
+ const article=window.LessonArticle;
+ const conditions=(rows,cardLabels=false)=>article.table(['項目','説明'],rows,{htmlFirst:cardLabels,narrow:true});
  const links=items=>`<div class="analysis-links">${items.map(([url,label])=>`<a href="${esc(url)}">${esc(label)} →</a>`).join('')}</div>`;
  const cardLinks=items=>links(items.map(([id,label])=>['bulk.html#'+id,label]));
  const sources=items=>`<div class="analysis-sources">${items.map(({url,label})=>`<a href="${esc(url)}" target="_blank" rel="noopener">${esc(label)} ↗</a>`).join('')}</div>`;
- const section=(title,body,id='')=>`<section class="analysis-section"${id?' id="'+id+'"':''}><h2>${title}</h2>${body}</section>`;
- const sub=(title,body)=>`<h3 class="analysis-card-group">${esc(title)}</h3>${body}`;
+ const section=article.section;
+ const sub=(title,body)=>`<h3>${esc(title)}</h3>${body}`;
  const ordered=items=>`<ol class="analysis-steps">${items.map(item=>`<li>${esc(item)}</li>`).join('')}</ol>`;
- const guideBasics=g=>g.basics.map(([title,items])=>sub(title,list(items))).join('')+sub('用語',conditions(g.terms))+sub('入力を組み立てる順番',ordered(g.steps));
+ const prerequisiteTopics={
+  static:[['elements.html#beam','梁要素'],['theory.html#boundary','境界条件']],
+  modes:[['elements.html#beam','梁要素'],['theory.html#modes','実固有値の理論']],
+  'complex-modes':[['analysis.html#modes','実固有値解析'],['theory.html#damping','減衰']],
+  heat:[['theory.html#heat','熱伝導の理論']],
+  'direct-frequency':[['analysis.html#modes','実固有値解析'],['theory.html#damping','減衰']],
+  'modal-frequency':[['analysis.html#direct-frequency','直接周波数応答'],['analysis.html#modes','実固有値解析']],
+  transient:[['analysis.html#modes','実固有値解析'],['theory.html#damping','減衰']],
+  buckling:[['analysis.html#static','静解析'],['theory.html#buckling','座屈の理論']],
+  'thermal-stress':[['analysis.html#heat','熱伝導解析'],['theory.html#materials','材料']],
+  'thick-cylinder':[['elements.html#solid','ソリッド要素'],['theory.html#common-mesh','メッシュ']],
+  'prestressed-modes':[['analysis.html#modes','実固有値解析'],['analysis.html#buckling','座屈解析']],
+  fracture:[['theory.html#fracture','亀裂の理論']],
+  'large-deformation':[['analysis.html#static','静解析'],['theory.html#large-deformation','大変形の理論']],
+  plasticity:[['theory.html#materials','材料'],['theory.html#plasticity','弾塑性の理論']],
+  contact:[['theory.html#boundary','境界条件'],['theory.html#contact','接触の理論']]
+ };
+ const nonlinearPoints={
+  fracture:['評価する量は先端最大応力ではなく、K・Gとその適用範囲です。','亀裂面と対称面を区別し、先端付近の節点位置を確かめます。','荷重条件・亀裂寸法・メッシュをそろえ、評価量の収束を確認します。'],
+  'large-deformation':['幾何学的非線形を扱い、材料の塑性とは分けて考えます。','荷重増分と各増分内の反復を区別し、収束経過も読みます。','極限点付近では、同じ荷重値だけでなく荷重–変位の経路を比較します。'],
+  plasticity:['降伏の開始、降伏後の変形、除荷後の残留を順番に確認します。','最終荷重だけでなく、載荷・除荷の履歴と材料の設定を対応させます。','塑性ヒンジ近似が表す範囲と、断面内の詳細な塑性分布を区別します。'],
+  contact:['最初に接触面・すき間と、伝えられる力の向きを確認します。','開離・固着・滑りの状態が変わる場所を、接触力と一緒に読みます。','締付けを扱う場合は、締付け・保持・外力の順序をそろえて比較します。']
+ };
+ function readingIntro(entry,scenario,model,specific){
+  const guide=window.AnalysisScenarioGuides[entry.key];
+  const prerequisites=entry.key==='static'
+   ?[['elements.html#'+model.id,{beam:'梁要素',shell:'シェル要素',solid:'ソリッド要素'}[model.id]],...prerequisiteTopics.static.slice(1)]
+   :prerequisiteTopics[entry.key];
+  return article.intro({goals:guide.basics[0][1],prerequisites,
+   points:specific?.items|| (scenario?[scenario.summary,model.takeaway,scenario.compare]:nonlinearPoints[entry.key])});
+ }
+ const guideBasics=g=>g.basics.slice(1).map(([title,items])=>sub(title,list(items))).join('')+sub('用語',conditions(g.terms))+sub('入力を組み立てる順番',ordered(g.steps));
  const verifySteps=g=>g?sub('実行後に確かめる順番',ordered(g.verify)):'';
  // Three tabs grouped by purpose; older tab names in saved links map onto them.
  const tabLabels=[['model','解説'],['input','入力'],['results','結果'],['quiz','問題']];
@@ -24,7 +56,7 @@
  function tabbed(current,blocks){
   const shown=tabLabels.filter(([id])=>blocks[id]);
   return `<div class="analysis-tabs" role="tablist" aria-label="この解析の説明">${shown.map(([id,label])=>`<button type="button" role="tab" data-analysis-tab="${id}" aria-selected="${id===current}">${label}</button>`).join('')}</div>`+
-   shown.map(([id])=>`<div class="analysis-tab-panel" role="tabpanel" data-analysis-panel="${id}"${id===current?'':' hidden'}>${blocks[id].filter(Boolean).map(([title,body,anchor])=>section(title,body,anchor)).join('')}</div>`).join('');
+   shown.map(([id])=>`<div class="analysis-tab-panel" role="tabpanel" data-analysis-panel="${id}"${id===current?'':' hidden'}>${blocks[id].filter(Boolean).map(([title,body,anchor])=>title?section(title,body,anchor):body).join('')}</div>`).join('');
  }
  function bindTabs(state,save){
   for(const button of detail.querySelectorAll('[data-analysis-tab]'))button.addEventListener('click',()=>{
@@ -40,7 +72,7 @@
  const unlinkedCards=new Set(['DMIG','K2PP','SVECT','SDISP','PARAM,FRIC']);
  const displayCard=id=>id.startsWith('EXEC_SOL_')?id.replace('EXEC_SOL_','SOL '):id.replace(/^EXEC_|^CASE_/,'').replace(/^PARAM_/,'PARAM,').replaceAll('_',' ');
  function cardGroups(groups){
-  return groups.map(([title,rows])=>`<h3 class="analysis-card-group">${esc(title)}</h3>`+conditions(rows.map(([id,body])=>[!unlinkedCards.has(id)?'<a href="bulk.html#'+id+'" data-analysis-card="'+id+'">'+esc(displayCard(id))+'</a>':esc(displayCard(id)),body]),true)).join('');
+  return groups.map(([title,rows])=>`<h3>${esc(title)}</h3>`+conditions(rows.map(([id,body])=>[!unlinkedCards.has(id)?'<a href="bulk.html#'+id+'" data-analysis-card="'+id+'">'+esc(displayCard(id))+'</a>':esc(displayCard(id)),body]),true)).join('');
  }
  function deckSection(deck,open){
   const count=deck.text.trimEnd().split(/\r?\n/).length;
@@ -60,8 +92,8 @@
  function contextLinks(entry,related=[]){
   return links([['theory.html#'+entry.key,'この解析の理論'],...related,['analysis.html#model-verification','モデル検証']]);
  }
- function compare(scenario,selected){
-  return `<table class="analysis-scenario-comparison"><caption>${esc(scenario.shared)}</caption><thead><tr>${scenario.columns.map(col=>`<th scope="col">${esc(col)}</th>`).join('')}</tr></thead><tbody>${scenario.rows.map(([name,...cells],index)=>`<tr${index===selected?' aria-current="true"':''}><th scope="row">${esc(name)}</th>${cells.map(cell=>`<td>${esc(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table><p class="analysis-scenario-summary">${esc(scenario.compare)}</p>`;
+ function compare(scenario,selected,specific){
+  return article.table(scenario.columns,scenario.rows,{caption:scenario.shared,selected})+(specific?`<p>${esc(scenario.compare)}</p>`:'');
  }
  const complexChoices=[
   {id:'analysis-damping-picker',label:'ダンパ',options:[['off','なし'],['on','あり']],value:model=>model.damped?'on':'off'},
@@ -92,7 +124,7 @@
   const complex=entry.key==='complex-modes';
   const model=scenario.models.find(item=>item.id===modelKey)||scenario.models[0];
   const deck=window.AnalysisOriginalDecks[model.id];
-  const figure=`<figure class="analysis-scenario-figure">${window.renderAnalysisScenarioDiagram(model.diagram)}<figcaption>境界条件の模式図</figcaption><p>${esc(model.takeaway)}</p></figure>`;
+  const figure=`<figure class="analysis-scenario-figure">${window.renderAnalysisScenarioDiagram(model.diagram)}<figcaption>境界条件の模式図</figcaption></figure>`;
   const selection=scenarioControls(scenario,model,complex);
   const related=[...(scenario.links||[])];
   if(entry.key==='static')related.push(
@@ -109,13 +141,13 @@
   const token=()=>state.current==='input'&&byId('analysis-original-input')?.open?'dat':state.current;
   const place=(id,tab)=>'#'+entry.key+'/'+id+(tab&&tab!=='model'?'/'+tab:'');
   detail.innerHTML=heading(entry,'')+selection+figure+(tabbed(state.current,{
-      model:[['モデル化と境界条件',`<p class="analysis-scenario-summary">${esc(scenario.summary)}</p>`+conditions(model.conditions)],specific&&[specific.title,list(specific.items)],guide&&['この解析で共通する基礎',specific?'<details class=analysis-shared><summary>全モデルに共通する用語と手順</summary>'+guideBasics(guide)+'</details>':guideBasics(guide)]],
+      model:[[null,readingIntro(entry,scenario,model,specific)],['モデル化と境界条件',conditions(model.conditions)],guide&&['この解析で共通する基礎',specific?'<div class=theory-quiz><details><summary>全モデルに共通する用語と手順</summary>'+guideBasics(guide)+'</details></div>':guideBasics(guide)]],
       input:[['カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations'],
        entry.key==='buckling'&&['SOL 105で静解析と座屈を対応させる',bucklingSetup(),'analysis-buckling-setup'],
        guide?.inputReview&&['入力で確認する指定',cardGroups(guide.inputReview)+sources([{url:'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=38',label:'線形静解析ユーザーガイド 2025.1 · 第2章 PDF 38–40ページ'}])],
        ['自作モデルのDAT',deckSection(deck,tabKey==='dat')]],
       quiz:quiz&&[['入力の4択問題',window.AnalysisQuiz.render(entry.key,model.id),'analysis-quiz']],
-      results:[['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(specific||guide)],['モデル間の比較',compare(scenario,scenario.models.indexOf(model))],specific?.pitfalls?['このモデルで間違えやすい点',conditions(specific.pitfalls)]:guide&&['よくある失敗と直し方',conditions(guide.pitfalls)]]
+      results:[['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(specific||guide)],['モデル間の比較',compare(scenario,scenario.models.indexOf(model),specific)],specific?.pitfalls?['このモデルで間違えやすい点',conditions(specific.pitfalls)]:guide&&['よくある失敗と直し方',conditions(guide.pitfalls)]]
      }))+
    contextLinks(entry,related)+sources(scenario.sources||entry.sources);
   bindTabs(state,()=>history.replaceState(null,'',place(model.id,token())));
@@ -140,12 +172,18 @@
  function solverLinks(key,simcenter=false){
   return `<nav class="solver-options" aria-label="対象ソルバー"><a href="#${key}"${simcenter?'':' aria-current="page"'}>MSC Nastran</a><a href="#${key}/simcenter"${simcenter?' aria-current="page"':''}>Simcenter Nastran</a></nav>`;
  }
- function showSimcenter(entry){
+ function showSimcenter(entry,tabKey){
   const item=scope.nonlinear[entry.key];
+  const state={current:tabOf(tabKey)==='quiz'?'model':tabOf(tabKey)};
   document.title=entry.title+' · Simcenter Nastran';
   detail.innerHTML=`<div class="analysis-head"><span class="analysis-sol">Simcenter Nastran · SOL 401／402</span><h1>${esc(entry.title)}</h1>${solverLinks(entry.key,true)}<p class="solver-scope">Siemensの公開資料で確認した機能と、使用版で照合する設定です。</p></div>`+
-   item.steps.map(([title,body])=>section(esc(title),`<p>${esc(body)}</p>`)).join('')+
+   tabbed(state.current,{
+    model:[[null,readingIntro(entry,null,{})]],
+    input:[[item.steps[0][0],`<p>${esc(item.steps[0][1])}</p>`]],
+    results:[[item.steps[1][0],`<p>${esc(item.steps[1][1])}</p>`]]
+   })+
    contextLinks(entry)+sources([{url:scope.support,label:'Siemens公式ドキュメント案内'},{url:scope.training,label:'Siemens公式のSOL 401／402講習'}]);
+  bindTabs(state,()=>history.replaceState(null,'','#'+entry.key+'/simcenter/'+state.current));
  }
  function showAnalysis(entry,modelKey,tabKey){
   const variants=entry.variants||[];
@@ -155,14 +193,14 @@
   const diagram=`<div class="analysis-visual">${window.analysisDiagram(entry.key,model.id)}</div>`;
   const related=[...(entry.links||[])];
   const guide=window.AnalysisScenarioGuides?.[entry.key];
-  const head=heading(entry,entry.summary,scope.nonlinear[entry.key]?solverLinks(entry.key):'')+selector;
-  const modelBody=`<p class="solver-scope">${esc(note)}</p>`+conditions(model.inputs||entry.inputs);
+  const head=heading(entry,'',scope.nonlinear[entry.key]?solverLinks(entry.key):'')+selector;
+  const modelBody=`<p>${esc(entry.summary)}</p><p class="solver-scope">${esc(note)}</p>`+conditions(model.inputs||entry.inputs);
   const mapBody=window.renderAnalysisRelations(entry.key,model.id);
   const resultBody=list(model.outputs||entry.outputs)+`<h3>確認する条件</h3>`+list(model.checks||entry.checks)+links(entry.resultLinks||[]);
   if(guide){
    const state={current:tabOf(tabKey)==='quiz'?'model':tabOf(tabKey)};
    detail.innerHTML=head+diagram+tabbed(state.current,{
-     model:[['モデル化と境界条件',modelBody],['この解析の基礎',guideBasics(guide)]],
+     model:[[null,readingIntro(entry,null,model)],['モデル化と境界条件',modelBody],['この解析の基礎',guideBasics(guide)]],
      input:[['主要カードの相関図',mapBody,'analysis-relations']],
      results:[['結果の読み方・照合',resultBody+verifySteps(guide)],['よくある失敗と直し方',conditions(guide.pitfalls)]]
     })+
@@ -212,13 +250,16 @@
    template.innerHTML=window.AnalysisReferenceHTML;
    const selected=template.content.querySelector('#analysis-common-'+key);
    selected.querySelector('h2')?.remove();
+   for(const el of [selected,...selected.querySelectorAll('.analysis-section')]){el.classList.remove('analysis-section');el.classList.add('theory-section');}
+   for(const el of selected.querySelectorAll('.analysis-reference-table')){el.classList.remove('analysis-reference-table');el.classList.add('element-table');}
+   for(const el of selected.querySelectorAll('.analysis-table-wrap')){el.classList.remove('analysis-table-wrap');el.classList.add('element-table-wrap');}
    detail.innerHTML='<div class="analysis-head"><h1>'+esc(title)+'</h1></div>'+selected.outerHTML+links([['analysis.html#index','解析一覧']]);
    return;
   }
   const entry=catalog.entries.find(item=>item.key===key)||catalog.entries[0];
   picker.value=entry.key;
   document.title=entry.title+' — FEM Guide';
-  if(model==='simcenter'&&Object.hasOwn(scope.nonlinear,entry.key))showSimcenter(entry);
+  if(model==='simcenter'&&Object.hasOwn(scope.nonlinear,entry.key))showSimcenter(entry,subsection);
   else if(Object.hasOwn(scenarios,entry.key))showScenario(entry,scenarios[entry.key],model,subsection);
   else showAnalysis(entry,model,subsection);
   if(subsection==='map')requestAnimationFrame(()=>byId('analysis-relations')?.scrollIntoView({block:'start'}));

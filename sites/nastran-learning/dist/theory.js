@@ -6,7 +6,7 @@
  function comparisonTable(table){
   if(!table)return '';
   const [caption,columns,rows]=table;
-  return `<div class="analysis-table-wrap" tabindex="0" role="region" aria-label="${esc(caption)}"><table class="analysis-reference-table"><caption>${esc(caption)}</caption><thead><tr>${columns.map(name=>`<th scope="col">${esc(name)}</th>`).join('')}</tr></thead><tbody>${rows.map(([label,...cells])=>`<tr><th scope="row">${esc(label)}</th>${cells.map(value=>`<td>${esc(value)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  return window.LessonArticle.table(columns,rows,{caption});
  }
  function render(){const e=entries.find(e=>e.key===location.hash.slice(1))||entries.find(e=>e.key===picker.options[0]?.value)||entries[0];picker.value=e.key;document.title=e.title+' — FEM Guide';
   const visual=e.visual==='eigenvalues'?window.EigenvalueVisuals:null;

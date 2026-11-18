@@ -35,7 +35,7 @@ try:
         topics=page.evaluate('Object.keys(window.AnalysisReferenceTopics)')
         for key in topics:
             page.goto(base+'analysis.html#'+key)
-            assert page.locator('#analysis-detail > .analysis-section').count()==1,key
+            assert page.locator('#analysis-detail > .theory-section').count()==1,key
             assert page.locator('#analysis-common-'+key).count()==1,key
             for width in [320,390,768]:
                 page.set_viewport_size({'width':width,'height':844})
