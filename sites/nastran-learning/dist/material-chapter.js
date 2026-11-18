@@ -195,6 +195,7 @@
  ['E=210,000 MPa、Et=2,000 MPaのMATS1へH=2,000を入れてよい？','EtとHは異なり、H=E Et/(E−Et)=2,019.23 MPaです。Etは全ひずみ、Hは塑性ひずみに対する傾きです。'],
  ['MATS1のPLASTIC・TIDでTABLES1を使うとき、塑性ひずみの曲線を無条件に入力してよい？','いいえ。MSC 2025.1 QRGは応力―全ひずみ曲線を指定しています。原点・初期降伏点と弾性勾配Eを確認し、さらに従来要素か高度非線形要素かで公称量／真の量を区別します。']
  ];
+ questions.push(...[["変位は妥当なのに固有振動数だけ大きく違う。先にEを調整する？", "密度・NSM・付加質量と質量単位を先に確認します。剛性と質量の両方が固有振動数へ影響するためです。"], ["材料方向を回して予想外のねじれが出た。材料行列だけが原因？", "荷重・支持の偏りと材料の連成を切り分けます。等方材へ置いた比較と、材料軸・要素法線の確認を行います。"]]);
  sections.push(['questions','自分で確かめる',p('先に数値や理由を考えてから答えを開きます。単位と、固定している条件も一緒に確認してください。')+'<div class="theory-quiz">'+questions.map(([q,a],i)=>`<details><summary>${i+1}. ${q}</summary><p>${a}</p></details>`).join('')+'</div>']);
  sections.push(['sources','参照範囲と関連教材',
  p('説明文・操作図・数値例は本教材のために構成しています。以下は仕様と理論を確認した参照資料です。公式の入力リスト・出力結果・図の転載ではありません。新しい操作図は一般理論の計算で、MSC Nastranの実行確認結果ではありません。')+
@@ -210,8 +211,9 @@
  p('構成式の基本理論は製品に依存しません。カードの説明は上記のMSC版を照合した範囲です。Siemensの同名カードの既定値・非線形の手順まで同一とはしていません。')]);
  function html(){return '<div class="analysis-head"><span class="analysis-sol">材料理論</span><h1>材料の理論</h1><p>材料定数の意味から、方向・積層・温度・塑性まで。式を実際の変形と結び、選び方と入力の誤りを自分で判断できるようにします。</p></div>'+A.intro({goals:['材料・形状・拘束を分け、応力とひずみを式と単位で確かめる','異方性・材料方向・積層順が変形に与える影響を比較する','熱膨張・塑性・試験曲線の意味を理解し、入力と結果の誤りを見分ける'],prerequisites:[['coordinates.html#signs','応力方向'],['coordinates.html#systems','座標'],['elements.html#scalar-overview','要素の全体像']],points:['材料名だけで入力は決まらない。方向・温度・速度・構成式・単位をそろえる。','同じ材料でも拘束と荷重の与え方で応力は変わる。比較では一定にした条件を明示する。','材料定数と結果を、単純な式・エネルギー・方向を変えた試験で検証する。']})+p('初めて学ぶ場合は1〜5節から進みます。異方性は6〜10節、積層は11〜15節、温度・塑性・実務確認は16節以降へ進めます。')+A.toc(sections.map(([id,title])=>['materials-'+id,title]))+sections.map(([id,title,body],i)=>A.section(`${i+1}. ${title}`,body,'materials-'+id)).join('');}
  const labels={'点をつなぐ':'GA → GB','断面の I':'I','材料の硬さ':'E','横向きに引く':'σx','縦向きに引く':'σy','同じ':'=','応力':'σ','MAT8　繊維の主軸':'MAT8','MAT2　面内の連成':'MAT2','1は繊維に沿う':'1','引張でせん断も生じる例':'εx + γxy','固定':'u = 0','軸方向に引く':'F','先端に周方向変位':'uθ','MAT3　軸対称':'MAT3','MAT9　三次元':'MAT9','回転軸':'z','r–z断面':'r–z','材料の3軸':'x, y, z','垂直応力の例':'σ','せん断応力の例':'τ','PSHELL　均質板':'PSHELL','PCOMP　積層板':'PCOMP','同じ材料':'MID','層3':'3','層2':'2','層1':'1','＋法線':'+z','Z0は下向き':'Z0 < 0','基準面':'z = 0','圧縮側の面材':'σ < 0','コア · 横せん断':'τ','引張側の面材':'σ > 0'};
- function mount(root){root.innerHTML=html();for(const el of root.querySelectorAll('[data-material-legacy]')){el.innerHTML=window.MaterialVisuals[el.dataset.materialLegacy];for(const t of el.querySelectorAll('svg text'))if(labels[t.textContent]!==undefined)t.textContent=labels[t.textContent];}window.MaterialLabs.connect(root);A.bindNavigation(root);}
+ function connect(root){for(const el of root.querySelectorAll('[data-material-legacy]')){el.innerHTML=window.MaterialVisuals[el.dataset.materialLegacy];for(const t of el.querySelectorAll('svg text'))if(labels[t.textContent]!==undefined)t.textContent=labels[t.textContent];}window.MaterialLabs.connect(root);A.bindNavigation(root);}
  const aliases={overview:'roles',elastic:'isotropic',anisotropy:'anisotropy',composites:'shell-property',thermal:'thermal',plasticity:'plasticity',verification:'diagnosis'};
  function focusSection(key){const id=aliases[key]||key,target=document.getElementById('materials-'+id);if(target)requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));}
- window.MaterialChapter={sections,questions,html,mount,focusSection};
+ function mount(root){root.innerHTML=html();connect(root);}
+ window.MaterialChapter={sections,questions,html,connect,mount,focusSection};
 })();

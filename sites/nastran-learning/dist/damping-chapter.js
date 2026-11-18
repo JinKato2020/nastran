@@ -189,5 +189,5 @@
  function connect(root){window.DampingLabs.connect(root);A.bindNavigation(root);}
  function mount(root){root.innerHTML=html();connect(root);}
  window.DampingChapter={html,connect,mount,sections};
- if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',()=>{const root=document.getElementById('damping-chapter');if(root){mount(root);const target=document.getElementById(location.hash.slice(1));if(target)requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));}});
+ if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',()=>{const root=document.getElementById('damping-chapter');if(root){const render=()=>window.TopicArticles.mount(root,'damping',location.hash.slice(1).replace(/^damping\//,''));addEventListener('hashchange',render);render();}});
 })();

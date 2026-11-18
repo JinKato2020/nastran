@@ -161,6 +161,7 @@
  ['同じ点のケースAがσx=100 MPa、Bがσy=100 MPa。等倍合成後のミーゼスは？','√(100²−100×100+100²)=100 MPa。個別のミーゼス値100+100=200 MPaを足す方法は誤りです。'],
  ['初期20℃、ケース1が60℃、ケース2が100℃。1倍＋0.5倍で組み合わせる温度は？','20+(60−20)+0.5(100−20)=100℃。初期からの差を足し、基準温度を一度だけ戻します。熱応力・要素力の回復に使う合成温度場も選択します。']
  ];
+ questions.push(...[["同じ最大荷重の二つの履歴は、疲労に同じ厳しさ？", "違います。振幅・平均値・繰返し数・順序などを区別し、採用した疲労評価法の前提を確認します。"], ["部分モデルへ合力だけを合わせて移せばよい？", "作用点とモーメント、荷重経路も確認します。境界の切り方と荷重分布が局所結果に影響します。"], ["鉛直合力が同じで曲げ反力が違う。何を調べる？", "荷重の作用点・偏心・端部モーメント、座標系と支持を確認します。合力と合モーメントは別々に検算します。"]]);
  sections.push(['questions','自分で確かめる',p('先に力の矢印・単位・基準点を書き、式を立ててから答えを開きます。')+'<div class="theory-quiz">'+questions.map(([q,a],i)=>`<details><summary>${i+1}. ${q}</summary><p>${a}</p></details>`).join('')+'</div>']);
  sections.push(['sources','参照範囲と関連教材',
  p('本文と新しい操作図は、学ぶ順序に合わせて独自に構成しています。操作図の値は一般理論による独立計算で、MSC Nastranの実行結果ではありません。入力ファイル・公式図・出力表は転載していません。')+
@@ -171,8 +172,9 @@
  note('一般力学はNastran共通です。カードの仕様・適用条件はMSC 2025.1で確認した範囲を記載しています。Siemens版の未照合の既定値や非線形手順まで共通とは断定しません。')]);
  function html(){return '<div class="analysis-head"><span class="analysis-sol">荷重の理論</span><h1>荷重の理論</h1><p>作用の分布から入力を選び、合力・モーメント・仕事を使って、変形と応力へのつながりを確認します。</p></div>'+A.intro({goals:['集中・線・面・慣性・温度荷重を、実物の作用から選ぶ','荷重を節点へ移す理由と、単純な均等割りで起こる誤差を理解する','ケースの選択・組合せを追い、単位・向き・収支から誤りを見分ける'],prerequisites:[['coordinates.html#systems','座標'],['elements.html#scalar-overview','要素の全体像'],['theory.html#boundary','境界条件と拘束']],points:['荷重は大きさだけでなく、方向・位置・分布・単位を決める。','等価節点荷重は、補間した変位に対する仕事を一致させる。','合力とモーメントを確かめた後、変形・応力・荷重分配への感度を調べる。']})+p('最初は1〜8節で荷重の表し方、9〜11節で節点への変換を学びます。自重・回転・温度は12節から、ケースの選択と組合せは18節から進めます。')+A.toc(sections.map(([id,title])=>['load-'+id,title]))+sections.map(([id,title,body],i)=>A.section(`${i+1}. ${title}`,body,'load-'+id)).join('');}
  const labels={'集中力 F':'F','作用点':'G','モーメント M':'M','荷重を与える区間':'a ≤ x ≤ b','面の正法線':'n','選択した面':'A','一様加速度':'a','回転の遠心成分':'ω','軸':'O','自由に伸びる':'N = 0','伸びを止める':'u = 0','熱膨張による伸び':'αΔT L','軸方向の圧縮':'N < 0','節点':'G','方向':'n','力':'F','点荷重':'F','線荷重':'q','面圧':'p','自重':'mg','重力':'g','遠心力':'mω²r','固定':'u = 0','自由膨張':'αΔT L','拘束':'u = 0','温度上昇':'ΔT','支持':'R'};
- function mount(root){root.innerHTML=html();for(const el of root.querySelectorAll('[data-load-legacy]')){el.innerHTML=window.TheoryTopicVisuals['common-loads'][+el.dataset.loadLegacy];for(const t of el.querySelectorAll('svg text'))if(labels[t.textContent]!==undefined)t.textContent=labels[t.textContent];}window.LoadLabs.connect(root);A.bindNavigation(root);}
+ function connect(root){for(const el of root.querySelectorAll('[data-load-legacy]')){el.innerHTML=window.TheoryTopicVisuals['common-loads'][+el.dataset.loadLegacy];for(const t of el.querySelectorAll('svg text'))if(labels[t.textContent]!==undefined)t.textContent=labels[t.textContent];}window.LoadLabs.connect(root);A.bindNavigation(root);}
  const aliases={overview:'meaning',distributed:'line',inertia:'mass',temperature:'thermal',cases:'sets',verification:'diagnosis'};
  function focusSection(key){const t=document.getElementById('load-'+(aliases[key]||key));if(t)requestAnimationFrame(()=>t.scrollIntoView({block:'start'}));}
- window.LoadChapter={sections,questions,html,mount,focusSection};
+ function mount(root){root.innerHTML=html();connect(root);}
+ window.LoadChapter={sections,questions,html,connect,mount,focusSection};
 })();

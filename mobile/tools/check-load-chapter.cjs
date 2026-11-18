@@ -18,11 +18,11 @@ near(c.mass('mass').kg,7.85);near(c.mass('mass').F,77.0085);near(c.mass('weight'
 for(const rpm of [100,600,900]){const r=c.rotation(rpm);near(r.A,rpm/60);near(c.rotation(rpm*2).F/r.F,4);near(c.rotation(rpm,.4).F/r.F,2);near(r.F,2*(2*Math.PI*rpm/60)**2*.2);}
 // Von Mises independently from three principal stresses, including sigma_z=0.
 for(const a of [-2,-1,0,1,2])for(const b of [-2,-1,0,1,2]){const r=c.combination(a,b);near(r.vm,Math.sqrt(((r.sx-r.sy)**2+r.sy**2+r.sx**2)/2));assert(r.vm>=0);}near(c.combination(1,1).vm,100);near(c.combination(1,1).wrong,200);
-const ch=ctx.window.LoadChapter,html=ch.html();assert.equal(ch.sections.length,27);assert.equal(ch.questions.length,12);assert.equal(Object.keys(ctx.window.LoadLabs.labs).length,10);assert.equal((html.match(/data-load-legacy=/g)||[]).length,10);
+const ch=ctx.window.LoadChapter,html=ch.html();assert.equal(ch.sections.length,27);assert.equal(ch.questions.length,15);assert.equal(Object.keys(ctx.window.LoadLabs.labs).length,10);assert.equal((html.match(/data-load-legacy=/g)||[]).length,10);
 for(const n of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards','element-input-cards'])vm.runInContext(fs.readFileSync(path.join(dir,n+'.js'),'utf8'),ctx);
 const keys=new Set(ctx.window.InputCatalog.entries.map(e=>e.key));for(const m of html.matchAll(/href="bulk\.html#([^"]+)"/g))assert(keys.has(m[1]),m[1]);
 for(const n of ['theory-data','extended-theory-data','practice-theory-data','linear-foundations'])vm.runInContext(fs.readFileSync(path.join(dir,n+'.js'),'utf8'),ctx);
 for(const m of html.matchAll(/href="theory\.html#([^"/]+)/g))assert(ctx.window.NastranTheory.some(e=>e.key===m[1]),m[1]);
 for(const m of html.matchAll(/href="(elements|basics|coordinates)\.html#([^"]+)"/g))assert(fs.readFileSync(path.join(dir,m[1]+'.html'),'utf8').includes('id="'+m[2]+'"'),m[0]);
 assert.equal(ctx.window.NastranTheory.find(e=>e.key==='static-subcases').chapter,'common-loads');
-console.log('PASS: load chapter — independent quadrature, virtual work, beam stiffness solution, force/moment balance, units, rotation, stress combination; 27 sections, 10 labs, 12 questions and input links.');
+console.log('PASS: load chapter — independent quadrature, virtual work, beam stiffness solution, force/moment balance, units, rotation, stress combination; 27 sections, 10 labs, 15 questions and input links.');

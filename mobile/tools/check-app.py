@@ -59,41 +59,41 @@ with sync_playwright() as p:
   assert page.get_by_role('button',name=title,exact=True).count()==0
  page.screenshot(path='.qa/five-tabs-materials.png')
  page.get_by_role('button',name='荷重の理論',exact=True).click()
- for title in ['荷重の基本・集中荷重','分布荷重と等価節点荷重','自重・加速度・回転','初期ひずみ・温度荷重','ケース・組合せ・応用','検証・確認問題']:
+ for title in ['荷重の基本・集中荷重','分布荷重と等価節点荷重','自重・加速度・回転','初期ひずみ・温度荷重','ケースと結果の組合せ','部分モデル・予荷重・動荷重','荷重の検証']:
   assert page.get_by_role('button',name=title,exact=True).count()==1,title
  page.screenshot(path='.qa/load-chapter-menu.png')
  page.get_by_role('button',name='自重・加速度・回転',exact=True).click()
  frame=page.frame_locator('iframe')
  frame.locator('#load-mass').wait_for(state='visible')
- assert frame.locator('.theory-section').count()==27
- assert frame.locator('#load-mass').evaluate('e=>Math.abs(e.getBoundingClientRect().top)<140')
+ assert frame.locator('.theory-section').count()==4
+ assert frame.locator('.element-contents').count()==1  # article has its own introduction
  frame.locator('a[href="bulk.html#GRAV"]').first.click()
  assert page.frame_locator('iframe').locator('#card-picker').input_value()=='GRAV'
  page.get_by_role('button',name='‹ 戻る',exact=True).click()
  page.frame_locator('iframe').locator('#theory-detail').wait_for(state='visible');bottom()
  root('教材')
  page.get_by_role('button',name='境界条件と拘束',exact=True).click()
- for title in ['境界条件の基本','SPC・指定変位','MPC・独立と従属','結合と支持の選択','自動拘束と結果の検証','確認問題・参照資料']:
+ for title in ['境界条件・自由度・支持','SPC・指定変位','MPC・独立と従属','結合と支持の選択','自動拘束と結果の検証','剛体運動・座標・対称']:
   assert page.get_by_role('button',name=title,exact=True).count()==1,title
  page.get_by_role('button',name='MPC・独立と従属',exact=True).click()
  frame=page.frame_locator('iframe')
  frame.locator('#boundary-mpc').wait_for(state='visible')
- assert frame.locator('.theory-section').count()==24
- assert frame.locator('#boundary-mpc').evaluate('e=>Math.abs(e.getBoundingClientRect().top)<140')
+ assert frame.locator('.theory-section').count()==5
+ assert frame.locator('.element-contents').count()==1  # article has its own introduction
  frame.locator('a[href="bulk.html#MPC"]').first.click()
  assert page.frame_locator('iframe').locator('#card-picker').input_value()=='MPC'
  page.get_by_role('button',name='‹ 戻る',exact=True).click()
  page.frame_locator('iframe').locator('#theory-detail').wait_for(state='visible');bottom()
  root('教材')
  page.get_by_role('button',name='材料理論',exact=True).click()
- for title in ['材料の基本・等方弾性','異方性・材料方向','複合材料・積層板','熱膨張・密度・減衰','塑性・試験データ','材料検証・確認問題']:
+ for title in ['材料の基本・等方弾性','異方性・材料方向','複合材料・積層板','熱膨張・密度・減衰','塑性・試験データ','材料の検証']:
   assert page.get_by_role('button',name=title,exact=True).count()==1,title
  page.screenshot(path='.qa/material-chapter-menu.png')
  page.get_by_role('button',name='複合材料・積層板',exact=True).click()
  frame=page.frame_locator('iframe')
  frame.locator('#materials-shell-property').wait_for(state='visible')
- assert frame.locator('.theory-section').count()==23
- assert frame.locator('#materials-shell-property').evaluate('e=>Math.abs(e.getBoundingClientRect().top)<140')
+ assert frame.locator('.theory-section').count()==6
+ assert frame.locator('.element-contents').count()==1  # article has its own introduction
  frame.locator('[data-jump="materials-layup"]').click()
  frame.locator('[data-material-lab="laminate"] select').select_option('unsym')
  assert '非対称' in frame.locator('[data-material-lab="laminate"] .theory-lab-readout').inner_text()
@@ -130,20 +130,25 @@ with sync_playwright() as p:
  page.wait_for_function('JSON.parse(localStorage.getItem("nastran-learning-state-v1")).bookmarks.some(p=>p.path==="analysis.html"&&p.hash.startsWith("#modes/tip-mass"))')
  # Per-tab reading locations and 3-level input selector survive switching.
  nav('Inputデータ');frame=page.frame_locator('iframe')
+ assert frame.locator('#input-home').is_visible()
+ assert frame.locator('.input-home-cards a').count()==5
+ frame.locator('#input-search').fill('celas')
+ assert frame.locator('#input-search-results a').count()==4
+ frame.locator('a[href="bulk.html#CELAS2"]').click();frame=page.frame_locator('iframe')
  # Compact selector, real native reader wrapper; card heading is visible immediately.
  for width in [320,390]:
   page.set_viewport_size({'width':width,'height':844})
-  assert frame.locator('.library-selectors select').count()==3
+  assert frame.locator('.library-selectors select').count()==2
   assert frame.locator('.library-selectors').evaluate('e=>e.getBoundingClientRect().height')<=150
-  assert frame.locator('.card-title h2').evaluate('e=>e.getBoundingClientRect().y')<230
+  assert frame.locator('.card-title h2').evaluate('e=>e.getBoundingClientRect().y')<290
   assert not frame.locator('.library-search').evaluate('e=>e.dataset.expanded==="true"')
  page.set_viewport_size({'width':390,'height':844})
- frame.locator('#input-family').select_option('executive');frame.locator('#category').select_option('SOL · 非線形');frame.locator('#card-picker').select_option('EXEC_SOL_400')
+ frame.locator('.library-crumb a').click();frame=page.frame_locator('iframe');frame.locator('#input-search-clear').click();frame.locator('a[href="bulk.html#family/executive"]').click();frame=page.frame_locator('iframe');frame.locator('#category').select_option('SOL · 非線形');frame.locator('#card-picker').select_option('EXEC_SOL_400')
  assert frame.locator('.reference-section').filter(has_text='関連入力・参照関係').count()==1
  page.screenshot(path='.qa/qrg-app-sol400.png')
  nav('教材');nav('Inputデータ');frame=page.frame_locator('iframe')
  assert frame.locator('#card-picker').input_value()=='EXEC_SOL_400'
- frame.locator('#input-family').select_option('bulk');frame.locator('#category').select_option('棒・梁');frame.locator('#card-picker').select_option('CBAR')
+ frame.locator('.library-crumb a').click();frame=page.frame_locator('iframe');frame.locator('#input-search-clear').click();frame.locator('a[href="bulk.html#family/bulk"]').click();frame=page.frame_locator('iframe');frame.locator('#category').select_option('棒・梁');frame.locator('#card-picker').select_option('CBAR')
  nav('解析');assert page.frame_locator('iframe').locator('h1').inner_text()=='実固有値解析'
  nav('Inputデータ');frame=page.frame_locator('iframe')
  assert frame.locator('#card-picker').input_value()=='CBAR'
@@ -174,7 +179,7 @@ with sync_playwright() as p:
  assert page.get_by_role('tab',name='ホーム',exact=True).get_attribute('aria-selected')=='true'
  # A fresh Input root can go back to Home; it never shows an empty root page.
  page.reload(wait_until='networkidle');nav('Inputデータ')
- page.frame_locator('iframe').locator('#input-family').wait_for()
+ page.frame_locator('iframe').locator('#input-home').wait_for()
  page.get_by_role('button',name='‹ 戻る',exact=True).click()
  assert page.get_by_role('tab',name='ホーム',exact=True).get_attribute('aria-selected')=='true'
  assert page.get_by_role('button',name='エラーメッセージ',exact=True).is_visible()

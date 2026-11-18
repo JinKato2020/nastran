@@ -37,7 +37,7 @@ near(c.thermal(50,Infinity).sigma,-126);near(c.thermal(50,0).u,.12);
 for(const Et of [0,2000,10000]){const r=c.plastic(.005,Et);near(r.H/(1+r.H/210000),Et);near(r.residual+r.sigma/210000,.005);assert(r.residual>0);}near(c.plastic(.001).residual,0);
 near(c.plastic(.005,2000).H,2019.2307692307693);
 for(const hc of [4,12,40]){const a=c.sandwich(hc,5),b=c.sandwich(hc,25);near(a.bend,b.bend);near(a.shear,5*b.shear);}
-const html=ctx.window.MaterialChapter.html();assert.equal((html.match(/class="theory-section"/g)||[]).length,23);assert.equal(ctx.window.MaterialChapter.questions.length,12);assert.equal(Object.keys(ctx.window.MaterialLabs.labs).length,9);
+const html=ctx.window.MaterialChapter.html();assert.equal((html.match(/class="theory-section"/g)||[]).length,23);assert.equal(ctx.window.MaterialChapter.questions.length,14);assert.equal(Object.keys(ctx.window.MaterialLabs.labs).length,9);
 for(const n of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards','element-input-cards'])vm.runInContext(fs.readFileSync(path.join(dir,n+'.js'),'utf8'),ctx);
 const keys=new Set(ctx.window.InputCatalog.entries.map(e=>e.key));for(const m of html.matchAll(/href="bulk\.html#([^"]+)"/g))assert(keys.has(m[1]),m[1]);
-console.log('PASS: material chapter — off-axis transformation, ABD force/moment recovery, positive energy, thermal equilibrium, plastic hardening, 23 sections, 9 labs, 12 questions and input links.');
+console.log('PASS: material chapter — off-axis transformation, ABD force/moment recovery, positive energy, thermal equilibrium, plastic hardening, 23 sections, 9 labs, 14 questions and input links.');

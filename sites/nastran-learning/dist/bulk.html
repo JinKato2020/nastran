@@ -1,9 +1,22 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>入力データ学習 — FEM Guide for nas</title><link rel="stylesheet" href="bulk.css"><link rel="stylesheet" href="field-guide.css"><link rel="stylesheet" href="input-library.css"><link rel="stylesheet" href="solver-scope.css"><link rel="stylesheet" href="learning.css"></head>
-<body data-learning-page="bulk.html"><a class="skip" href="#card-detail">カードの説明へ移動</a><header class="topbar"><a class="brand" href="index.html"><span class="brand-icon">N·</span><span>FEM Guide<small>for nas · 非公式教材</small></span></a><nav><a href="index.html">教材一覧</a></nav></header>
+<body data-learning-page="bulk.html"><a class="skip" href="#input-home">入力データへ移動</a><header class="topbar"><a class="brand" href="index.html"><span class="brand-icon">N·</span><span>FEM Guide<small>for nas · 非公式教材</small></span></a><nav><a href="index.html">教材一覧</a></nav></header>
 <main class="library-main"><div class="library-heading"><h1>入力データ学習</h1><a href="input.html#rules">入力規則 ↗</a></div>
-<div class="library-selectors"><label><span>1　入力区分</span><select id="input-family" aria-label="入力区分"></select></label><label><span>2　カテゴリー</span><select id="category" aria-label="カテゴリー"></select></label><label><span>3　カード・設定名</span><select id="card-picker" aria-label="カード・設定名"></select></label></div>
+<section id="input-home" aria-label="Inputメイン">
+<div class="library-search-row"><label for="input-search">語句・カード名で探す<input id="input-search" type="search" autocomplete="off" placeholder="例：celas、変位、減衰"></label><button type="button" id="input-search-clear">解除</button></div>
+<p id="input-search-status" role="status" aria-live="polite"></p><div id="input-search-results" class="learning-list"></div>
+<nav class="learning-list input-home-cards" aria-label="入力区分">
+<a class="learning-card" href="bulk.html#family/executive"><span>01</span><div><strong>Executive Control</strong><p>SOL・実行の制御</p></div></a>
+<a class="learning-card" href="bulk.html#family/case"><span>02</span><div><strong>Case Control</strong><p>ケース・拘束・荷重・出力の選択</p></div></a>
+<a class="learning-card" href="bulk.html#family/parameter"><span>03</span><div><strong>パラメータ</strong><p>計算方法・出力などの設定</p></div></a>
+<a class="learning-card" href="bulk.html#family/bulk"><span>04</span><div><strong>Bulk Data</strong><p>節点・要素・材料・荷重・解析条件</p></div></a>
+<a class="learning-card" href="comparisons.html#beam"><span>05</span><div><strong>似たカードの使い分け</strong><p>長所・短所と、状況に応じた選択</p></div></a>
+</nav></section>
+<section id="input-browser" hidden aria-label="入力カードを調べる">
+<p class="library-crumb"><a href="bulk.html">← Inputメイン</a> / <strong id="input-family-title"></strong></p>
+<select id="input-family" hidden aria-label="入力区分"></select>
+<div class="library-selectors"><label><span>1　カテゴリー</span><select id="category" aria-label="カテゴリー"></select></label><label><span>2　カード・設定名</span><select id="card-picker" aria-label="カード・設定名"></select></label></div>
 <details class="library-search"><summary>絞り込み検索 <span id="result-count" role="status"></span></summary><div class="library-search-row"><label for="card-search">このカテゴリー内<input id="card-search" type="search" autocomplete="off" placeholder="カード名・用途"></label><button id="clear-search" type="button">解除</button></div></details>
 <p id="library-location" class="library-location"></p><p id="empty-state" class="empty-state" hidden>該当するカードがありません。検索語またはカテゴリーを変更してください。</p><article id="card-detail"></article>
-<footer><a href="input.html#complete">完成BDFの作成</a><a href="analysis.html#static/static/map">カード相関図</a></footer></main><div id="toast" class="toast" role="status" hidden></div>
+</section><footer><a href="input.html#complete">完成BDFの作成</a><a href="analysis.html#static/static/map">カード相関図</a></footer></main><div id="toast" class="toast" role="status" hidden></div>
 <script src="bulk-data.js"></script><script src="field-guide-model.js"></script><script src="field-guide-properties.js"></script><script src="field-guide-constraints.js"></script><script src="field-guide.js"></script><script src="bulk.js"></script><script src="dynamics-data.js"></script><script src="damping-data.js"></script><script src="fracture-data.js"></script><script src="input-controls.js"></script><script src="sol-reference.js"></script><script src="input-reference.js"></script><script src="input-catalog.js"></script><script src="public-input-cards.js"></script><script src="qrg-expansion.js"></script><script src="qrg-enrichment.js"></script><script src="case-output-reference.js"></script><script src="reference-review.js"></script><script src="extended-input-cards.js"></script><script src="element-input-cards.js"></script><script src="comparison-index.js"></script><script src="solver-scope.js"></script><script src="constraint-roles.js"></script><script src="input-library.js"></script><script src="learning-data.js"></script><script src="learning.js"></script></body></html>

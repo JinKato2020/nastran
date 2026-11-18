@@ -14,6 +14,8 @@
   ['材料理論', [[null,nav.materialTheory]]],
   ['境界条件と拘束', [[null,nav.boundaryTheory]]],
   ['荷重の理論', [[null,nav.loadTheory]]],
+  ['接触・摩擦・締結', [[null,nav.contactTheory]]],
+  ['減衰の理論', [[null,nav.dampingTheory]]],
   ['各解析技術理論', [['共通の解析技術論',nav.common],...theoryGroups]],
  ];
  const learningCard=x=>'<a class="learning-card" href="'+href(x)+'"><div><strong>'+esc(x.title)+'</strong><p>'+esc(x.description)+'</p></div></a>';

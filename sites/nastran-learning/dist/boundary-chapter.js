@@ -165,8 +165,9 @@
  note('一般理論はNastran共通です。カードの適用条件はMSC 2025.1を照合した範囲で記載しています。Siemens版の非線形手順・既定値まで同じと断定していません。')]);
  function html(){return '<div class="analysis-head"><span class="analysis-sol">境界条件と拘束</span><h1>境界条件と拘束の理論</h1><p>支持・指定変位・部材間の関係を分け、許す動きと伝わる力を、式・図・結果から判断します。</p></div>'+A.intro({goals:['実物が許す動きから、節点・成分・座標系を選ぶ','SPC・MPC・RBEの役割と、変位・反力の関係を理解する','拘束不足・過拘束・重複・自動拘束の問題を結果から見分ける'],prerequisites:[['coordinates.html#systems','座標'],['basics.html#node','節点と自由度'],['elements.html#scalar-overview','要素の全体像']],points:['拘束は、点の数ではなく止める運動で決める。','独立・従属は節点と成分の組で追い、地面への支持と部材間の結合を分ける。','計算の終了だけで判断せず、変形・反力・拘束式・支持への感度で確かめる。']})+p('初めて学ぶ場合は1〜6節で支持の考え方を確認します。入力の使い分けは7節から、多点拘束は10節から、診断は18節から進めます。')+A.toc(sections.map(([id,title])=>['boundary-'+id,title]))+sections.map(([id,title,body],i)=>A.section(`${i+1}. ${title}`,body,'boundary-'+id)).join('');}
  const labels={'固定':'u = 0','対象成分を止める':'SPC','対称面':'n','法線の並進を止める':'un = 0','自由面':'t = 0','面荷重ゼロの例':'σn = 0','指定変位':'d','ばね力':'F = kd'};
- function mount(root){root.innerHTML=html();for(const el of root.querySelectorAll('[data-boundary-legacy]')){el.innerHTML=window.TheoryTopicVisuals.boundary[+el.dataset.boundaryLegacy].replace('uA − uB = 指定値','uA − r uB = 0');for(const t of el.querySelectorAll('svg text'))if(labels[t.textContent]!==undefined)t.textContent=labels[t.textContent];}window.BoundaryLabs.connect(root);A.bindNavigation(root);}
+ function connect(root){for(const el of root.querySelectorAll('[data-boundary-legacy]')){el.innerHTML=window.TheoryTopicVisuals.boundary[+el.dataset.boundaryLegacy].replace('uA − uB = 指定値','uA − r uB = 0');for(const t of el.querySelectorAll('svg text'))if(labels[t.textContent]!==undefined)t.textContent=labels[t.textContent];}window.BoundaryLabs.connect(root);A.bindNavigation(root);}
  const aliases={overview:'meaning',supports:'supports',spc:'sets',mpc:'mpc',connections:'rbe',verification:'autospc'};
  function focusSection(key){const t=document.getElementById('boundary-'+(aliases[key]||key));if(t)requestAnimationFrame(()=>t.scrollIntoView({block:'start'}));}
- window.BoundaryChapter={sections,questions,html,mount,focusSection};
+ function mount(root){root.innerHTML=html();connect(root);}
+ window.BoundaryChapter={sections,questions,html,connect,mount,focusSection};
 })();

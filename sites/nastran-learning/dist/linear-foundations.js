@@ -16,13 +16,6 @@
 
 
 
- const contact=entries.find(item=>item.key==='contact');
- contact.sections.unshift(['最初に選ぶ · 支持、固着、開閉する接触',[
-  '最初から常に結合されている取付部と、押したときだけ力が伝わり離れる面を分けます。固着は接触面の相対運動を結び付けます。開閉やすべりを調べる場合は、すき間、面の法線、摩擦、荷重を加える順番を確認します。',
-  'MSCガイドでは、線形静解析の接触と永久固着も扱っています。変形・材料・接触状態の変化をどこまで計算に入れたいかを先に決め、必要に応じて非線形の手順に進みます。',
- ]]);
- contact.sources.unshift(src(601,'第17章 · 線形静解析の接触'));
-
  const buckling=entries.find(item=>item.key==='buckling');
  buckling.sectionIndex=true;
  buckling.sections.push(

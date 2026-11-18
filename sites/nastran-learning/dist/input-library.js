@@ -5,6 +5,23 @@
  const byKey=new Map(entries.map(e=>[e.key,e]));
  const cardOrder=new Intl.Collator('en',{numeric:true,sensitivity:'base'});
  const qrg=(p,v)=>{const n='MSC_Nastran_'+(v||'2020')+'_Quick_Reference_Guide';return 'https://documentation-be.hexagon.com/bundle/'+n+'/raw/resource/enus/'+n+'.pdf#page='+p;};
+ const home=$('input-home'),browser=$('input-browser');
+ function showBrowser(family){home.hidden=true;browser.hidden=false;$('input-family-title').textContent=label(family);}
+ function showHome(){home.hidden=false;browser.hidden=true;document.title='Inputデータ — FEM Guide';searchAll();}
+ const normalize=value=>String(value).normalize('NFKC').toLocaleLowerCase().trim();
+ function searchAll(){
+  const q=normalize($('input-search').value),tokens=q.split(/\s+/).filter(Boolean);
+  const named=tokens.length===1?entries.filter(e=>normalize(e.id).startsWith(q)):[];
+  const pool=named.length?named:entries;
+  const matches=q?pool.filter(e=>tokens.every(t=>normalize([e.id,e.key,e.title,e.summary,...(e.aliases||[])].join(' ')).includes(t))).sort((a,b)=>{
+   const rank=e=>normalize(e.id)===q?0:normalize(e.id).startsWith(q)?1:2;
+   return rank(a)-rank(b)||cardOrder.compare(a.id,b.id)||cardOrder.compare(a.key,b.key);
+  }):[];
+  $('input-search-status').textContent=q?(matches.length?`${matches.length}件`:'該当するカードがありません。短い語句やカード名で検索してください。'):'';
+  $('input-search-results').innerHTML=matches.map(e=>`<a class="learning-card" href="bulk.html#${esc(e.key)}"><div><strong>${esc(e.id)} — ${esc(e.title)}</strong><p>${esc(label(e.family))} / ${esc(e.category)}</p></div></a>`).join('');
+  document.querySelector('.input-home-cards').hidden=!!q;
+  try{sessionStorage.setItem('nastran-input-search',JSON.stringify({query:$('input-search').value}));}catch{}
+ }
  let selected='EXEC_SOL',field='',timer;
  const label=f=>families.find(x=>x[0]===f)?.[1]||'';
  function options(select,items){select.innerHTML=items.map(([v,t])=>`<option value="${esc(v)}">${esc(t)}</option>`).join('');}
@@ -12,7 +29,7 @@
  function categories(family){return [...new Set(entries.filter(e=>e.family===family).map(e=>e.category))];}
  function choose(key,detail='',scroll=false){
   const entry=byKey.get(key);if(!entry)return;
-  selected=key;field=detail;$('card-search').value='';$('input-family').value=entry.family;
+  showBrowser(entry.family);selected=key;field=detail;$('card-search').value='';$('input-family').value=entry.family;
   options($('category'),categories(entry.family).map(c=>[c,c]));$('category').value=entry.category;
   renderList();if(scroll)$('card-detail').scrollIntoView({block:'start'});
  }
@@ -102,13 +119,19 @@
  function route(){
   let key,detail='';try{const raw=location.hash.slice(1),split=raw.indexOf('/');key=decodeURIComponent(split<0?raw:raw.slice(0,split));if(split>=0)detail=decodeURIComponent(raw.slice(split+1));}catch{key='EXEC_SOL';}
   if(key==='format-guide'){const a=document.createElement('a');a.href='input.html#rules';document.body.append(a);a.click();a.remove();return;}
-  choose(byKey.has(key)?key:byKey.has(key.toUpperCase())?key.toUpperCase():'EXEC_SOL',detail);
+  if(!key){showHome();return;}
+  if(key==='family'&&families.some(([id])=>id===detail)){choose(entries.find(e=>e.family===detail).key);window.scrollTo(0,0);return;}
+  const match=byKey.has(key)?key:byKey.has(key.toUpperCase())?key.toUpperCase():null;
+  if(match)choose(match,detail);else showHome();
  }
- $('input-family').addEventListener('change',()=>{field='';$('card-search').value='';options($('category'),categories($('input-family').value).map(c=>[c,c]));renderList();});
+ $('input-family').addEventListener('change',()=>{showBrowser($('input-family').value);field='';$('card-search').value='';options($('category'),categories($('input-family').value).map(c=>[c,c]));renderList();});
  $('category').addEventListener('change',()=>{field='';$('card-search').value='';renderList();});
  $('card-picker').addEventListener('change',()=>{selected=$('card-picker').value;field='';render(byKey.get(selected));});
  $('card-search').addEventListener('input',renderList);$('clear-search').addEventListener('click',()=>{$('card-search').value='';renderList();});
  document.addEventListener('click',event=>{const button=event.target.closest('[data-jump]');if(button)choose(button.dataset.jump,'',true);});
  function toast(message){clearTimeout(timer);$('toast').textContent=message;$('toast').hidden=false;timer=setTimeout(()=>$('toast').hidden=true,2200);}
+ try{const saved=JSON.parse(sessionStorage.getItem('nastran-input-search')||'null');if(saved)$('input-search').value=saved.query||'';}catch{}
+ $('input-search').addEventListener('input',searchAll);
+ $('input-search-clear').addEventListener('click',()=>{$('input-search').value='';searchAll();$('input-search').focus();});
  addEventListener('hashchange',route);route();
 })();

@@ -610,20 +610,6 @@
     ],
     "common": [
       {
-        "title": "接触・摩擦・締付けの力学",
-        "description": "接触は、どこを押し合うかが未知となる境界条件。ボルト締結では、その状態が締付け履歴と接合部の変形に依存する。",
-        "path": "theory.html",
-        "hash": "#contact",
-        "kind": "解析の理論"
-      },
-      {
-        "title": "減衰の理論",
-        "description": "減衰の意味・単位・同定・モデル選定から、入力と結果の検証まで18節で学ぶ",
-        "path": "theory.html",
-        "hash": "#damping",
-        "kind": "共通理論"
-      },
-      {
         "title": "リスタートの考え方",
         "description": "前回の計算を再利用する条件とデータベースの管理",
         "path": "theory.html",
@@ -641,133 +627,235 @@
     "materialTheory": [
       {
         "title": "材料の基本・等方弾性",
-        "description": "第1〜5節：材料と形状、応力・ひずみ、E・G・ν、横収縮",
+        "description": "材料と形状の役割を区別する・応力・ひずみと横収縮を式から確かめる",
         "path": "theory.html",
         "hash": "#materials",
         "kind": "材料理論"
       },
       {
         "title": "異方性・材料方向",
-        "description": "第6〜10節：MAT2・MAT3・MAT8・MAT9、方向と行列の検証",
+        "description": "材料方向による連成を読み取る・MAT2・3・8・9を使い分ける",
         "path": "theory.html",
         "hash": "#materials/anisotropy",
         "kind": "材料理論"
       },
       {
         "title": "複合材料・積層板",
-        "description": "第11〜15節：PCOMP、A・B・D、層別結果とサンドイッチ",
+        "description": "積層順からA・B・Dを組み立てる・層別応力と面材・コアの役割を読む",
         "path": "theory.html",
         "hash": "#materials/composites",
         "kind": "材料理論"
       },
       {
         "title": "熱膨張・密度・減衰",
-        "description": "第16〜17節：温度と拘束、単位、材料欄の役割",
+        "description": "熱ひずみと拘束応力を区別する・材料欄の単位と作用を確認する",
         "path": "theory.html",
         "hash": "#materials/thermal",
         "kind": "材料理論"
       },
       {
         "title": "塑性・試験データ",
-        "description": "第18〜20節：降伏・除荷、EtとH、応力ひずみ曲線",
+        "description": "降伏・除荷・硬化を図と式で追う・試験曲線の量と入力条件を合わせる",
         "path": "theory.html",
         "hash": "#materials/plasticity",
         "kind": "材料理論"
       },
       {
-        "title": "材料検証・確認問題",
-        "description": "第21〜23節：症状からの診断、手計算12問、参考文献",
+        "title": "材料の検証",
+        "description": "症状から材料設定の誤りを切り分ける",
         "path": "theory.html",
-        "hash": "#materials/verification",
+        "hash": "#materials/diagnosis",
         "kind": "材料理論"
       }
     ],
     "boundaryTheory": [
       {
-        "title": "境界条件の基本",
-        "description": "第1〜6節：自由度・支持・剛体運動・座標・対称条件",
+        "title": "境界条件・自由度・支持",
+        "description": "既知の変位と未知の反力を区別する・実物が許す運動から支持を選ぶ",
         "path": "theory.html",
         "hash": "#boundary",
         "kind": "境界条件と拘束"
       },
       {
+        "title": "剛体運動・座標・対称",
+        "description": "止めるべき剛体運動を見分ける・斜めの支持と対称条件を指定する",
+        "path": "theory.html",
+        "hash": "#boundary/geometry",
+        "kind": "境界条件と拘束"
+      },
+      {
         "title": "SPC・指定変位",
-        "description": "第7〜9節：拘束セットと強制変位、反力までの式展開",
+        "description": "拘束セットと指定変位を使い分ける・行列の分割から反力を導く",
         "path": "theory.html",
         "hash": "#boundary/spc",
         "kind": "境界条件と拘束"
       },
       {
         "title": "MPC・独立と従属",
-        "description": "第10〜13節：相対量・仕事・非同次拘束・重複と矛盾",
+        "description": "節点と成分を明示して拘束式を読む・変位関係から力の関係を導く",
         "path": "theory.html",
         "hash": "#boundary/mpc",
         "kind": "境界条件と拘束"
       },
       {
         "title": "結合と支持の選択",
-        "description": "第14〜17節：RBE・異種要素・端部解放・支持剛性",
+        "description": "SPC・MPC・RBEと弾性結合を使い分ける・異種要素の力とモーメントの受渡しを確認する",
         "path": "theory.html",
         "hash": "#boundary/connections",
         "kind": "境界条件と拘束"
       },
       {
         "title": "自動拘束と結果の検証",
-        "description": "第18〜22節：AUTOSPC・自由物体・反力・診断・解析別の違い",
+        "description": "拘束不足・過拘束を結果から診断する・合力とモーメントで支持反力を検算する",
         "path": "theory.html",
         "hash": "#boundary/verification",
-        "kind": "境界条件と拘束"
-      },
-      {
-        "title": "確認問題・参照資料",
-        "description": "第23〜24節：手計算・判断の12問と一次資料",
-        "path": "theory.html",
-        "hash": "#boundary/questions",
         "kind": "境界条件と拘束"
       }
     ],
     "loadTheory": [
       {
         "title": "荷重の基本・集中荷重",
-        "description": "第1〜5節：単位・方向・座標・偏心とモーメント",
+        "description": "荷重の大きさ・方向・位置・単位をそろえる・力の移動に伴うモーメントを計算する",
         "path": "theory.html",
         "hash": "#common-loads",
         "kind": "荷重の理論"
       },
       {
         "title": "分布荷重と等価節点荷重",
-        "description": "第6〜11節：線・面・投影・仮想仕事・荷重分配",
+        "description": "分布から合力と作用点を求める・仮想仕事から等価節点荷重を導く",
         "path": "theory.html",
         "hash": "#common-loads/distributed",
         "kind": "荷重の理論"
       },
       {
         "title": "自重・加速度・回転",
-        "description": "第12〜14節：密度・質量・重力・遠心荷重",
+        "description": "密度と単位から慣性荷重を求める",
         "path": "theory.html",
         "hash": "#common-loads/inertia",
         "kind": "荷重の理論"
       },
       {
         "title": "初期ひずみ・温度荷重",
-        "description": "第15〜17節：自由伸び、熱ひずみ、温度分布の受け渡し",
+        "description": "自由伸びと指定変位を区別する・温度分布からひずみと拘束応力へつなぐ",
         "path": "theory.html",
         "hash": "#common-loads/initial",
         "kind": "荷重の理論"
       },
       {
-        "title": "ケース・組合せ・応用",
-        "description": "第18〜24節：組合せ・部分モデル・予荷重・疲労・動荷重",
+        "title": "ケースと結果の組合せ",
+        "description": "荷重IDの定義・選択・合成を追う・線形結果の重ね合わせを正しく行う",
         "path": "theory.html",
         "hash": "#common-loads/cases",
         "kind": "荷重の理論"
       },
       {
-        "title": "検証・確認問題",
-        "description": "第25〜27節：診断・12問・参照資料",
+        "title": "部分モデル・予荷重・動荷重",
+        "description": "荷重の受渡しと履歴が結果に与える影響を読む",
+        "path": "theory.html",
+        "hash": "#common-loads/applications",
+        "kind": "荷重の理論"
+      },
+      {
+        "title": "荷重の検証",
+        "description": "倍率・向き・収支から誤りを見分ける",
         "path": "theory.html",
         "hash": "#common-loads/verification",
         "kind": "荷重の理論"
+      }
+    ],
+    "contactTheory": [
+      {
+        "title": "接触の基本・開閉",
+        "description": "支持と接触の違いを式と図で理解する・すき間・反力・貫通を確認する",
+        "path": "theory.html",
+        "hash": "#contact",
+        "kind": "接触・摩擦・締結"
+      },
+      {
+        "title": "摩擦・固着・滑り",
+        "description": "固着から滑りへの移行と履歴を追う",
+        "path": "theory.html",
+        "hash": "#contact/friction",
+        "kind": "接触・摩擦・締結"
+      },
+      {
+        "title": "接触面のモデル化",
+        "description": "面・メッシュ・接触則を評価目的から選ぶ",
+        "path": "theory.html",
+        "hash": "#contact/surfaces",
+        "kind": "接触・摩擦・締結"
+      },
+      {
+        "title": "製品・SOL別の接触設定",
+        "description": "SOLと接触方式の適用範囲を区別する",
+        "path": "theory.html",
+        "hash": "#contact/products",
+        "kind": "接触・摩擦・締結"
+      },
+      {
+        "title": "締付け・保持・外力",
+        "description": "締結の荷重分担と開離を式から求める・締付け後に保持する量を区別する",
+        "path": "theory.html",
+        "hash": "#contact/bolts",
+        "kind": "接触・摩擦・締結"
+      },
+      {
+        "title": "トルク・予荷重の変化・詳細化",
+        "description": "締付け軸力の変動とモデルの詳細度を判断する",
+        "path": "theory.html",
+        "hash": "#contact/management",
+        "kind": "接触・摩擦・締結"
+      },
+      {
+        "title": "収束と結果の検証",
+        "description": "接触状態・収支・感度から妥当性を確認する",
+        "path": "theory.html",
+        "hash": "#contact/verification",
+        "kind": "接触・摩擦・締結"
+      }
+    ],
+    "dampingTheory": [
+      {
+        "title": "減衰の意味・式・単位",
+        "description": "減衰力の仕事と係数の単位を理解する",
+        "path": "theory.html",
+        "hash": "#damping",
+        "kind": "減衰の理論"
+      },
+      {
+        "title": "自由振動・共振・構造減衰",
+        "description": "自由振動と共振応答への減衰の効果を比べる",
+        "path": "theory.html",
+        "hash": "#damping/response",
+        "kind": "減衰の理論"
+      },
+      {
+        "title": "実測からの同定",
+        "description": "対数減衰率と半値幅から減衰比を求める",
+        "path": "theory.html",
+        "hash": "#damping/identify",
+        "kind": "減衰の理論"
+      },
+      {
+        "title": "モード・局所・Rayleigh",
+        "description": "損失を構造へ配る方法を選ぶ・局所運動とモード連成を見分ける",
+        "path": "theory.html",
+        "hash": "#damping/distribution",
+        "kind": "減衰の理論"
+      },
+      {
+        "title": "過渡・材料・入力の対応",
+        "description": "SOL・減衰モデル・入力を対応させる",
+        "path": "theory.html",
+        "hash": "#damping/implementation",
+        "kind": "減衰の理論"
+      },
+      {
+        "title": "複素固有値・非線形・検証",
+        "description": "安定性と数値精度から減衰設定を検証する",
+        "path": "theory.html",
+        "hash": "#damping/verification",
+        "kind": "減衰の理論"
       }
     ]
   }

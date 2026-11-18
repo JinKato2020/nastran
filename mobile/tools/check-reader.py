@@ -72,12 +72,14 @@ with sync_playwright() as p:
     assert base64.b64decode(m['base64'])==(ROOT.parent/'sites/nastran-learning/dist/downloads/run_two_parallel.bat').read_bytes()
     page.close()
     page=reader('bulk.html')
-    page.select_option('#input-family','bulk')
+    page.evaluate("location.hash='#family/bulk'")
+    page.wait_for_function('!document.getElementById("input-browser").hidden')
     page.select_option('#category','拘束・結合')
     page.select_option('#card-picker','SPC1')
     page.wait_for_function('messages.some(m=>m.type==="position"&&m.hash==="#SPC1")')
     assert page.locator('.card-title h2').inner_text()=='SPC1'
-    page.select_option('#input-family','parameter')
+    page.evaluate("location.hash='#family/parameter'")
+    page.wait_for_function('!document.getElementById("input-browser").hidden')
     page.select_option('#category','質量・単位')
     page.select_option('#card-picker','PARAM_WTMASS')
     page.locator('[data-entry-field="0:2"]').click()
@@ -87,7 +89,8 @@ with sync_playwright() as p:
     page.wait_for_function('messages.some(m=>m.type==="share")')
     m=page.evaluate('messages.filter(m=>m.type==="share").at(-1)')
     assert base64.b64decode(m['base64']).decode('ascii')==page.locator('#card-raw').text_content()
-    page.select_option('#input-family','case')
+    page.evaluate("location.hash='#family/case'")
+    page.wait_for_function('!document.getElementById("input-browser").hidden')
     page.select_option('#category','荷重・拘束')
     page.select_option('#card-picker','CASE_LOAD')
     page.locator('#copy-card').click()
@@ -112,7 +115,7 @@ with sync_playwright() as p:
     conversion.locator('input').evaluate('e=>{e.value=5;e.dispatchEvent(new Event("input",{bubbles:true}));}')
     assert '5% = 0.05' in conversion.inner_text()
     assert conversion.locator('tr').filter(has_text='TABDMP1: Q').inner_text().find('10')>=0
-    assert page.locator('[data-damping-lab="rayleigh"] svg').count()==1
+    assert page.locator('[data-damping-lab="rayleigh"] svg').count()==0
     page.locator('.theory-quiz summary').first.click()
     assert page.locator('.theory-quiz details[open]').count()==1
     page.evaluate("location.hash='#transient'")
@@ -133,7 +136,7 @@ with sync_playwright() as p:
     assert page.locator('[data-damping-lab] input').evaluate_all('es=>es.map(e=>e.value)')==before
     page.evaluate("location.hash='#materials/composites'")
     page.locator('#materials-shell-property').wait_for()
-    assert page.locator('.theory-section').count()==23
+    assert page.locator('.theory-section').count()==6
     page.locator('[data-material-lab="laminate"] select').select_option('unsym')
     page.locator('.element-toc a[data-jump="materials-questions"]').click()
     assert page.evaluate('location.hash')=='#materials/composites'
@@ -141,7 +144,7 @@ with sync_playwright() as p:
     assert page.evaluate('document.activeElement.closest("section").id')=='materials-questions'
     page.evaluate("location.hash='#boundary/mpc'")
     page.locator('#boundary-mpc').wait_for()
-    assert page.locator('.theory-section').count()==24
+    assert page.locator('.theory-section').count()==5
     page.locator('[data-boundary-lab="conflict"] select').select_option('inconsistent')
     page.locator('.element-toc a[data-jump="boundary-questions"]').click()
     assert page.evaluate('location.hash')=='#boundary/mpc'
@@ -151,7 +154,7 @@ with sync_playwright() as p:
     page.wait_for_function('messages.some(m=>m.type==="navigate"&&m.path==="bulk.html"&&m.hash==="#MPC")')
     page.evaluate("location.hash='#common-loads/inertia'")
     page.locator('#load-mass').wait_for()
-    assert page.locator('.theory-section').count()==27
+    assert page.locator('.theory-section').count()==4
     page.locator('[data-load-lab="mass"] select').select_option('kg')
     page.locator('.element-toc a[data-jump="load-questions"]').click()
     assert page.evaluate('location.hash')=='#common-loads/inertia'
@@ -161,8 +164,9 @@ with sync_playwright() as p:
     page.wait_for_function('messages.some(m=>m.type==="navigate"&&m.path==="bulk.html"&&m.hash==="#GRAV")')
     page.close()
     page=reader('damping.html')
-    assert page.locator('#damping-chapter .theory-section').count()==19
+    assert page.locator('#damping-chapter .theory-section').count()==4
     page.locator('[data-jump="damping-units"]').click()
+    page.locator('[data-topic-picker]').select_option('distribution')
     page.locator('a[href="bulk.html#TABDMP1"]').first.click()
     page.wait_for_function('messages.some(m=>m.type==="navigate"&&m.path==="bulk.html"&&m.hash==="#TABDMP1")')
     page.close()

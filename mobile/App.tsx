@@ -168,6 +168,8 @@ function LearningApp(){
     {key:'materialTheory',title:'材料理論',description:'弾性・異方性・積層・熱膨張・塑性を、式と操作図で学ぶ',items:NAVIGATION.materialTheory},
     {key:'boundaryTheory',title:'境界条件と拘束',description:'支持・指定変位・多点拘束と、過拘束・拘束不足を学ぶ',items:NAVIGATION.boundaryTheory},
     {key:'loadTheory',title:'荷重の理論',description:'集中・分布・慣性・温度荷重から、組合せと検算へ',items:NAVIGATION.loadTheory},
+    {key:'contactTheory',title:'接触・摩擦・締結',description:'開閉・摩擦・締付けから荷重分担と検証へ',items:NAVIGATION.contactTheory},
+    {key:'dampingTheory',title:'減衰の理論',description:'損失の意味・測定・モデル化から入力と検証へ',items:NAVIGATION.dampingTheory},
     {key:'theory',title:'各解析技術理論',description:'共通の解析技術から、解析ごとの理論へ',items:[...NAVIGATION.common,...NAVIGATION.materials]},
   ];
   const menuGroups:{title:string;tab:TabKey;items:CourseItem[]}[]=[
@@ -176,7 +178,7 @@ function LearningApp(){
     {title:'資料・サポート',tab:'home',items:[NAVIGATION.homeResources[1]]},
     ...materialGroups.map(g=>({title:g.title,tab:'materials' as TabKey,items:g.items})),
     {title:'解析',tab:'analysis',items:NAVIGATION.analyses},
-    {title:'Inputデータ',tab:'input',items:[{title:'入力データ学習',description:'入力区分 → カテゴリー → カード',path:'bulk.html',hash:''}]},
+    {title:'Inputデータ',tab:'input',items:[{title:'入力データ学習',description:'5つの入口・語句検索 → カテゴリー → カード',path:'bulk.html',hash:''}]},
     {title:'エラーメッセージ',tab:'home',items:[{title:'エラー検索と意味',description:'番号・診断文・F06から検索',path:'errors.html',hash:''}]},
   ];
   const marked=saved.bookmarks.some(b=>samePlace(b,current.current));

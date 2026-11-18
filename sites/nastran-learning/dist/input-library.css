@@ -18,3 +18,12 @@
 .constraint-roles summary{min-height:44px;box-sizing:border-box;padding:10px 0;color:#244d83;font-size:14px;cursor:pointer}
 .constraint-roles ol{margin:0 0 5px;padding-left:1.6em;font-size:14px;line-height:1.7}
 .constraint-roles p{margin:7px 0 0;font-size:13px;line-height:1.65}
+
+/* Input landing and two-stage browsing share the app's existing cards. */
+.library-main [hidden]{display:none!important}
+.library-selectors{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}
+.library-selectors label:last-child{grid-column:auto}
+#input-home .library-search-row{margin-top:12px}
+#input-search-status{font-size:14px;color:var(--muted);margin:8px 0}
+.library-crumb{font-size:13px;line-height:2;margin:0 0 8px}
+@media(max-width:480px){.library-selectors{grid-template-columns:minmax(0,1fr)}.library-selectors label:last-child{grid-column:auto}}
