@@ -167,5 +167,34 @@
   [['PRINT／NOPRINT／PUNCH','F06への出力、F06への出力を抑止、PCHへの出力です。既定はPRINTです。'],['SET','Gは既定。N、AUTOSPCを反映したN、F、A、またはALLから検査する段階を選びます。'],['GRID','剛体運動の基準点。'],['THRESH','合格とするひずみエネルギーの上限。既定は最大剛性項÷10¹⁰です。'],['DATAREC','YESで診断用の力を回復します。既定はNO。'],['RTHRESH','DATARECで回復した力を出力するしきい値。既定0.10。'],['YES／NO','検査を有効化または無効化します。']],
   ['全SUBCASEより上に指定します。支持を適用した段階では意図した抵抗も現れるため、GやNの結果と比較します。']);
  cards.at(-1).reference='analysis.html#model-verification';
+
+ caseEntry('MEFFMASS','刺激係数・有効質量・累積質量比','結果出力','通常の実固有モードが、指定方向の剛体運動をどれだけ表すかを評価する出力要求です。実際の荷重応答の振幅を求める命令ではありません。',502,
+  'MEFFMASS [(PRINT | NOPRINT, PUNCH | NOPUNCH, GRID=gid, SUMMARY, PARTFAC, MEFFM, MEFFW, FRACSUM, ALL)] = YES | NO',
+  'MEFFMASS(PRINT,ALL) = YES',
+  [['PRINT／NOPRINT','F06へ印刷／F06への印刷を抑止します。既定はPRINT。係数をF06で読むならPRINTを使います。'],
+   ['PUNCH／NOPUNCH','PCHへ出力／パンチ出力を抑止します。既定はNOPUNCH。PRINTとは別の出力先です。'],
+   ['GRID=gid','剛体質量行列を作る基準点のGRID番号。空欄では基本座標系の原点です。方向を選ぶCIDや、調べたい1節点を指定する欄ではありません。基準点を変えると回転・連成項が変わります。'],
+   ['SUMMARY','既定の選択。方向別の総有効質量比、有効質量行列、剛体質量行列を求めます。PARTFACを指定したことにはなりません。'],
+   ['PARTFAC','モード・方向ごとの参加係数（刺激係数に関係する量）を出力します。MASSとMAXでは正規化と係数の定義を合わせて読みます。'],
+   ['MEFFM','モードの有効質量に関する表を出力します。MASSでは参加係数の2乗と照合できます。MAXにおける表のスケールは一般化質量とFRACSUMを合わせて確認します。'],
+   ['MEFFW','重量単位に換算した表。QRGではMEFFMをPARAM,WTMASSで割る扱いです。名称だけで自動的に9.81倍されると判断しません。'],
+   ['FRACSUM','方向別のモード有効質量比を出力。FRACTIONはそのモード、SUMはそこまでの累積です。0.9は90%。方向ごとの比を足し合わせません。'],
+   ['ALL','SUMMARY・PARTFAC・MEFFM・MEFFW・FRACSUMの一式を要求します。'],
+   ['YES／NO・省略','指定した要求を有効／無効にします。書式の右辺の既定はYESです。コマンドを記入しなければ、この追加要求をしたことにはなりません。']],
+  ['MSC Nastran 2025.1 QRG PDF502–503で照合。Siemens版の現行仕様や複素固有値解析へ無条件に共通化しません。',
+   'Case Controlは8文字固定長のBulk Dataではありません。固有値抽出を行う対象ケースに適用し、METHODから選んだEIGRL/EIGRのNORMと出力を合わせて確認します。',
+   'PARTFAC、刺激係数、刺激関数、有効質量は同じ量ではありません。結果の実務的な読取りと定義の違いは解析タブの実固有値「結果」へまとめています。',
+   'スーパーエレメントでは既定は残余構造の固有値・固有ベクトルを使い、PARAM,FIXEDB,-1の場合は成分モードを使います。外部スーパーエレメントとモジュールの2段階方式では利用できません。'],
+  [['EIGRL','Lanczos法とNORMの指定。','EIGRL'],['EIGR','実固有値抽出とNORMの指定。','EIGR'],['METHOD','抽出条件のSIDを選択。','CASE_METHOD'],['DISPLACEMENT','モード成分の出力。','CASE_DISPLACEMENT'],['WTMASS','質量・重量の換算規約。','PARAM_WTMASS']]);
+ cards.at(-1).sourcePages=[502,503];
+ cards.at(-1).reference='analysis.html#modes/baseline/results';
+ cards.at(-1).outputs=['F06のREAL EIGENVALUESとMEFFMASSの各表を、同じSUBCASE・モード・方向で対応させます。','表が見つからない場合はPARTFAC/ALL、PRINT/NOPRINT、対象ケース、固有値抽出の実施を確認します。'];
+ cards.at(-1).exampleNote='結果出力の指定だけの抜粋で、完成した解析DATではありません。';
+ const eigrl=window.InputCatalog.entries.find(e=>e.key==='EIGRL');
+ if(eigrl){
+  const norm=eigrl.lines.flat().find(x=>x.label==='NORM');
+  norm.help='MASSは一般化質量φᵀMφを1にそろえ、通常の実固有値解析の既定です。MAXは解析セット（a-set）の最大変位成分を単位値にそろえ、a-set外に回復した成分は1を超え得ます。固有振動数や物理的な総質量を変える入力ではありません。座屈ではMASSは適用されずMAXとなります。この欄はMSC 2025.1 QRG PDF1814–1815で照合。';
+ }
+
  window.InputCatalog.entries.push(...cards);
 })();

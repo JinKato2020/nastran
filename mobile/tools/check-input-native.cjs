@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {INPUT_INDEX,inputGroups,searchInput,inputIndexFromHTML,isInputHome}=require('../src/input-home.ts');
 const groups=inputGroups(INPUT_INDEX);
-assert.deepEqual(groups.map(g=>g.key),['executive','case','parameter','bulk','comparisons']);assert.equal(INPUT_INDEX.entries.length,312);
+assert.deepEqual(groups.map(g=>g.key),['executive','case','parameter','bulk','comparisons']);assert(INPUT_INDEX.entries.length>=313);
 const covered=[];
 for(const g of groups.slice(0,4)){
  assert.deepEqual(g.items.map(i=>i.title),[...new Set(INPUT_INDEX.entries.filter(e=>e.family===g.key).map(e=>e.category))]);
@@ -10,10 +10,11 @@ for(const g of groups.slice(0,4)){
   assert(cards.some(c=>item.hash==='#'+c.key));covered.push(...cards.map(c=>c.key));
  }
 }
-assert.equal(covered.length,312);assert.equal(new Set(covered).size,312);
+assert.equal(covered.length,INPUT_INDEX.entries.length);assert.equal(new Set(covered).size,INPUT_INDEX.entries.length);
 assert.equal(groups[4].items.length,12);
 assert.equal(new Set(groups[4].items.map(i=>i.hash)).size,12);
 for(const query of ['celas','ＣＥＬＡＳ',' CelAs '])assert.deepEqual(searchInput(INPUT_INDEX.entries,query).map(e=>e.key),['CELAS1','CELAS2','CELAS3','CELAS4']);
+for(const query of ['meffmass','刺激係数'])assert(searchInput(INPUT_INDEX.entries,query).some(e=>e.key==='CASE_MEFFMASS'));
 assert.equal(searchInput(INPUT_INDEX.entries,'zz_unknown_card').length,0);
 assert(searchInput(INPUT_INDEX.entries,'変位').length>0);
 const bundle=require('../src/generated/lessons.json');assert.deepEqual(inputIndexFromHTML(bundle.pages['bulk.html']),INPUT_INDEX);

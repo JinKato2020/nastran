@@ -174,3 +174,10 @@
 - 正本はanalysis-response-core.js、analysis-response-labs.js、analysis-frequency-lessons.js、analysis-transient-lessons.js、analysis-response-quiz.js。analysis.htmlでanalysis.jsより先に読み込み、描画後にAnalysisResponseLabs.bindを呼ぶ。既存DATを変更せず、新規DATも追加しない。新しい比較は独立した理論計算であり、MSC実行結果ではない。弱軸だけのモード次数とEIGRLの全方向NDを区別する。対称2質点の直接解・モード解、梁の弱軸連続体近似、過渡の1自由度近似と独立Newmark積分の適用範囲を明記する。
 - MSC 2025.1動解析ガイドの周波数・過渡、QRGのDLOAD・DPHASE・RLOAD1・TABDMP1・TLOAD1・TSTEPを照合。既存の正弦荷重・短いパルス・長いパルスのSVGは文字以外の一致を確認。図中文字は記号・数値とし説明を図外に置く。
 - check-analysis-response.cjsをtest:coreへ追加。独立した梁60要素計算、状態方程式の時間積分、力の釣合い、2モード完全性、反共振、時間刻み収束と全カード参照を検査。check-analysis-response.pyで13モデル・52問・全操作・カード往復・320/390/768pxを検査。教材フォルダへ同期し、R2教材OTAのみ配信する。再起動済み1.3.2（1002）の進捗は確認しない。
+
+
+- ユーザー指定（2026-11-19、固有値の実務的な結果読取り）：実固有値SOL 103の結果タブへ、MAX/MASS、一般化質量・剛性、F06/OP2/PCH/F04、刺激係数・刺激関数・有効質量・方向別累積比の解説を追加。3モデルの本文はanalysis-modal-output.jsで共用し、モデル固有の観測点・質量・拘束の注意を先頭へ置く。予荷重・複素固有値・モード周波数応答・過渡からは同じ解説へリンクし、重複管理しない。
+- MEFFMASSをInputデータへ追加（element-input-cards.js、2025.1 QRG PDF502–503）。入力・相関図では既存DATへの任意の追加要求と明記。NORM、PRINT/ALL、PARTFAC、FRACSUM、GRID基準点、WTMASSの区別を扱う。EIGRLのNORMはa-set外の成分が1を超え得ることまで説明する。既存DATは変更しない。
+- analysis-modal-output-core.jsは独立した2質点系M=diag(2,1)、K=[[600,-200],[-200,200]]の計算。共通のLessonArticleとBeamLabs.ui/graphicsを使用。正規化・全体符号・2モードを切替え、係数値と不変な刺激関数・有効質量を確認する。公式図やF06の転載ではなく、MSC実行済みとも扱わない。
+- 定義はβ=(φᵀMr)/(φᵀMφ)、有効質量=(φᵀMr)²/(φᵀMφ)。動解析ガイドのΓとQRGのεを文字だけで同一視しない。MASSの表の読み方と一般理論のMAX換算を分離し、MAXでのPARTFAC/MEFFMの表内スケールは実機F06未照合と明記する。MASSへそろえた出力とFRACSUMで比較する。参照は動解析ガイドPDF59・119–123、QRG PDF1814–1815。
+- check-modal-output.cjsをtest:coreへ接続し、固有方程式・正規化と符号の不変量・静的応答の復元・有効質量の完全性・Inputリンクを検査。check-modal-output.pyで3モデル、全選択、目次、カード往復、関連解析のリンク、320/390/768pxを確認。教材へ同期しR2教材OTAのみ配信する。
