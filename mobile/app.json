@@ -12,7 +12,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "1002"
+      "buildNumber": "1003"
     },
     "android": {
       "package": "com.safa.nastranlearning"

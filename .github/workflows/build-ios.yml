@@ -13,7 +13,7 @@ on:
         description: 同じバージョンのビルド番号（再ビルドは増加）
         type: string
         required: true
-        default: '1002'
+        default: '1003'
       testflight:
         description: TestFlightへアップロードする（App Store審査申請はしない）
         type: boolean
@@ -65,6 +65,8 @@ jobs:
             if [ -z "${!name}" ]; then echo "::error::Missing Repository secret: $name"; exit 1; fi
           done
       - run: npm ci
+      - name: Configure Expo module scanner deadline
+        run: node tools/configure-expo-scanner.cjs
       - run: npm run content
       - run: npm run typecheck
       - run: npm run test:core
@@ -95,6 +97,8 @@ jobs:
           cache-dependency-path: mobile/package-lock.json
       - run: xcodebuild -version
       - run: npm ci
+      - name: Configure Expo module scanner deadline
+        run: node tools/configure-expo-scanner.cjs
       - run: npm run content
       - name: Apply verified release version
         run: node tools/release-version.cjs apply

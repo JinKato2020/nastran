@@ -108,6 +108,7 @@ require('./check-contact-chapter.cjs');
 require('./check-topic-articles.cjs');
 require('./check-content-rights.cjs').checkRights(require('../src/generated/lessons.json').pages);
 require('./check-release-preflight.cjs');
+require('./check-expo-scanner.cjs');
 console.log('PASS: routes, progress restore, outbound URLs, filename/base64 checks, all offline documents, script-safe bootstrap, exact ZIP/BAT bytes.');
 
 async function checkLessonOTA(){
