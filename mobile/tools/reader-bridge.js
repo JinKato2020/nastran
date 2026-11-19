@@ -3,6 +3,11 @@
  const boot=/*__BOOT__*/;
  const pending=new Map();let requestId=0;
  function post(message){window.ReactNativeWebView.postMessage(JSON.stringify({...message,session:boot.session}));}
+ // The native app supplies these routes for a free analysis reader, including older OTA copies.
+ const allowedAnalysis=Array.isArray(boot.freeAnalysisHashes)?new Set(boot.freeAnalysisHashes):null;
+ const allowHash=hash=>!allowedAnalysis||allowedAnalysis.has(hash.split('/')[0]);
+ const navigate=hash=>post({type:'navigate',path:boot.path,hash});
+ let lastHash=boot.hash;
  window.__nastranReply=function(id,ok,error){const p=pending.get(id);if(!p)return;clearTimeout(p.timer);pending.delete(id);ok?p.resolve():p.reject(new Error(error||'処理できませんでした。'));};
  function request(message){return new Promise((resolve,reject)=>{const id=String(++requestId);const timer=setTimeout(()=>{pending.delete(id);reject(new Error('応答を確認できませんでした。'));},120000);pending.set(id,{resolve,reject,timer});post({...message,id});});}
  function report(error){post({type:'notice',message:error.message||'操作を完了できませんでした。'});}
@@ -22,7 +27,12 @@
   if(url.origin==='https://nastran.invalid'){
    const target=url.pathname.slice(1);
    if(boot.downloads.includes(target)){request({type:'asset',path:target}).catch(report);return true;}
-   if(target===boot.path){if(url.hash!==location.hash)location.hash=url.hash;else if(url.hash)document.getElementById(decodeURIComponent(url.hash.slice(1)))?.scrollIntoView();return true;}
+   if(target===boot.path){
+    if(!allowHash(url.hash)){position();navigate(url.hash);return true;}
+    if(url.hash!==location.hash)location.hash=url.hash;
+    else if(url.hash)document.getElementById(decodeURIComponent(url.hash.slice(1)))?.scrollIntoView();
+    return true;
+   }
    position();post({type:'navigate',path:target,hash:url.hash});return true;
   }
   if(url.protocol==='https:')post({type:'external',url:url.href});
@@ -36,10 +46,36 @@
  // Inline WebViews can have about:blank/srcdoc URLs with a different base URI.
  // Resolve hash-only replacements against the document URL and notify native bookmarks.
  const replace=history.replaceState.bind(history);
- history.replaceState=function(state,title,url){
-  const target=typeof url==='string'&&url.startsWith('#')?location.href.split('#')[0]+url:url;
-  replace(state,title,target);position();
- };
+ function interceptHistory(apply){
+  return function(state,title,url){
+   const target=typeof url==='string'&&url.startsWith('#')?location.href.split('#')[0]+url:url;
+   if(allowedAnalysis&&target!=null){
+    const resolved=new URL(target,location.href);
+    if(!allowHash(resolved.hash)){navigate(resolved.hash);return;}
+   }
+   if(target===undefined)apply(state,title);else apply(state,title,target);
+   lastHash=location.hash;position();
+  };
+ }
+ history.replaceState=interceptHistory(replace);
+ if(allowedAnalysis){
+  history.pushState=interceptHistory(history.pushState.bind(history));
+  addEventListener('hashchange',event=>{
+   if(allowHash(location.hash)){lastHash=location.hash;return;}
+   event.stopImmediatePropagation();
+   const blocked=location.hash;
+   replace(null,'',location.href.split('#')[0]+lastHash);
+   navigate(blocked);
+  },true);
+  document.addEventListener('DOMContentLoaded',()=>requestAnimationFrame(()=>{
+   const picker=document.getElementById('analysis-picker');
+   if(!picker)return;
+   for(const option of picker.querySelectorAll('option')){
+    if(option.value!=='index'&&!allowHash('#'+option.value))option.remove();
+   }
+   for(const group of picker.querySelectorAll('optgroup'))if(!group.children.length)group.remove();
+  }));
+ }
  addEventListener('hashchange',position);
  addEventListener('scroll',()=>{clearTimeout(timer);timer=setTimeout(position,200);},{passive:true});
  if(boot.hash)location.hash=boot.hash;

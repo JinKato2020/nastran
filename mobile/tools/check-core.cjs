@@ -2,6 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 require.extensions['.ts']=(mod,file)=>mod._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,file);
 const root=path.resolve(__dirname,'..'),p=require('../src/protocol.ts'),content=require('../src/content.ts');
 const release=require('./release-version.cjs');
+require('./check-pro-core.cjs');
 assert.deepEqual(release.nextRelease('1.2.1','1001','next'),{version:'1.2.2',build:'1001'});
 assert.deepEqual(release.nextRelease('1.2.1','1001','rebuild'),{version:'1.2.1',build:'1002'});
 assert.deepEqual(release.nextRelease('1.2.9','1021','next'),{version:'1.2.10',build:'1001'});

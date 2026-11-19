@@ -184,3 +184,7 @@
 
 - ユーザー確認（2026-11-19、審査提出版）：App Storeへ提出した版は1.2.13。Appleメール本文の1.0.13、現在の開発版1.3.2とは区別する。審査用の録画・機能説明は選択した提出ビルドに合わせ、現在のソースだけで提出版の機能を断定しない。
 - 2026-11-19、ホーム改修ビルドの再修正：1.3.2（1002）のIntel実行44418986647はArchiveでExpoモジュール検出が5000msでタイムアウトして失敗。署名・Podsは通過したがTestFlightへ未提出。expo-modules-autolinking 58.0.17の検出期限のみconfigure-expo-scanner.cjsで60000msへ変更し、npm ci後にCIで適用する。未検出モジュールによる停止は維持し、依存版更新時は回避策を再検討する。check-expo-scanner.cjsで期限・再適用・版検査・失敗時の停止条件を検査。修正再ビルドは1.3.2（1003）、起動後は監視しない。
+
+- ユーザー指定（2026-11-19、Nastran Pro）：無料版は教材「各要素理論」、解析「構造・静解析」（静解析・厚肉円筒・座屈）、Inputデータ全体。ホームと設定は入口と購入・復元に使い、そのほかの教材はProで解放する。閲覧制限はネイティブで判定し、しおり・戻る・記事内リンク・解析ページ内の切替にも適用する。教材OTAの中身や既存ビルド1.3.2（1003）の審査情報は変更しない。アプリ内の制限を教材HTMLの非公開配信とは扱わない。
+- RevenueCatのApple製品は nastran_pro（非消耗型）、Offeringは default / $rc_lifetime、Entitlementは fem_guide_for_nas_pro。ストア価格を表示し、利用権取得・復元・取消をSDKのCustomerInfoで判定する。iOS CIはRepository variable REVENUECAT_IOS_PUBLIC_SDK_KEY（appl_公開キー）をExpoへ渡す。Appleの .p8 やRevenueCatの秘密キーをアプリやリポジトリに入れない。SDKは既存CocoaPodsに対応するreact-native-purchases 11.0.4を使用する。明示的なビルド依頼まで採番・ビルドは行わない。
+- ローカル確認は mobile で npm run typecheck、npm run test:core、node tools/preview-app.mjs、python -X utf8 tools/check-pro-ui.py。画面テストの価格・購入は模擬。実機のApple Sandboxでの購入・復元・起動時の利用権継続は、購入キーと公開SDKキーを設定した次回ビルドで確認する。

@@ -100,3 +100,11 @@ python -m http.server 8766 --bind 127.0.0.1 --directory .qa/app
 `analysis.html`は15解析のモデル図、主要カードの参照関係、結果の読み方を収録します。SOL 101・103・107／110は自作例10件の8文字固定長DATと使用カードを掲載し、公式例題は出典PDFへのリンクと主要カード解説を表示します。複素固有値は減衰の有無と解法を別々に切り替えます。解析タブの図は模式図です。公式DATとF06は同梱しません。
 
 大きい解析モデルも最初は6行だけ表示します。全文の展開は必要なときに行い、コピーとDAT保存は縮小表示中でも全文を対象にします。複数モデルのある解析は、選択に合わせて図・条件・結果の確認事項も切り替わります。MSC Nastran本体での実行は未検証です。
+
+## Pro の購入と復元
+
+iOSのRevenueCat公開SDKキーをGitHub ActionsのRepository variable `REVENUECAT_IOS_PUBLIC_SDK_KEY` に設定します。ローカルiOS開発では `EXPO_PUBLIC_REVENUECAT_IOS_API_KEY` に同じ `appl_` キーを指定します。Appleの購入検証キーとApp Store Connect APIの秘密鍵はRevenueCatの管理画面に設定します。
+
+無料では各要素理論・解析「構造・静解析」・Inputデータが開きます。それ以外は買い切りの `nastran_pro` で解放します。RevenueCatのOffering `default` のLifetime枠にAppleの商品を関連付け、利用権ID `fem_guide_for_nas_pro` を設定してください。
+
+ブラウザーで操作を確認する場合は `node tools/preview-app.mjs` の実行後、`python -X utf8 tools/check-pro-ui.py` を実行します。このテストは価格、購入、復元を模擬します。実機ではApple Sandboxのテスターを使い、非消耗型商品の価格表示、初回購入、起動し直した後の利用権、購入の復元、キャンセルを確認します。
