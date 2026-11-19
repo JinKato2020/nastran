@@ -24,8 +24,17 @@ near(max.mu,1.5);near(max.L,2);near(max.beta,4/3);near(max.eff,8/3);
 near(mass.beta,Math.sqrt(8/3));near(mass.eff,max.eff);near(reverse.beta,-max.beta);
 max.psi.forEach((v,i)=>{near(v,mass.psi[i]);near(v,reverse.psi[i]);});
 const c={window:{},console};vm.createContext(c);
-for(const f of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards','element-input-cards','lesson-article','analysis-data','extended-analysis-data','analysis-relations-data','analysis-scenario-relations','analysis-scenario-guides','analysis-scenarios','beam-labs','analysis-mode-quiz','analysis-quiz','analysis-model-quiz','analysis-modal-output-core','analysis-modal-output'])vm.runInContext(fs.readFileSync(path.join(dir,f+'.js'),'utf8'),c,{filename:f+'.js'});
+for(const f of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards','element-input-cards','lesson-article','analysis-data','extended-analysis-data','analysis-relations-data','analysis-scenario-relations','analysis-scenario-guides','analysis-scenarios','beam-labs','analysis-mode-quiz','analysis-quiz','analysis-model-quiz','analysis-modal-output-core','analysis-f06-reader','analysis-modal-output'])vm.runInContext(fs.readFileSync(path.join(dir,f+'.js'),'utf8'),c,{filename:f+'.js'});
 const w=c.window,entries=w.InputCatalog.entries,keys=new Set(entries.map(x=>x.key)),card=entries.find(x=>x.key==='CASE_MEFFMASS');
+// Cross-check the printed values of the primary job at its F06 precision.
+function printedNear(value, reference) {
+ assert(Math.abs(value-reference)<=Math.abs(reference)*2e-6);
+}
+printedNear(40.48877/(2*Math.PI),6.443987);
+printedNear((-15.63371)**2,244.4130);
+printedNear(244.4130/373.6090,.6541947);
+printedNear(356.9882/373.6090,.9555129);
+printedNear(524.9101/.0003934821,1.334013e6);
 assert(card&&card.kind==='control'&&card.sourceVersion==='2025.1'&&card.page===502);
 for(const label of ['PRINT','PUNCH','GRID','SUMMARY','PARTFAC','MEFFM','MEFFW','FRACSUM','ALL','YES'])assert(card.terms.some(x=>x[0].includes(label)),label);
 for(const model of ['baseline','tip-mass','both-fixed']){

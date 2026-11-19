@@ -105,3 +105,19 @@ label.analysis-model-selector select{display:block;flex:1;width:auto;min-width:0
 .analysis-figure-key{display:flex;gap:5px 16px;flex-wrap:wrap;margin:10px 0;font-size:13px;line-height:1.7;text-align:left}
 .analysis-figure-key b{font-variant-numeric:tabular-nums;color:#294762}
 .analysis-shared summary{cursor:pointer;line-height:1.7}
+.f06-excerpt{min-width:0;margin:12px 0 18px}
+.f06-excerpt pre{max-width:100%;box-sizing:border-box;white-space:pre;overflow-x:auto;line-height:1.65}
+.f06-excerpt figcaption{font-size:.85em}
+[data-f06-reader] .analysis-selector{max-width:100%}
+[data-f06-page]{width:100%;min-width:0;box-sizing:border-box}
+.f06-controls{display:flex;gap:8px;margin:8px 0 14px}
+.f06-controls button{padding:6px 14px;min-height:44px;border:1px solid #b4c9e8;border-radius:8px;background:#f7faff;color:#243e60;font:inherit;cursor:pointer}
+.f06-controls button:disabled{opacity:.45;cursor:default}
+.f06-title{overflow-wrap:anywhere;margin:.8em 0 .4em}
+.f06-columns{padding-inline-start:2.2em;margin:.4em 0 .8em}
+.f06-columns li{margin:.3em 0}
+.f06-columns code{font-weight:650}
+.f06-index li{margin:.4em 0}
+.f06-index li span{display:block;font-size:.88em;overflow-wrap:anywhere}
+.f06-index button{background:transparent;color:#254e89;border:0;padding:6px 0;font:inherit;text-decoration:underline;cursor:pointer}
+.f06-gap{font:12px/1.8 system-ui,sans-serif;color:#5c6979}

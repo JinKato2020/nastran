@@ -7,7 +7,7 @@
  const card=(key,label=key)=>'<a href="bulk.html#'+key+'">'+label+'</a>';
  const links=()=>'<div class="analysis-links">'+[['EIGRL','EIGRL：NORM'],['EIGR','EIGR：NORM'],['CASE_MEFFMASS','MEFFMASS：刺激係数・有効質量'],['CASE_DISPLACEMENT','DISPLACEMENT：モード形'],['PARAM_GRDPNT','GRDPNT：総質量'],['PARAM_WTMASS','WTMASS：質量換算']].map(([id,label])=>card(id,label)).join('')+'</div>';
  const jump=(id,label)=>'<a href="#'+id+'" data-jump="'+id+'">'+label+'</a>';
- const scope='MSC Nastran 2025.1の通常の実固有値解析（SOL 103）を対象にします。複素固有値や非対称系へ、実モードの直交性と以下の式をそのまま適用しません。';
+ const report=window.AnalysisF06Reader;
  const context={
   baseline:'選択中の片持ち梁では、弱軸曲げを主に基本Z方向のT3で追います。T1の有効質量比が小さくても、T3の曲げが求まっていないことにはなりません。方向別に確認します。',
   'tip-mass':'選択中の先端質量付き梁では、CONM2を含めた質量行列で一般化質量・刺激係数・有効質量を評価します。基準梁から総質量だけを置き換えて係数を流用しません。',
@@ -33,6 +33,7 @@
  }
  function bind(root){
   A.bindNavigation(root);
+  report.bind(root);
   for(const fig of root.querySelectorAll('[data-modal-output-lab]')){
    U.mount(fig,{html:()=>fig.innerHTML,draw:(el,v)=>{
     states.set(fig.dataset.modalOutputLab,v);
@@ -46,36 +47,26 @@
   }
  }
  const topics=[
-  ['modal-output-start','F06を読む順番と出力ファイル'],
+  ['modal-output-start','実際のF06を印字順に読む'],
   ['modal-output-norm','MAX／MASSで変わるもの・変わらないもの'],
   ['modal-output-example','切り替えて確認する手計算例'],
-  ['modal-output-request','刺激係数と有効質量を出力する'],
+  ['modal-output-request','目的の表が印字されていないとき'],
   ['modal-output-factor','刺激係数・刺激関数・有効質量を区別する'],
-  ['modal-output-tables','F06の表と列を対応させる'],
+  ['modal-output-tables','設計変更に使う応力・反力・エネルギー'],
   ['modal-output-judge','方向別の累積比とモード数の判断'],
   ['modal-output-traps','間違いやすい読み方を点検する']
  ];
  function sections(model){
   return [
-   ['正規化・刺激係数・有効質量を結果から読む',p(scope)+p(context[model]||context.baseline)+A.toc(topics),'modal-output-guide'],
-   ['1. F06を読む順番と出力ファイル',ordered([
-    '同じモデル、単位、拘束、METHOD、対象モードで比較していることを確認します。MAXとMASSの比較で、NDや密度まで変えません。',
-    'REAL EIGENVALUESで固有値・CYCLES・GENERALIZED MASSを読み、続く固有ベクトルの節点・成分と対応させます。',
-    'モードの向き、節の位置、動く部位を確認します。表示倍率と正規化による数値を実振幅と取り違えません。',
-    'MEFFMASSで出した係数と方向別のFRACTION・SUMを読み、励起したい方向を表せるか判断します。',
-    'モード数を増やし、周波数応答・過渡応答で必要な変位・加速度・応力も収束するか確認します。'
-   ])+table(['ファイル','ここで確認する内容'],[
-    ['F06','固有値表、モード成分、刺激係数・有効質量の印刷出力。まずこの数値を基準にします。'],
-    ['OP2などの結果データ','ポスト処理でモード形を確認。自動スケールや「最大値を1」の表示設定があり、画面の倍率とソルバーのNORMは別です。MEFFMASSの各表を読めるかは出力形式とポスト処理側の対応を確認します。'],
-    ['PCH','MEFFMASSでPUNCHを指定したときのパンチ出力。PRINTと別に要求します。'],
-    ['F04','実行経過・処理の診断。刺激係数や変位振幅を探す主なファイルではありません。']
-   ]),'modal-output-start'],
+   ['実固有値解析のF06を読む',p(context[model]||context.baseline)+'<details class="analysis-shared"><summary>結果の読み方・目次</summary>'+A.toc(topics)+'</details>','modal-output-guide'],
+   ['1. 実際のF06を印字順に読む',report.reader(),'modal-output-start'],
    ['2. MAX／MASSで変わるもの・変わらないもの',p('固有ベクトルφは、定数cを掛けても同じ固有値を満たします。NORMはこの大きさの約束です。支持や剛性を変える入力ではありません。')+
     f('Kφ = λMφ　→　K(cφ) = λM(cφ)、λ=ω²、f=ω/(2π)')+
     table(['指定','規則','F06での確認'],[
      ['MASS','μ=φᵀMφ=1となるようにそろえる。通常の実固有値解析では既定。','GENERALIZED MASSが約1。GENERALIZED STIFFNESSは数値上λと対応。節点成分の最大値は1とは限らない。'],
      ['MAX','解析セット（a-set）内の最大変位成分を単位値にそろえる。','固有ベクトルの基準となる成分の大きさが1。一般化質量μと一般化剛性k*はモードごとに異なる。a-set外に回復した成分は1を超え得る。']
     ])+p('a-setは、拘束や縮約などの処理後に固有値計算で使う自由度の集合です。出力された全節点のT1〜R3を無条件に並べ、全成分が1以下でないと異常、と判断しません。並進成分と回転成分は物理単位も異なります。')+
+    p('実際のMAXの印字も照合できます。別の公開研究例（予荷重付き板、SUBCASE 2）の1次は GENERALIZED MASS＝3.934821E−04、GENERALIZED STIFFNESS＝5.249101E+02。後者÷前者＝1.334013E+06、さらに平方根÷2π＝183.823 Hzで、同じ行の CYCLES と一致します。モデルが異なるため、先ほどの梁との周波数差を正規化の効果とは解釈しません。<a href="https://github.com/zhaowei0566/SPAD/blob/7a5b6b7cec77511549bfa0bfca434b38b1b9bbec/AIAAJ_Paper_Data/paper_2019/Section_IV_A/straight_concentric/sol103_prestressed_stiffened_plate_con.f06#L3078-L3082" target="_blank" rel="noopener">MAXの実出力 ↗</a>')+
     f('μ=φᵀMφ、k*=φᵀKφ、λ=k*/μ')+
     table(['φ′=cφへ変更','変換','変わらない量'],[
      ['一般化質量・剛性','μ′=c²μ、k*′=c²k*','λ=k*/μ、固有振動数、同一モードの成分比'],
@@ -88,11 +79,8 @@
     experiment(model)+p('1次のMAX形φ=[0.5,1]ᵀで、μ=2×0.5²+1×1²=1.5、L=2×0.5+1×1=2。したがってβ=2/1.5=4/3、m_eff=2²/1.5=8/3 kgです。')+
     p('MASS形は[0.408248,0.816497]ᵀ。μ=1、β=1.632993、m_eff=β²=8/3 kgです。両方の刺激関数は[2/3,4/3]ᵀ。値の大きいモード成分だけを見て「MASSの方が揺れやすい」とは判断できません。')+
     p('MAXではφとβはこの例で無次元、μはkg。MASSではφはkg⁻¹ᐟ²、βはkg¹ᐟ²となり、μは数値上1です。単位系もそろえて比較します。'),'modal-output-example'],
-   ['4. 刺激係数と有効質量を出力する',p('次は通常の実固有値解析に追加するCase Controlの指定例です。CENDとBEGIN BULKの間で、対象の固有値SUBCASEへ置きます。完成したDATではありません。METHODの30は既存のEIGRL／EIGRのSIDと一致させます。')+
-    '<pre class="analysis-deck"><code>METHOD = 30\nDISPLACEMENT(PRINT) = ALL\nMEFFMASS(PRINT,ALL) = YES</code></pre>'+
-    p('まず'+card('EIGRL')+'または'+card('EIGR')+'のNORMをMASSとして係数を照合します。MAXとの比較ではNORMだけを変えます。Bulk Dataの8文字フィールドと、上のCase Controlの自由形式を混同しません。')+
-    p('ALLは一式を要求します。必要な表を選ぶ場合は、例えば <code>MEFFMASS(PRINT,<wbr>SUMMARY,<wbr>PARTFAC,<wbr>MEFFM,<wbr>FRACSUM)=YES</code>。裸のMEFFMASSの既定はSUMMARYなので、刺激係数表まで当然に出るとは考えません。')+
-    p('各選択肢、出力先、GRID、YES／NO、既定値は'+card('CASE_MEFFMASS','InputデータのMEFFMASS')+'に集約しています。通常のモード形は'+card('CASE_DISPLACEMENT','DISPLACEMENT')+'で要求します。OP2表示だけを指定しても、F06にモード成分表が出るとは限りません。'),'modal-output-request'],
+   ['4. 目的の表が印字されていないとき',report.missing()+
+    p('有効質量の総括だけがあり刺激係数が見当たらないときは、ケースの出力要求を確認します。表の指定は'+card('CASE_MEFFMASS','InputデータのMEFFMASS')+'、節点のモード成分の出力先は'+card('CASE_DISPLACEMENT','DISPLACEMENT')+'から調べられます。'),'modal-output-request'],
    ['5. 刺激係数・刺激関数・有効質量を区別する',p('ここでは刺激係数をβと定義します。基盤が一定方向へ動くとき、rはその方向の剛体運動を各自由度に配るベクトルです。基本Xの一様並進なら、対応するX並進は1、直交方向は0です。各節点の座標系が異なる場合は同じ方向へ変換します。')+
     f('μᵢ=φᵢᵀMφᵢ、Lᵢ=φᵢᵀMr、βᵢ=Lᵢ/μᵢ')+
     p('相対変位uに対する一様な基盤加速度a_gの式から、どこにβが現れるかを追います。')+
@@ -105,20 +93,13 @@
     '<div class="element-note"><strong>出力名と文献の記号をそろえる</strong>'+p('MSC動解析ガイドはLに当たる量をΓと呼び、QRGのPARTFACはεという記号で説明されています。文献でΓを見ただけで、LなのかL/μなのかを決めないでください。MASSでは一致しますが、MAXでは定義の確認が必要です。')+
     p('2025.1 QRGはMEFFMをPARTFACの項別2乗、FRACSUMを一般化質量を含む比として説明しています。MAX出力の表題だけから、MEFFMの数字をそのままkgやtonneと断定しません。MAX時の表内スケールを実機F06と照合した例は未収録です。下の数値表はMASSでの理論照合値とし、MAXは一般式L²/μとMASSへそろえた出力、FRACSUMで検算します。')+'</div>'+
     p('特定の点へ加える力F(t)では、モード荷重はφᵢᵀF(t)です。一様な基盤加速度に対するMEFFMASSの係数とは別です。ある方向の有効質量が小さくても、そのモードの腹へ局所的な力を加えると大きく励起されることがあります。'),'modal-output-factor'],
-   ['6. F06の表と列を対応させる',table(['探す表・列','何を読むか','実務での照合'],[
-    ['REAL EIGENVALUES','EIGENVALUE=λ、RADIANS=ω、CYCLES=f、GENERALIZED MASS=μ、GENERALIZED STIFFNESS=k*','f=√λ/(2π)、k*/μ=λ。秒を使う単位系ならCYCLESはHz。'],
-    ['REAL EIGENVECTOR','対象MODEのPOINT IDとTYPE、T1〜T3、R1〜R3','GRIDの出力座標系（CD等）を確認。Rは回転成分で並進mmではない。ポスト処理の表示座標も確認。'],
-    ['MODAL PARTICIPATION FACTORS','方向ごとの符号付き係数','MASSの基準で係数とその2乗を検算。異なるNORM・質量単位・符号規約の値を直接大小比較しない。'],
-    ['MODAL EFFECTIVE MASS','各モード・方向の有効質量に関する出力','MASSでは係数の2乗と照合。重量との違い、MAX時の表の定義に注意。'],
-    ['MODAL EFFECTIVE MASS FRACTION','各MODE/FREQUENCYのFRACTIONとSUM','FRACTIONはそのモード、SUMはそこまでの累積。0.90は90%。'],
-    ['TOTAL EFFECTIVE MASS FRACTION','保持した全モードの方向別の合計','FRACSUMの最後のSUMと対応。T1〜T3を足して100%を目指す表ではない。'],
-    ['A-SET RIGID BODY MASS MATRIX','比率の分母となる剛体運動に対する質量','並進方向の質量と回転方向の慣性を区別。GPWGの全体質量と解析セットの質量を無条件に同一視しない。']
-   ])+p('F06の見出しは文字間に空白が入ることがあります。検索で見つからない場合は、短い語や空白を含む表記で探します。モード番号だけでなくSUBCASE・振動数・形も照合します。')+
-    table(['独立2質点例・MASS','f (Hz)','係数β','m_eff (kg)','FRACTION','SUM'],[
-     ['1次','1.591549','1.632993','2.666667','0.888889','0.888889'],
-     ['2次','3.183099','0.577350','0.333333','0.111111','1.000000']
-    ],{caption:'手計算で求めた一様X並進への照合値。実行済みF06の転載・再現ではありません。係数の全体符号は反転し得ます。'})+
-    p('1次だけなら88.89%、2次までなら100%。仮に業務の採用基準を90%とした場合、1次だけでは不足です。この例の100%は、2自由度の全モードを残したためで、一般の有限要素モデルのND=2を推奨する意味ではありません。'),'modal-output-tables'],
+   ['6. 設計変更に使う応力・反力・エネルギー',p('以下は必要な出力を要求したときに使える結果です。今回のブームのF06では、ここまでに読んだ固有ベクトルが節点別の主要な結果です。')+
+    table(['実務で知りたいこと','確認する出力','結果をどう使うか'],[
+     ['どこを補強すれば対象モードに効くか','要素ひずみエネルギー（ESE）のモード別分布','同じモード内でエネルギーの集中する領域を探す。そこに剛性を足した案を再解析し、振動数とモード形の両方を比較する。付加質量も同時に変わる。'],
+     ['取付部のどこが厳しいか','対象モードの要素応力・ひずみと出力位置','単位モードで変形が集中する部位を選ぶ。実荷重・減衰を与えた応答解析でその部位の応力を計算し、メッシュ収束も確かめてから許容値と比較する。'],
+     ['どの支持へ力が伝わるか','拘束点の反力（SPC forces）・要素端力','同じモード内で支持間の成分、向き、荷重経路を追う。報告する実反力には加振時のモード応答を反映する。'],
+     ['実験と一致しているか','各モードのCYCLESと測定点に対応する固有ベクトル成分','計測と同じ軸へ変換する。1点だけで倍率を一致させず、複数点の成分比や節の位置を比べる。近接・重根はモード群として対応づける。']
+    ]),'modal-output-tables'],
    ['7. 方向別の累積比とモード数の判断',ordered([
     '実際に励起する方向と周波数帯を決めます。基本X・Y・Zの一様並進のどれか、局所荷重か、回転励起かを区別します。',
     'MEFFMASSのT1・T2・T3は基本座標の並進方向、R1・R2・R3は基準点まわりの回転方向として読みます。GRID指定は基準点を変えるためのもので、座標系CIDの選択ではありません。',
@@ -143,6 +124,7 @@
     p('このモード単独が11.1111%、ここまでの合計が100%。単独モードが100%なのではありません。')+'</details></div>'+
     '<div class="analysis-sources">'+[
      ['Dynamic_Analysis_User_Guide',59,'MSC 2025.1 動解析ガイド：正規化（PDF 59）'],
+     ['Dynamic_Analysis_User_Guide',79,'MSC 2025.1 動解析ガイド：固有値・固有ベクトル・拘束反力の印字（PDF 79）'],
      ['Dynamic_Analysis_User_Guide',119,'MSC 2025.1 動解析ガイド：係数と有効質量（PDF 119–123）'],
      ['Quick_Reference_Guide',502,'MSC 2025.1 QRG：MEFFMASS（PDF 502–503）'],
      ['Quick_Reference_Guide',1814,'MSC 2025.1 QRG：EIGRL（PDF 1814–1817）']
@@ -161,7 +143,7 @@
    layers:[['meffmass']],nodes:[{id:'meffmass',label:'MEFFMASS',card:'CASE_MEFFMASS',detail:'PRINT,ALL = YES / 刺激係数・有効質量・累積比'}],edges:[]
   });
  }
- window.AnalysisScenarioGuides.modes.basics[0][1].push('結果タブでMAX／MASS、刺激係数、有効質量、F06の列と出力要求を対応させます。');
+ window.AnalysisScenarioGuides.modes.basics[0][1].push('結果タブでは実際のF06をページ順にたどり、同じモードの振動数・刺激係数・方向別質量比・節点成分を照合できます。');
 
  window.AnalysisModalOutput={sections,bind,reference};
 })();

@@ -13,11 +13,39 @@ with sync_playwright() as pw:
   expect(page.locator('#modal-output-guide')).to_be_visible()
   expect(page.locator('[data-analysis-tab="results"]')).to_have_attribute('aria-selected','true')
   assert page.locator('#modal-output-guide .element-toc li').count()==8
+  reader=page.locator('[data-f06-reader]')
+  selector=reader.locator('[data-f06-page]')
+  body=reader.locator('[data-f06-body]')
+  expect(selector).to_have_value('1')
+  assert body.locator('.f06-columns code').all_text_contents()==['MODE NO.','EXTRACTION ORDER','EIGENVALUE','RADIANS','CYCLES','GENERALIZED MASS','GENERALIZED STIFFNESS']
+  assert body.locator('pre').first.inner_text().splitlines()[3].split()==['1','1','1.639340E+03','4.048877E+01','6.443987E+00','1.000000E+00','1.639340E+03']
+  assert body.locator('pre').first.evaluate("(e)=>!!(e.compareDocumentPosition(e.closest('[data-f06-body]').querySelector('.f06-columns')) & Node.DOCUMENT_POSITION_FOLLOWING)")
   for width in [320,390,768]:
    page.set_viewport_size({'width':width,'height':844})
-   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(model,width)
+   for i in range(9):
+    selector.select_option(str(i))
+    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(model,width,i)
+    assert body.locator('pre').count()>0
+    assert not body.locator('a[href*="undefined"]').count()
+  reader.locator('.f06-index summary').click()
+  reader.locator('[data-f06-index="3"]').click()
+  expect(selector).to_have_value('3')
+  assert body.locator('.f06-columns code').all_text_contents()==['MODE NO.','FREQUENCY','T1 / FRACTION','T1 / SUM','T2 / FRACTION','T2 / SUM','T3 / FRACTION','T3 / SUM']
+  reader.locator('[data-f06-next]').click()
+  expect(body.locator('h4').first).to_contain_text('ROTATIONAL')
+  reader.locator('[data-f06-prev]').click()
+  expect(selector).to_have_value('3')
+  selector.select_option('0')
+  expect(reader.locator('[data-f06-prev]')).to_be_disabled()
+  selector.select_option('8')
+  expect(reader.locator('[data-f06-next]')).to_be_disabled()
+  selector.select_option('1')
   page.set_viewport_size({'width':390,'height':844})
+  if model=='baseline':
+   body.locator('h3').scroll_into_view_if_needed()
+   body.screenshot(path=str(OUT/'f06-real-eigenvalues.png'))
   old=page.url
+  page.locator('#modal-output-guide summary').click()
   page.locator('#modal-output-guide [data-jump="modal-output-example"]').click()
   assert page.url==old
   lab=page.locator('[data-modal-output-lab]')
