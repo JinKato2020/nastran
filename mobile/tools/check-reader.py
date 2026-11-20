@@ -201,10 +201,11 @@ with sync_playwright() as p:
     page.close()
     # Static analysis quiz: three 4-choice input questions, then the hand-calculation check diagnoses F06 values.
     page=reader('analysis.html')
-    page.evaluate("location.hash='#static/beam/quiz'")
+    page.evaluate("location.hash='#static/beam/quiz'")  # old address of the removed quiz tab opens the Input tab
     page.locator('.aq-q').first.wait_for()
     assert page.locator('.aq-q').count()==3 and page.locator('.aq-q .aq-opt').count()==12
-    assert page.locator('[data-analysis-tab="quiz"]').get_attribute('aria-selected')=='true'
+    assert page.locator('[data-analysis-tab="input"]').get_attribute('aria-selected')=='true'
+    assert page.locator('[data-analysis-tab="quiz"]').count()==0 and page.locator('[data-analysis-panel="input"] .aq-q').count()==3
     for n,right in enumerate([1,2,3]):
         page.locator(f'.aq-q[data-n="{n}"] .aq-opt[data-i="{right}"]').click()
         assert page.locator(f'.aq-q[data-n="{n}"] .aq-result').inner_text()=='正解です。'
@@ -219,21 +220,22 @@ with sync_playwright() as p:
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
     page.evaluate("location.hash='#modes/baseline'")
     page.locator('[data-analysis-tab="model"]').wait_for()
-    assert page.locator('[data-analysis-tab="quiz"]').count()==1
-    page.locator('[data-analysis-tab="quiz"]').click()
-    assert page.locator('[data-analysis-panel="quiz"] .aq-q').count()==5
+    assert page.locator('[data-analysis-tab="quiz"]').count()==0
+    page.locator('[data-analysis-tab="input"]').click()
+    assert page.locator('[data-analysis-panel="input"] .aq-q').count()==5
     assert page.locator('.aq-mode-lab svg').is_visible()
     for i, answer in enumerate(page.evaluate('AnalysisQuiz.data.modes.questions.map(q=>q.answer)')):
-        card=page.locator('[data-analysis-panel="quiz"] .aq-q').nth(i)
+        card=page.locator('[data-analysis-panel="input"] .aq-q').nth(i)
         card.locator('.aq-opt').nth(answer).click()
         assert card.locator('.aq-result').inner_text()=='正解です。'
-    count=page.locator('[data-analysis-panel="quiz"] .aq-q').nth(2)
+    count=page.locator('[data-analysis-panel="input"] .aq-q').nth(2)
     count.locator('.aq-check input').fill('12.5')
     count.locator('.aq-run').click()
     assert '整数' in count.locator('.aq-diag').inner_text()
     page.evaluate("location.hash='#complex-modes/undamped'")
     page.locator('[data-analysis-tab="model"]').wait_for()
-    assert page.locator('[data-analysis-tab="quiz"]').count()==0  # no unwritten quizzes
+    # Mixed sets are split: questions on what to write close the Input tab, questions on reading output close the Results tab.
+    assert page.locator('[data-analysis-panel="input"] .aq-q').count()>=1 and page.locator('[data-analysis-panel="results"] .aq-q').count()>=1
     page.close()
     page=reader('modeling.html')
     page.locator('[data-model="detailed"]').click()

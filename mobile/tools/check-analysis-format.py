@@ -27,6 +27,11 @@ with sync_playwright() as pw:
     routes = page.evaluate('''()=>NastranAnalysis.entries.flatMap(e=>
       (AnalysisScenarios[e.key]?.models||e.variants||[{id:'msc'}]).map(m=>[e.key,m.id]))''')
     routes += [[k,'simcenter'] for k in ['large-deformation','plasticity','contact']]
+    # Result questions are named by title; a renamed title would silently fall back to the Input tab.
+    missing = page.evaluate('''()=>Object.entries(AnalysisQuiz.resultTitles).flatMap(([k,ts])=>ts.filter(t=>
+      !Object.values(AnalysisModelQuizzes[k]||{}).some(d=>d.questions.some(q=>q.title===t))).map(t=>k+':'+t))''')
+    assert not missing, missing
+    assert page.locator('[data-analysis-tab="quiz"]').count() == 0
     for key,model in routes:
         route=key+'/'+model
         page.goto((DIST/'analysis.html').as_uri()+'#'+route)
@@ -61,7 +66,7 @@ with sync_playwright() as pw:
             intro.screenshot(path=str(OUT/(key+'-intro.png')))
         checked.append(route)
     for model in ['baseline','tip-mass','both-fixed']:
-        page.goto((DIST/'analysis.html').as_uri()+'#modes/'+model+'/quiz')
+        page.goto((DIST/'analysis.html').as_uri()+'#modes/'+model+'/input')
         page.evaluate('dispatchEvent(new Event("hashchange"))')
         lab=page.locator('.aq-mode-lab')
         assert lab.evaluate('e=>Array.from(e.children,c=>[c.tagName,c.className])')==frame,model

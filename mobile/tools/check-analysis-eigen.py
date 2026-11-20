@@ -16,26 +16,32 @@ with sync_playwright() as pw:
   print('Checking '+model,flush=True)
   page.goto((DIST/'analysis.html').as_uri()+'#'+key+'/'+model,wait_until='domcontentloaded')
   page.evaluate('dispatchEvent(new Event("hashchange"))')
-  expect(page.locator('[data-analysis-tab="quiz"]')).to_be_visible()
+  assert page.locator('[data-analysis-tab="quiz"]').count()==0
   assert page.locator('.element-key > ol > li').count()==3
   assert 'undefined' not in page.locator('[data-analysis-panel="model"]').inner_text()
   texts=page.locator('.analysis-scenario-figure svg text,[data-eigen-lab] svg text').all_text_contents()
   assert not any(re.search('[\u3040-\u30ff\u3400-\u9fff]',t) for t in texts),(model,texts)
-  for tab in ['model','input','results','quiz']:
+  for tab in ['model','input','results']:
    page.locator('[data-analysis-tab="'+tab+'"]').click()
    for width in [320,390,768]:
     page.set_viewport_size({'width':width,'height':844})
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(model,tab,width)
    page.set_viewport_size({'width':390,'height':844})
   qdata=page.evaluate('([k,m])=>AnalysisQuiz.resolve(k,m).questions.map(q=>({answer:q.answer,value:q.verify.check.expect}))',[key,model])
-  cards=page.locator('.aq-q');assert cards.count()==4
-  for i,q in enumerate(qdata):
-   row=cards.nth(i);row.locator('.aq-opt').nth((q['answer']+1)%4).click();row.locator('.aq-opt').nth(q['answer']).click()
-   assert '正解です' in row.locator('.aq-result').inner_text()
-   row.locator('.aq-check input').fill(str(q['value']));row.locator('.aq-run').click()
-   assert 'ok' in row.locator('.aq-diag').get_attribute('class'),(model,i,row.inner_text())
-   answers+=1
-  assert '初回の正解数：0問' in page.locator('.aq-score').inner_text()
+  assert page.locator('.aq-q').count()==4
+  seen_n=[]
+  for part in ['input','results']:  # input questions close the Input tab, result questions close the Results tab
+   page.locator('[data-analysis-tab="'+part+'"]').click()
+   cards=page.locator('[data-analysis-panel="'+part+'"] .aq-q')
+   for j in range(cards.count()):
+    row=cards.nth(j);i=int(row.get_attribute('data-n'));q=qdata[i];seen_n.append(i)
+    row.locator('.aq-opt').nth((q['answer']+1)%4).click();row.locator('.aq-opt').nth(q['answer']).click()
+    assert '正解です' in row.locator('.aq-result').inner_text()
+    row.locator('.aq-check input').fill(str(q['value']));row.locator('.aq-run').click()
+    assert 'ok' in row.locator('.aq-diag').get_attribute('class'),(model,i,row.inner_text())
+    answers+=1
+   if cards.count():assert '初回の正解数：0問' in page.locator('[data-analysis-panel="'+part+'"] .aq-score').inner_text()
+  assert sorted(seen_n)==list(range(len(qdata))),(model,seen_n)
   page.locator('[data-analysis-tab="model"]').click()
   for lab in page.locator('[data-eigen-lab]').all():
    labs+=1;assert lab.locator('svg').count()>0,(model,lab.inner_text())
@@ -66,8 +72,7 @@ with sync_playwright() as pw:
  for method,damping,model in [('110','off','modal-undamped'),('110','on','modal-damped'),('107','on','direct-damped'),('107','off','undamped')]:
   page.locator('#analysis-method-picker').select_option(method);page.locator('#analysis-damping-picker').select_option(damping)
   assert model in page.url
-  page.locator('[data-analysis-tab="quiz"]').click()
-  assert page.locator('.aq').get_attribute('data-model')==model
+  assert page.locator('.aq').first.get_attribute('data-model')==model
   page.locator('[data-analysis-tab="input"]').click()
   count=page.locator('[data-analysis-panel="input"] a[data-analysis-card="CASE_METHOD"]').count()
   assert (count>0)==(method=='110')

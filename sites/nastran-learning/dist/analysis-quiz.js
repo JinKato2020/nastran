@@ -1,6 +1,7 @@
 (() => {
  'use strict';
- /* 解析タブの「問題」：DAT の空欄に何を書くかを4択で問い、答えた後に手計算での確かめ方を示す。 */
+ /* 解析タブの確認問題：4択で問い、答えた後に手計算での確かめ方を示す。独立したタブは持たず、
+    入力を問う問題は「入力」タブの末尾、結果の読み方を問う問題は「結果」タブの末尾に置く。 */
  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const num=(v,d=3)=>{if(!isFinite(v))return '—';const p=Number(v.toPrecision(d));return Math.abs(p)>=1e5||(Math.abs(p)<1e-3&&p!==0)?p.toExponential(2):p.toLocaleString('en-US',{maximumFractionDigits:6});};
  const field=(s,w=8)=>{const t=String(s);return t.length>=w?t:t+' '.repeat(w-t.length);};
@@ -61,12 +62,29 @@
  DATA.static.links=[['bulk.html#SPC1','SPC1'],['bulk.html#FORCE','FORCE'],['bulk.html#PBEAM','PBEAM']];
  if(DATA.modes&&!DATA.modes.links)DATA.modes.links=[['bulk.html#MAT1','MAT1'],['bulk.html#CASE_METHOD','METHOD'],['bulk.html#EIGRL','EIGRL'],['bulk.html#CONM2','CONM2'],['theory.html#modes','実固有値の理論']];
  function resolve(key,model){return window.AnalysisModelQuizzes?.[key]?.[model] || (model && window.AnalysisModelQuizzes?.[key] ? null : DATA[key]);}
- function render(key,model){
+ // 結果の読み方・判断・換算を問う問題（題名で指定）。ほかは入力（カード・欄・単位・計算条件の決め方）の問題。
+ const RESULT_TITLES={
+  'thick-cylinder':['X軸上で周方向応力を読む','比較に使う軸方向条件','応力の比較位置'],
+  buckling:['基準荷重と固有値を区別する','荷重の行き先を診断する'],
+  'prestressed-modes':['振動数と固有値を区別する','1次の変化を読む','2次も同じ割合か'],
+  'complex-modes':['無減衰の根を読む','F06の減衰係数を読む','正規化と実振幅を区別する'],
+  'direct-frequency':['周波数点','未計算点','複素数から振幅','RMS','加速度','ピーク増幅','無減衰の限界','同位相と逆位相','第2モード'],
+  'modal-frequency':['低周波の比較','規格化','NDと方向','収束の基準','応答0の診断','保持する根','固有振動数','相殺の計算','谷の位置','観測点の変更','減衰の効果'],
+  transient:['最大値の時刻','力積近似','継続する運動','急な載荷','除荷時刻','基底不足','応答復元','波形の差']
+ };
+ const partOf=(key,q)=>q.part||(RESULT_TITLES[key]?.includes(q.title)?'results':'input');
+ // 入力と結果に分ける解析では、前置きの「内容と問題数」を置き場所の問題数で言い直す（モデル名は残す）。
+ const introOf=(key,d,part,count)=>!part||!RESULT_TITLES[key]?d.intro:
+  d.intro.replace(/：[^：]*$/,'')+'：'+(part==='input'?'入力で間違えやすい点の':'結果の読み方の')+count+'問です。';
+ function render(key,model,part){
   const d=resolve(key,model);if(!d)return '';
+  const shown=d.questions.map((q,n)=>[q,n]).filter(([q])=>!part||partOf(key,q)===part);
+  if(!shown.length)return '';
+  const lead=!part||partOf(key,d.questions[0])===part;  // 参照リンクと操作図は、最初の問題がある側に置く
   const letters='ABCD';
-  return `<div class="aq" data-quiz="${esc(key)}" data-model="${esc(model||'')}"><p class="aq-intro">${esc(d.intro)}</p><div class="analysis-links">${(d.links||[]).map(([href,label])=>`<a href="${esc(href)}">${esc(label)} →</a>`).join('')}</div>${d.experiment?d.experiment():''}<p class="aq-score" aria-live="polite">${d.questions.length}問中 0問に回答、初回の正解数：0問（答え直しは得点に含みません）</p>`+
-   d.questions.map((q,n)=>`<article class="aq-q" data-n="${n}"><h4>問${n+1}　${esc(q.title)}</h4><pre class="aq-line"><code>${q.code?esc(q.code):line(q.line)}</code></pre><p class="aq-ask">${esc(q.ask)}</p>`+
-    `<div class="aq-options" role="group" aria-label="問${n+1}の選択肢">${q.options.map(([label],i)=>`<button type="button" class="aq-opt" data-i="${i}"><span class="aq-letter">${letters[i]}</span><span>${esc(label)}</span></button>`).join('')}</div>`+
+  return `<div class="aq" data-quiz="${esc(key)}" data-model="${esc(model||'')}" data-part="${esc(part||'')}"><p class="aq-intro">${esc(introOf(key,d,part,shown.length))}</p>${lead?`<div class="analysis-links">${(d.links||[]).map(([href,label])=>`<a href="${esc(href)}">${esc(label)} →</a>`).join('')}</div>${d.experiment?d.experiment():''}`:''}<p class="aq-score" aria-live="polite">${shown.length}問中 0問に回答、初回の正解数：0問（答え直しは得点に含みません）</p>`+
+   shown.map(([q,n],j)=>`<article class="aq-q" data-n="${n}"><h4>問${j+1}　${esc(q.title)}</h4><pre class="aq-line"><code>${q.code?esc(q.code):line(q.line)}</code></pre><p class="aq-ask">${esc(q.ask)}</p>`+
+    `<div class="aq-options" role="group" aria-label="問${j+1}の選択肢">${q.options.map(([label],i)=>`<button type="button" class="aq-opt" data-i="${i}"><span class="aq-letter">${letters[i]}</span><span>${esc(label)}</span></button>`).join('')}</div>`+
     `<div class="aq-feedback" hidden><p class="aq-result" aria-live="polite"></p><ul class="aq-why">${q.options.map(([label,why],i)=>`<li data-i="${i}"${i===q.answer?' class="right"':''}><b>${letters[i]}　${esc(label)}</b>${i===q.answer?'（正解）':''}<br>${esc(why)}</li>`).join('')}</ul>`+
     `<section class="aq-verify"><h5>手計算で確かめる：${esc(q.verify.title)}</h5><ol>${q.verify.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol><p class="aq-note">${esc(q.verify.note)}</p>`+
     `<div class="aq-check"><label>${esc(q.verify.check.prefix??'F06 の ')}${esc(q.verify.check.label)} <input type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="例 ${esc(num(q.verify.check.expect,4))}"></label><button type="button" class="aq-run">照合</button></div><p class="aq-diag" aria-live="polite"></p></section></div></article>`).join('')+'</div>';
@@ -86,11 +104,11 @@
    if(quiz.dataset.bound)continue;
    quiz.dataset.bound='1';
    const d=resolve(quiz.dataset.quiz,quiz.dataset.model),score=quiz.querySelector('.aq-score');
-   const key=quiz.dataset.quiz+':'+quiz.dataset.model;
+   const key=[quiz.dataset.quiz,quiz.dataset.model,quiz.dataset.part||''].join(':'),total=quiz.querySelectorAll('.aq-q').length;
    if(!sessions.has(key))sessions.set(key,{done:new Map(),last:new Map(),checks:new Map()});
    const {done,last,checks}=sessions.get(key);
    if(d.bind)d.bind(quiz);
-   const update=()=>{score.textContent=`${d.questions.length}問中 ${done.size}問に回答、初回の正解数：${[...done.values()].filter(Boolean).length}問`;};
+   const update=()=>{score.textContent=`${total}問中 ${done.size}問に回答、初回の正解数：${[...done.values()].filter(Boolean).length}問`;};
    quiz.querySelectorAll('.aq-q').forEach(card=>{
     const q=d.questions[+card.dataset.n],fb=card.querySelector('.aq-feedback');
     card.querySelectorAll('.aq-opt').forEach(btn=>btn.addEventListener('click',()=>{
@@ -111,5 +129,5 @@
    if(done.size)update();
   }
  }
- window.AnalysisQuiz={data:DATA,resolve,render,bind,diagnose};
+ window.AnalysisQuiz={data:DATA,resolve,render,bind,diagnose,partOf,resultTitles:RESULT_TITLES};
 })();

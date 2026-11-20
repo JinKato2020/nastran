@@ -25,26 +25,32 @@ with sync_playwright() as pw:
   assert page.locator('.element-key > ol > li').count()==3
   model_text=page.locator('[data-analysis-panel="model"]').inner_text()
   assert 'undefined' not in model_text
-  assert page.locator('[data-analysis-tab="quiz"]').count()==1
+  assert page.locator('[data-analysis-tab="quiz"]').count()==0
   # Physical diagrams and plots contain symbols only; explanatory text is outside SVG.
   texts=page.locator('.analysis-scenario-figure svg text,[data-structure-lab] svg text').all_text_contents()
   import re
   assert not any(re.search('[\u3040-\u30ff\u3400-\u9fff]',t) for t in texts),(model,texts)
-  for tab in ['model','input','results','quiz']:
+  for tab in ['model','input','results']:
    page.locator('[data-analysis-tab="'+tab+'"]').click()
    for width in [320,390,768]:
     page.set_viewport_size({'width':width,'height':844})
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(model,tab,width)
    page.set_viewport_size({'width':390,'height':844})
-  cards=page.locator('.aq-q');assert cards.count()==3
   qdata=page.evaluate('([k,m])=>AnalysisQuiz.resolve(k,m).questions.map(q=>({answer:q.answer,value:q.verify.check.expect}))',[key,model])
-  for i,q in enumerate(qdata):
-   row=cards.nth(i);row.locator('.aq-opt').nth((q['answer']+1)%4).click();row.locator('.aq-opt').nth(q['answer']).click()
-   assert '正解です' in row.locator('.aq-result').inner_text()
-   row.locator('.aq-check input').fill(str(q['value']));row.locator('.aq-run').click()
-   assert 'ok' in row.locator('.aq-diag').get_attribute('class'),(model,i,row.inner_text())
-   answers+=1
-  assert '初回の正解数：0問' in page.locator('.aq-score').inner_text()
+  assert page.locator('.aq-q').count()==3
+  seen_n=[]
+  for part in ['input','results']:  # input questions close the Input tab, result questions close the Results tab
+   page.locator('[data-analysis-tab="'+part+'"]').click()
+   cards=page.locator('[data-analysis-panel="'+part+'"] .aq-q')
+   for j in range(cards.count()):
+    row=cards.nth(j);i=int(row.get_attribute('data-n'));q=qdata[i];seen_n.append(i)
+    row.locator('.aq-opt').nth((q['answer']+1)%4).click();row.locator('.aq-opt').nth(q['answer']).click()
+    assert '正解です' in row.locator('.aq-result').inner_text()
+    row.locator('.aq-check input').fill(str(q['value']));row.locator('.aq-run').click()
+    assert 'ok' in row.locator('.aq-diag').get_attribute('class'),(model,i,row.inner_text())
+    answers+=1
+   if cards.count():assert '初回の正解数：0問' in page.locator('[data-analysis-panel="'+part+'"] .aq-score').inner_text()
+  assert sorted(seen_n)==list(range(len(qdata))),(model,seen_n)
   page.locator('[data-analysis-tab="model"]').click()
   lab=page.locator('[data-structure-lab]')
   if lab.count():
