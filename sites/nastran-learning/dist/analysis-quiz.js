@@ -69,7 +69,7 @@
     `<div class="aq-options" role="group" aria-label="問${n+1}の選択肢">${q.options.map(([label],i)=>`<button type="button" class="aq-opt" data-i="${i}"><span class="aq-letter">${letters[i]}</span><span>${esc(label)}</span></button>`).join('')}</div>`+
     `<div class="aq-feedback" hidden><p class="aq-result" aria-live="polite"></p><ul class="aq-why">${q.options.map(([label,why],i)=>`<li data-i="${i}"${i===q.answer?' class="right"':''}><b>${letters[i]}　${esc(label)}</b>${i===q.answer?'（正解）':''}<br>${esc(why)}</li>`).join('')}</ul>`+
     `<section class="aq-verify"><h5>手計算で確かめる：${esc(q.verify.title)}</h5><ol>${q.verify.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol><p class="aq-note">${esc(q.verify.note)}</p>`+
-    `<div class="aq-check"><label>F06 の ${esc(q.verify.check.label)} <input type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="例 ${esc(num(q.verify.check.expect,4))}"></label><button type="button" class="aq-run">照合</button></div><p class="aq-diag" aria-live="polite"></p></section></div></article>`).join('')+'</div>';
+    `<div class="aq-check"><label>${esc(q.verify.check.prefix??'F06 の ')}${esc(q.verify.check.label)} <input type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="例 ${esc(num(q.verify.check.expect,4))}"></label><button type="button" class="aq-run">照合</button></div><p class="aq-diag" aria-live="polite"></p></section></div></article>`).join('')+'</div>';
  }
  function diagnose(raw,c){
   const v0=Number(String(raw).normalize('NFKC').replace(/[−–—]/g,'-').replace(/,/g,'').trim());
@@ -83,6 +83,8 @@
  const sessions=new Map();
  function bind(root){
   for(const quiz of root.querySelectorAll('.aq')){
+   if(quiz.dataset.bound)continue;
+   quiz.dataset.bound='1';
    const d=resolve(quiz.dataset.quiz,quiz.dataset.model),score=quiz.querySelector('.aq-score');
    const key=quiz.dataset.quiz+':'+quiz.dataset.model;
    if(!sessions.has(key))sessions.set(key,{done:new Map(),last:new Map(),checks:new Map()});

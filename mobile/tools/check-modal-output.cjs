@@ -41,9 +41,39 @@ for(const model of ['baseline','tip-mass','both-fixed']){
  const sections=w.AnalysisModalOutput.sections(model),html=sections.map(x=>x[1]).join('');
  assert.equal(sections.length,9);assert.equal(new Set(sections.map(x=>x[2])).size,9);
  for(const [,key]of html.matchAll(/href="bulk.html#([^"]+)"/g))assert(keys.has(key),key);
- assert(html.includes('実機F06と照合した例は未収録'));
- assert(html.includes('MASSでは一致しますが、MAXでは定義の確認'));
+ assert(html.includes('実機の F06 で照合した例が未収録'));
+ assert(html.includes('QRG と動解析ガイドは、どちらも ε を'));
+ assert(html.includes('アプリの梁（軸 = 基本X）'));
  assert(w.AnalysisRelationMaps[model].panels.some(x=>x.nodes.some(n=>n.card==='CASE_MEFFMASS')));
  assert(w.AnalysisModelGuides[model].inputReview.flatMap(x=>x[1]).some(x=>x[0]==='CASE_MEFFMASS'));
+}
+// F06 reading quiz: every expected value is the hand calculation from the printed numbers.
+const quiz=w.AnalysisQuiz.data['modes-f06'];
+assert.equal(quiz.questions.length,7);
+for(const q of quiz.questions){
+ assert(q.options.length===4&&q.answer>=0&&q.answer<4&&q.code&&q.verify.steps.length>=3);
+ assert.equal(w.AnalysisQuiz.diagnose(String(q.verify.check.expect),q.verify.check)[0],'ok');
+ for(const [k] of q.verify.check.diag)if(k!==1&&k!==0)assert.equal(w.AnalysisQuiz.diagnose(String(q.verify.check.expect*k),q.verify.check)[0],'warn');
+}
+const ex=quiz.questions.map(q=>q.verify.check.expect);
+printedNear(Math.sqrt(1639.340)/(2*Math.PI),ex[0]);
+printedNear(356.9882/373.6090,ex[2]);
+printedNear(15.63371**2,ex[3]);
+near(ex[4],1/0.100126**2);
+near(ex[6],3*271.1163);
+// The a-set denominator equals the GPWG mass less the fixed node's coupled-mass share of one of ten equal elements.
+printedNear(398.6681-398.6681/10*264/420,373.6090);
+assert(Math.abs(320.4994/0.8613486-372.09)<0.01);
+// Each excerpt line must equal the cited line of the original F06 (with one common left trim per excerpt part).
+const original=path.join(__dirname,'../.qa/modal-reference/arm.txt');
+if(fs.existsSync(original)){
+ const lines=fs.readFileSync(original,'utf8').split(/\r?\n/).map(x=>x.replace(/\s+$/,''));
+ let count=0;
+ for(const [name,block] of Object.entries(w.AnalysisF06Reader.print))for(const part of block.parts){
+  const rows=part.text.split('\n').map(x=>x.replace(/\s+$/,'')),first=rows.findIndex(x=>x.trim());
+  const indent=x=>x.length-x.trimStart().length,shift=indent(lines[part.first-1+first])-indent(rows[first]);
+  rows.forEach((row,i)=>{count++;const line=lines[part.first-1+i];assert(row.trim()===''?line.trim()==='':line===' '.repeat(Math.max(shift,0))+row,name+' line '+(part.first+i));});
+ }
+ assert(count>=80,'excerpt lines '+count);
 }
 console.log('PASS: independent two-mass eigen residuals, normalization/sign invariants, modal force recovery, effective-mass completeness, 3 result routes and MEFFMASS catalog links.');

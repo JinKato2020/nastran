@@ -221,13 +221,13 @@ with sync_playwright() as p:
     page.locator('[data-analysis-tab="model"]').wait_for()
     assert page.locator('[data-analysis-tab="quiz"]').count()==1
     page.locator('[data-analysis-tab="quiz"]').click()
-    assert page.locator('.aq-q').count()==5
+    assert page.locator('[data-analysis-panel="quiz"] .aq-q').count()==5
     assert page.locator('.aq-mode-lab svg').is_visible()
     for i, answer in enumerate(page.evaluate('AnalysisQuiz.data.modes.questions.map(q=>q.answer)')):
-        card=page.locator('.aq-q').nth(i)
+        card=page.locator('[data-analysis-panel="quiz"] .aq-q').nth(i)
         card.locator('.aq-opt').nth(answer).click()
         assert card.locator('.aq-result').inner_text()=='正解です。'
-    count=page.locator('.aq-q').nth(2)
+    count=page.locator('[data-analysis-panel="quiz"] .aq-q').nth(2)
     count.locator('.aq-check input').fill('12.5')
     count.locator('.aq-run').click()
     assert '整数' in count.locator('.aq-diag').inner_text()

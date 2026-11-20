@@ -82,12 +82,12 @@ with sync_playwright() as pw:
         report.append({key: names})
     page.set_viewport_size({'width': 390, 'height': 844})
     page.goto((DIST/'analysis.html').as_uri()+'#modes/baseline/quiz', wait_until='domcontentloaded')
-    page.locator('.aq-q').first.wait_for(state='visible')
-    assert page.locator('.aq-q').count() == 5
-    page.locator('.aq-mode-lab').screenshot(path=str(OUT/'modal.png'))
+    page.locator('[data-analysis-panel="quiz"] .aq-q').first.wait_for(state='visible')
+    assert page.locator('[data-analysis-panel="quiz"] .aq-q').count() == 5
+    page.locator('[data-analysis-panel="quiz"] .aq-mode-lab').screenshot(path=str(OUT/'modal.png'))
     questions = page.evaluate('window.AnalysisQuiz.data.modes.questions.map(q=>({answer:q.answer,expected:q.verify.check.expect}))')
     for i, q in enumerate(questions):
-        card = page.locator('.aq-q').nth(i)
+        card = page.locator('[data-analysis-panel="quiz"] .aq-q').nth(i)
         card.locator('.aq-opt').nth((q['answer']+1)%4).click()
         assert '不正解' in card.locator('.aq-result').inner_text()
         card.locator('.aq-opt').nth(q['answer']).click()
@@ -108,24 +108,24 @@ with sync_playwright() as pw:
         for model in ids:
             page.set_viewport_size({'width':390,'height':844})
             page.locator('#analysis-example-picker').select_option(model)
-            assert page.locator('.aq').get_attribute('data-model')==model
+            assert page.locator('[data-analysis-panel="quiz"] .aq').get_attribute('data-model')==model
             assert not page.locator('.analysis-scenario-figure svg text').evaluate_all(r'es=>es.some(e=>/[\u3040-\u30fa\u3400-\u9fff]/u.test(e.textContent))'),model
             assert page.locator('[data-analysis-tab=quiz]').get_attribute('aria-selected')=='true'
-            texts.append(page.locator('.aq').inner_text())
+            texts.append(page.locator('[data-analysis-panel="quiz"] .aq').inner_text())
             qs=page.evaluate('([k,m])=>AnalysisQuiz.resolve(k,m).questions.map(q=>({answer:q.answer,expected:q.verify.check.expect}))',[kind,model])
             for i,q in enumerate(qs):
-                card=page.locator('.aq-q').nth(i)
+                card=page.locator('[data-analysis-panel="quiz"] .aq-q').nth(i)
                 card.locator('.aq-opt').nth((q['answer']+1)%4).click()
                 card.locator('.aq-opt').nth(q['answer']).click()
                 assert card.locator('.aq-result').inner_text()=='正解です。'
                 card.locator('.aq-check input').fill(str(q['expected']))
                 card.locator('.aq-run').click()
                 assert '1 倍' in card.locator('.aq-diag').inner_text()
-            assert '初回の正解数：0問' in page.locator('.aq-score').inner_text()
+            assert '初回の正解数：0問' in page.locator('[data-analysis-panel="quiz"] .aq-score').inner_text()
             if kind=='modes':
-                assert page.locator('.aq-mode-lab').get_attribute('data-mode-model')==model
+                assert page.locator('[data-analysis-panel="quiz"] .aq-mode-lab').get_attribute('data-mode-model')==model
                 assert page.locator('[data-mode-control=mass]').count()==(1 if model=='tip-mass' else 0)
-                page.locator('.aq-mode-lab').screenshot(path=str(OUT/('modal-'+model+'.png')))
+                page.locator('[data-analysis-panel="quiz"] .aq-mode-lab').screenshot(path=str(OUT/('modal-'+model+'.png')))
             for width in [320,390,768]:
                 page.set_viewport_size({'width':width,'height':844})
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(kind,model,width)
@@ -138,7 +138,7 @@ with sync_playwright() as pw:
             page.locator('[data-analysis-tab=quiz]').click()
         assert len(set(texts))==3
         page.locator('#analysis-example-picker').select_option(ids[0])
-        assert '初回の正解数：0問' in page.locator('.aq-score').inner_text() # independent model state survives return
+        assert '初回の正解数：0問' in page.locator('[data-analysis-panel="quiz"] .aq-score').inner_text() # independent model state survives return
     # Latest G0 correction is present, and the misleading assertion is absent.
     page.goto((DIST/'elements.html').as_uri()+'#beam')
     assert 'GA を動かせば GA→G0 は変わります' in page.locator('#beam').inner_text()

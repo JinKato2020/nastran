@@ -121,3 +121,4 @@ label.analysis-model-selector select{display:block;flex:1;width:auto;min-width:0
 .f06-index li span{display:block;font-size:.88em;overflow-wrap:anywhere}
 .f06-index button{background:transparent;color:#254e89;border:0;padding:6px 0;font:inherit;text-decoration:underline;cursor:pointer}
 .f06-gap{font:12px/1.8 system-ui,sans-serif;color:#5c6979}
+.f06-key{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.92em}

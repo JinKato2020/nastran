@@ -70,7 +70,28 @@ with sync_playwright() as pw:
    lab.locator('select[data-lab-input="sign"]').select_option('1')
    lab.screenshot(path=str(OUT/'normalization-max.png'))
    page.locator('#modal-output-tables').screenshot(path=str(OUT/'f06-reading.png'))
-  page.locator('#modal-output-request a[href="bulk.html#CASE_MEFFMASS"]').click()
+  if model=='baseline':
+   # First six places to look: the printed (spaced) titles survive as searchable text.
+   assert page.locator('#modal-output-map .f06-key').nth(3).evaluate('e=>e.textContent')=='R E A L   E I G E N V A L U E S'
+   selector.select_option('7')
+   assert len(body.locator('pre').first.inner_text().splitlines())==8  # rows 1, 7 and 10 with two omission notes
+   expect(body.locator('.f06-columns li').first).to_contain_text('モード番号')
+   quiz=page.locator('#modal-output-quiz .aq')
+   assert quiz.locator('.aq-q').count()==7
+   for n,right in enumerate([2,1,2,2,2,1,2]):
+    quiz.locator(f'.aq-q[data-n="{n}"] .aq-opt[data-i="{right}"]').click()
+    assert quiz.locator(f'.aq-q[data-n="{n}"] .aq-result').inner_text()=='正解です。'
+   assert '7問中 7問に回答、初回の正解数：7問' in quiz.locator('.aq-score').inner_text()
+   card=quiz.locator('.aq-q[data-n="2"]')
+   card.locator('.aq-check input').fill('0.8955')
+   card.locator('.aq-run').click()
+   assert 'GPWG' in card.locator('.aq-diag').inner_text()
+   card=quiz.locator('.aq-q[data-n="0"]')
+   card.locator('.aq-check input').fill('40.48877')
+   card.locator('.aq-run').click()
+   assert 'RADIANS' in card.locator('.aq-diag').inner_text()
+   assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+  page.locator('#modal-output-map a[href="bulk.html#CASE_MEFFMASS"]').click()
   expect(page.locator('#card-picker')).to_be_visible()
   assert 'PARTFAC' in page.locator('#card-detail').inner_text()
   page.go_back()
