@@ -25,8 +25,14 @@
    '材料の密度も同じ単位系で入れます。鋼の 7850 kg/m³ は N・mm・s 系で 7.85×10⁻⁹ t/mm³ です。MAT1 の RHO に密度を入れて要素の質量を作り、さらに同じ部品の質量を CONM2 でも足すと、質量を二重に数えます。',
    'PARAM WTMASS は、入力した質量にまとめて掛ける係数です。重量の単位で入力したモデルを質量に直すときに使います。質量の単位を入力の段階でそろえているなら、WTMASS は既定の 1.0 のままにします。'],
    null],
+  ['2つの質点で有効質量を確かめる',[
+   '壁に 400 N/m のばね、2 kg の質点、200 N/m のばね、1 kg の質点を順につないだ例です（全質量 3 kg）。1次は2つの質点が同じ向きに、2次は逆向きに動きます。',
+   '壁ごと X 方向に揺らすと、1次は 3 kg のうち 8/3 kg（約 89%）、2次は 1/3 kg（約 11%）の質量を動かします。これが有効質量です。全部のモードを足すと、動ける部分の質量 3 kg になります。同じ向きに動く1次の方が多くの質量を動かすので、揺れの主役になります。',
+   '下の切替で、モード形の大きさの決め方（MASS：一般化質量を 1、MAX：最大の成分を 1）を変えると、モード形の数字は変わりますが、振動数・有効質量・割合は変わりません。F06 の GENERALIZED MASS が 1 になるのは、この決め方の結果です。'
+  ],'lab-modal-mass'],
   ['自分で確かめる',['答えを開く前に、式から数字を出してみてください。'],'quiz-modes']);
  entry('modes').sources.push(dyn(49));
+ (entry('modes').links=entry('modes').links||[]).push(['analysis.html#modes/baseline/results','F06 の表の読み方と実務の判断（解析タブ）']);
 
  /* ---------- 直接周波数応答 ---------- */
  entry('direct-frequency').sections.push(
@@ -163,13 +169,19 @@
   'lab-crack':{html:()=>box('lab-crack',`<label>距離 r（mm、対数） <input type="range" min="-2" max="1" step="0.05" value="0" data-lab-input="r"></label>`,'亀裂の正面（θ = 0）の線形弾性の近傍式 σyy = KⅠ/√(2πr)。両軸とも対数です。実線が KⅠ = 1000、破線が 500 MPa√mm。r = 0 は計算しません。'),
    draw(el,v){const r=Math.pow(10,+v.r),s=k=>k/Math.sqrt(2*Math.PI*r),rs=range(0.01,10,120,true);
     el.plot.innerHTML=chart({id:'crack',label:'先端からの距離と応力',x:[0.01,10],xlog:true,y:[10,10000],ylog:true,xt:[0.01,0.1,1,10],yt:[10,100,1000,10000],xl:'r (mm)',yl:'σyy (MPa)',legend:true,series:[{pts:rs.map(x=>[x,1000/Math.sqrt(2*Math.PI*x)]),name:'KⅠ=1000',strong:true,dash:''},{pts:rs.map(x=>[x,500/Math.sqrt(2*Math.PI*x)]),name:'KⅠ=500',dash:'7 4'}],marks:[[r,s(1000)]]});
-    el.readout.textContent=`r = ${num(r,3)} mm：KⅠ = 1000 で σyy = ${num(s(1000),4)} MPa、KⅠ = 500 で ${num(s(500),4)} MPa。r を 1/4 にすると応力は2倍になります。`;}}
+    el.readout.textContent=`r = ${num(r,3)} mm：KⅠ = 1000 で σyy = ${num(s(1000),4)} MPa、KⅠ = 500 で ${num(s(500),4)} MPa。r を 1/4 にすると応力は2倍になります。`;}},
+  'lab-modal-mass':{html:()=>box('lab-modal-mass',`<label>モード形の大きさの決め方 <select data-lab-input="norm"><option value="MASS">MASS：一般化質量を 1</option><option value="MAX">MAX：最大の成分を 1</option></select></label><label>モード <select data-lab-input="mode"><option value="1">1次：同じ向き</option><option value="2">2次：逆向き</option></select></label>`,'壁 − 400 N/m − 2 kg − 200 N/m − 1 kg の2質点（全質量 3 kg）を、壁ごと X 方向に揺らす場合の理論計算です。グラフは各質点のモード形の値。MSC Nastran の実行結果ではありません。'),
+   draw(el,v){const d=window.AnalysisModalOutputCore.mode(+v.mode,v.norm,1);
+    el.plot.innerHTML=`<table class="theory-lab-table"><tr><th>モード形（質点1, 質点2）</th><td>${num(d.phi[0],4)}, ${num(d.phi[1],4)}</td></tr><tr><th>一般化質量</th><td>${num(d.mu,4)}</td></tr><tr><th>刺激係数</th><td>${num(d.beta,4)}</td></tr><tr><th>有効質量</th><td>${num(d.eff,4)} kg</td></tr><tr><th>割合（有効質量 ÷ 3 kg）</th><td>${num(100*d.fraction,4)}%</td></tr></table>`+
+     chart({id:'modal-mass',label:'モード形の値',x:[1,2],y:[-1.5,1.5],xt:[1,2],yt:[-1.5,-1,-0.5,0,0.5,1,1.5],xl:'質点の番号',yl:'モード形',series:[{pts:d.phi.map((y,i)=>[i+1,y]),strong:true,dash:''}],marks:d.phi.map((y,i)=>[i+1,y])});
+    el.readout.textContent=`${v.mode}次：固有振動数 ${num(d.frequency,4)} Hz、有効質量 ${num(d.eff,4)} kg。決め方を MASS と MAX で切り替えても、この2つは変わりません。`;}}
  };
  const qa=items=>`<div class="theory-quiz">${items.map(([q,a],i)=>`<details><summary>問${i+1}　${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</div>`;
  const quizzes={
   'quiz-modes':[['CONM2 の質量を 0.01 から 0.04 にすると、固有振動数はいくつになりますか？','fₙ は 1/√m に比例するので半分になり、約 7.958 Hz です。'],
    ['CELAS2 のばね定数を 100 から 400 にすると？','fₙ は √k に比例するので2倍の約 31.83 Hz です。100 N をゆっくりかけたときの変位は 1 mm から 0.25 mm になります。'],
-   ['N・mm・s 系のモデルで、10 kg のつもりで CONM2 に 10 と書くと？','10 t と解釈され、fₙ = 15.9155 / √1000 ≈ 0.503 Hz になります。正しくは 0.01 です。']],
+   ['N・mm・s 系のモデルで、10 kg のつもりで CONM2 に 10 と書くと？','10 t と解釈され、fₙ = 15.9155 / √1000 ≈ 0.503 Hz になります。正しくは 0.01 です。'],
+   ['2質点の例で、1次と2次の有効質量を足すと何 kg ですか？','8/3 + 1/3 = 3 kg で、動ける部分の全質量になります。全部のモードを使えば、割合の合計は 100% です。']],
   'quiz-frf':[['f = fₙ で、減衰比を 0.02 から 0.05 にすると振幅は？','U = uₛ/(2ζ) なので 25 mm から 10 mm になります。固有振動数は変わりません。'],
    ['f = 0.5fₙ（約 7.96 Hz）での振幅と遅れ角は？','r = 0.5 で U = 1/√(0.75² + 0.02²) ≈ 1.33 mm、φ = atan(0.02/0.75) ≈ 1.5° です。剛性が支配的で、荷重とほぼ同じ時刻に変位が最大になります。'],
    ['f = 2fₙ では？','r = 2 で U = 1/√(3² + 0.08²) ≈ 0.333 mm、φ ≈ 178.5° です。慣性が支配的になり、変位は荷重とほぼ逆向きに動きます。']],
