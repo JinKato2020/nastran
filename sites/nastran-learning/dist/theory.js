@@ -38,11 +38,11 @@
   const nav=window.NASTRAN_LEARNING.navigation;
   const groups=new Map();
   const used=new Set();
-  for(const item of [...nav.materialTheory,...nav.boundaryTheory,...nav.loadTheory,...nav.contactTheory,...nav.dampingTheory,...nav.common,...nav.materials]){
+  for(const item of [...nav.meshTheory,...nav.materialTheory,...nav.boundaryTheory,...nav.loadTheory,...nav.contactTheory,...nav.dampingTheory,...nav.common,...nav.materials]){
    if(item.path!=='theory.html')continue;
    const entry=entries.find(e=>e.key===item.hash.slice(1).split('/')[0]);
    if(!entry||used.has(entry.key))continue;
-   const group=entry.key==='materials'?'材料理論':entry.key==='boundary'?'境界条件と拘束':entry.key==='common-loads'?'荷重の理論':item.group||'共通の解析技術論';
+   const group=entry.key==='mesh'?'メッシュ分割の理論':entry.key==='materials'?'材料理論':entry.key==='boundary'?'境界条件と拘束':entry.key==='common-loads'?'荷重の理論':item.group||'共通の解析技術論';
    if(!groups.has(group))groups.set(group,[]);
    groups.get(group).push(entry);
    used.add(entry.key);

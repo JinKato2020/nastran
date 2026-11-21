@@ -256,13 +256,15 @@ window.TopicArticleData = {
         "key": "connections",
         "title": "結合と支持の選択",
         "sections": [
+          "coincident",
           "rbe",
           "interfaces",
           "releases",
           "compliance"
         ],
         "questions": [
-          10
+          10,
+          13
         ],
         "goals": [
           "SPC・MPC・RBEと弾性結合を使い分ける",
@@ -295,6 +297,27 @@ window.TopicArticleData = {
           "AUTOSPCは実物の支持を判断しない。",
           "自由支持の固有値と通常の静解析を区別する。",
           "変形・反力・拘束式を同じモデルの条件で確かめる。"
+        ]
+      },
+      {
+        "key": "viscous",
+        "title": "波の反射と粘性境界",
+        "sections": [
+          "reflection",
+          "impedance",
+          "return-wave"
+        ],
+        "questions": [
+          12
+        ],
+        "goals": [
+          "法線・接線の速度から抵抗力を求める",
+          "反射波を観測点の時刻と振幅で見分ける"
+        ],
+        "points": [
+          "実際の自由表面と人工的に切った面を区別する。",
+          "節点数を増やしたら負担面積を配り直す。",
+          "係数の照合は対象とする波と方向を明示する。"
         ]
       }
     ],
@@ -806,5 +829,122 @@ window.TopicArticleData = {
       ]
     ],
     "aliases": {}
+  },
+  "mesh": {
+    "title": "メッシュ分割の理論",
+    "api": "MeshChapter",
+    "prefix": "mesh",
+    "articles": [
+      {
+        "key": "sizing",
+        "title": "評価位置と円孔のCQUAD4分割",
+        "sections": [
+          "target",
+          "ring",
+          "features"
+        ],
+        "questions": [
+          0
+        ],
+        "goals": [
+          "円周方向と径方向の分割を別々に選ぶ",
+          "肩R・近接孔・狭い肉の評価位置を決める"
+        ],
+        "points": [
+          "着目する量と位置を先に決める。",
+          "曲線を表す辺と応力勾配を横切る辺を区別する。",
+          "形状と応力が急変する領域を囲んで細分化する。"
+        ]
+      },
+      {
+        "key": "transitions",
+        "title": "粗密の遷移と節点の接続",
+        "sections": [
+          "transition"
+        ],
+        "questions": [
+          1
+        ],
+        "goals": [
+          "列の幅と列の本数を区別する",
+          "全四角形の3対1の遷移例を読む"
+        ],
+        "points": [
+          "同じ列の間隔は連続的に変えられる。",
+          "列の数を変えるには遷移領域が要る。",
+          "適合境界は辺の両端の節点番号を共有する。"
+        ]
+      },
+      {
+        "key": "quality",
+        "title": "要素形状とヤコビアン",
+        "sections": [
+          "shape",
+          "jacobian"
+        ],
+        "questions": [
+          2
+        ],
+        "goals": [
+          "細長さ・ゆがみ・反りを見分ける",
+          "ヤコビアンと品質比の意味を区別する"
+        ],
+        "points": [
+          "悪い要素の番号を形状に戻す。",
+          "面積倍率には寸法の影響がある。",
+          "形状検査と結果の収束は別に確認する。"
+        ]
+      },
+      {
+        "key": "convergence",
+        "title": "応力・固有振動数のメッシュ収束",
+        "sections": [
+          "study",
+          "modes"
+        ],
+        "questions": [
+          3
+        ],
+        "goals": [
+          "同じ位置・成分でメッシュ差を測る",
+          "対象とする高次モードまで追跡する"
+        ],
+        "points": [
+          "細分化しても観測位置を変えない。",
+          "設計で使う量ごとに分割の感度を測る。",
+          "近接する固有値はモード形も比較する。"
+        ]
+      },
+      {
+        "key": "waves",
+        "title": "波長・せん断波速度・時間刻み",
+        "sections": [
+          "wavelength",
+          "time"
+        ],
+        "questions": [
+          4
+        ],
+        "goals": [
+          "対象周波数から空間刻みを試算する",
+          "積分刻みと結果の保存間隔を選ぶ"
+        ],
+        "points": [
+          "同じ振動数では波速が遅い層ほど波長が短い。",
+          "陽解法では安定性も確認する。",
+          "到達時刻と振幅を別々に検算する。"
+        ]
+      }
+    ],
+    "prerequisites": [
+      [
+        "elements.html#shell",
+        "シェル要素"
+      ],
+      [
+        "coordinates.html#systems",
+        "座標系"
+      ]
+    ]
   }
 };

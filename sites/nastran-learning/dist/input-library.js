@@ -97,7 +97,7 @@
    }
    content+=depth(e);
    if(e.notes?.length)content+='<div class="pitfalls"><h3>指定上の注意</h3><ul>'+e.notes.map(n=>'<li>'+esc(n)+'</li>').join('')+'</ul></div>';
-   if(e.reference)content+='<p><a class="library-reference-link" href="'+esc(e.reference)+'">関連する入力例・解析条件 →</a></p>';
+   if(e.reference)content+='<p><a class="library-reference-link" href="'+esc(e.reference)+'">'+esc(e.referenceLabel||'関連する入力例・解析条件')+' →</a></p>';
    content+='<div class="reference-sources"><span>原典：MSC Nastran '+(e.sourceVersion||'2020 SP1')+' QRG（PDF通しページ）</span><div>'+(e.sourcePages||[e.page]).map(p=>'<a href="'+qrg(p,e.sourceVersion)+'" target="_blank" rel="noopener">p.'+p+' ↗</a>').join(' ')+'</div></div>';
    $('card-detail').innerHTML=content;controls(e,raw);
    if(e.kind==='fixed'){

@@ -196,5 +196,14 @@
   norm.help='MASSは一般化質量φᵀMφを1にそろえ、通常の実固有値解析の既定です。MAXは解析セット（a-set）の最大変位成分を単位値にそろえ、a-set外に回復した成分は1を超え得ます。固有振動数や物理的な総質量を変える入力ではありません。座屈ではMASSは適用されずMAXとなります。この欄はMSC 2025.1 QRG PDF1814–1815で照合。';
  }
 
+ for(const entry of window.InputCatalog.entries.filter(e=>e.key==='CGAP'||e.key==='PGAP')){
+  entry.aliases=[...new Set([...(entry.aliases||[]),'ギャップ','ギャップ要素','すきま','隙間','ストッパー','浮き上がり','片当たり'])];
+  entry.reference='elements.html#gap';
+  entry.referenceLabel='要素教材：ストッパーの設定と圧縮力の検算';
+  entry.sourceVersion='2025.1';
+  entry.sourcePages=entry.key==='CGAP'?[1418,1419]:[2616,2617,2618];
+  entry.page=entry.sourcePages[0];
+  if(entry.key==='CGAP')entry.outputs.push('MSC 2025.1ではFORCEで要素軸の力（圧縮が正）、対応する非線形解法のNLSTRESSで開閉状態も照合できます。');
+ }
  window.InputCatalog.entries.push(...cards);
 })();

@@ -51,7 +51,7 @@ assert.equal(content.NAVIGATION.analyses[0].hash,'#static');
 assert.equal(content.titleFor({path:'analysis.html',hash:'#restart',y:0}),'リスタート');
 assert.deepEqual(content.NAVIGATION.intro.map(e=>e.title),['初めての解析','入力規則','節点・スカラー点','座標','要素の向き','応力方向']);
 assert.equal(content.NAVIGATION.materials.length,14);
-assert.deepEqual(content.NAVIGATION.elements.map(e=>e.path+e.hash),['elements.html#scalar','elements.html#beam','elements.html#shell','elements.html#solid','elements.html#rigid','elements.html#connector','elements.html#genel']);
+assert.deepEqual(content.NAVIGATION.elements.map(e=>e.path+e.hash),['elements.html#scalar','elements.html#beam','elements.html#shell','elements.html#solid','elements.html#rigid','elements.html#connector','elements.html#gap','elements.html#genel']);
 assert.equal(content.titleFor({path:'elements.html',hash:'#rigid',y:0}),'剛体要素（RBE2・RBE3・RBAR）');
 assert.equal(content.titleFor({path:'elements.html',hash:'#beam',y:0}),'梁要素（CROD・CBAR・CBEAM）');
 assert.equal(content.titleFor({path:'analysis.html',hash:'#modes',y:0}),'実固有値解析');
@@ -62,7 +62,8 @@ assert.deepEqual(content.NAVIGATION.operations.map(e=>e.path),['modeling.html','
 assert.ok(!content.NAVIGATION.common.some(e=>content.NAVIGATION.operations.some(item=>item.path===e.path)));
 assert.deepEqual(content.NAVIGATION.common.map(e=>e.path+e.hash),['theory.html#restart','comparisons.html#beam']);
 assert.equal(content.NAVIGATION.materialTheory.length,6);
-assert.equal(content.NAVIGATION.boundaryTheory.length,6);
+assert.equal(content.NAVIGATION.boundaryTheory.length,7);
+assert.equal(content.NAVIGATION.meshTheory.length,5);
 assert.equal(content.NAVIGATION.loadTheory.length,7);
 assert.equal(content.titleFor({path:'theory.html',hash:'#common-loads/inertia',y:0}),'自重・加速度・回転');
 assert.equal(content.titleFor({path:'theory.html',hash:'#boundary/mpc',y:0}),'MPC・独立と従属');

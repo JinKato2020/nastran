@@ -425,6 +425,13 @@
         "kind": "要素理論"
       },
       {
+        "title": "GAP要素（CGAP・PGAP）",
+        "description": "ストッパー・浮き上がり支持の開閉と圧縮力を検算",
+        "path": "elements.html",
+        "hash": "#gap",
+        "kind": "要素理論"
+      },
+      {
         "title": "一般要素（GENEL）",
         "description": "剛性行列・柔性行列を直接与える要素の仕組み",
         "path": "elements.html",
@@ -710,6 +717,13 @@
         "path": "theory.html",
         "hash": "#boundary/verification",
         "kind": "境界条件と拘束"
+      },
+      {
+        "title": "波の反射と粘性境界",
+        "description": "法線・接線の速度から抵抗力を求める・反射波を観測点の時刻と振幅で見分ける",
+        "path": "theory.html",
+        "hash": "#boundary/viscous",
+        "kind": "境界条件と拘束"
       }
     ],
     "loadTheory": [
@@ -856,6 +870,43 @@
         "path": "theory.html",
         "hash": "#damping/verification",
         "kind": "減衰の理論"
+      }
+    ],
+    "meshTheory": [
+      {
+        "title": "評価位置と円孔のCQUAD4分割",
+        "description": "円周方向と径方向の分割を別々に選ぶ・肩R・近接孔・狭い肉の評価位置を決める",
+        "path": "theory.html",
+        "hash": "#mesh",
+        "kind": "メッシュ分割の理論"
+      },
+      {
+        "title": "粗密の遷移と節点の接続",
+        "description": "列の幅と列の本数を区別する・全四角形の3対1の遷移例を読む",
+        "path": "theory.html",
+        "hash": "#mesh/transitions",
+        "kind": "メッシュ分割の理論"
+      },
+      {
+        "title": "要素形状とヤコビアン",
+        "description": "細長さ・ゆがみ・反りを見分ける・ヤコビアンと品質比の意味を区別する",
+        "path": "theory.html",
+        "hash": "#mesh/quality",
+        "kind": "メッシュ分割の理論"
+      },
+      {
+        "title": "応力・固有振動数のメッシュ収束",
+        "description": "同じ位置・成分でメッシュ差を測る・対象とする高次モードまで追跡する",
+        "path": "theory.html",
+        "hash": "#mesh/convergence",
+        "kind": "メッシュ分割の理論"
+      },
+      {
+        "title": "波長・せん断波速度・時間刻み",
+        "description": "対象周波数から空間刻みを試算する・積分刻みと結果の保存間隔を選ぶ",
+        "path": "theory.html",
+        "hash": "#mesh/waves",
+        "kind": "メッシュ分割の理論"
       }
     ]
   }

@@ -6,7 +6,7 @@ const { PRO_ENTITLEMENT, isProPackage, hasProEntitlement, validPublicAppleKey } 
 
 assert.deepEqual(FREE_ANALYSIS_HASHES, ['#static', '#thick-cylinder', '#buckling']);
 for (const item of [...NAVIGATION.elements, ...NAVIGATION.analyses, ...NAVIGATION.materialTheory,
-  ...NAVIGATION.boundaryTheory, ...NAVIGATION.loadTheory, ...NAVIGATION.contactTheory, ...NAVIGATION.dampingTheory,
+  ...NAVIGATION.meshTheory, ...NAVIGATION.boundaryTheory, ...NAVIGATION.loadTheory, ...NAVIGATION.contactTheory, ...NAVIGATION.dampingTheory,
   ...NAVIGATION.common, ...NAVIGATION.materials, ...NAVIGATION.intro, ...NAVIGATION.operations, ...NAVIGATION.homeResources]) {
   const expected = ['elements.html', 'bulk.html', 'comparisons.html'].includes(item.path) || (item.path === 'analysis.html' && FREE_ANALYSIS_HASHES.includes(item.hash));
   assert.equal(canOpenLesson(item, false), expected, item.path + item.hash);

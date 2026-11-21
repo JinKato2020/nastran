@@ -5,7 +5,7 @@
 
 <article id="scalar" data-element="scalar" data-title="ばね要素（CELAS・CBUSH）">
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 0次元要素</span><h1>ばね要素（CELAS・CBUSH）</h1>
-<p>節点の成分どうしをつなぐ CELAS と、要素座標を持つ CBUSH を比較します。剛性の値が同じでも、接続位置と成分が違うと結果は変わります。</p></div>
+<p>節点の成分どうしをつなぐ CELAS と、要素座標を持つ CBUSH を比較します。剛性の値が同じでも、接続位置と成分が違うと結果は変わります。すきまが閉じた後だけ力を伝える継手は<a href="elements.html#gap">GAP要素</a>へ。</p></div>
 
 
 <div class="element-key"><strong>この記事で分かること</strong>
@@ -1949,6 +1949,28 @@ J = 2I ≈ 0.04692 in⁴</p>
 <p>例題ファイルは、MSC Nastran のインストール先の doc/linstat フォルダにあるとマニュアルに書かれています。</p>
 <p class="element-note">操作図は一般理論に基づく独立した比較例です。数値は手計算・小行列の計算によるもので、MSC Nastran本体の実行結果ではありません。既存の資料に基づく例と区別して記載しています。カード固有の仕様はMSC Nastran 2025.1で照合し、Siemens版の未照合部分まで同一とは扱いません。</p><p>既存のロボットアーム例はインチ・ポンド・psi、上の独立した行列例はN・mmです。</p><p>追加照合：MSC Nastran 2025.1 Quick Reference Guide — <a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=1954" rel="noopener" target="_blank">GENELのK/Z/Sと入力順（PDF 1954〜1956）</a></p></section>
 </article>
+<article id="gap" data-element="gap" data-title="GAP要素（CGAP・PGAP）">
+<div class="analysis-head"><span class="analysis-sol">各要素理論 · 接触</span><h1>GAP要素（CGAP・PGAP）</h1><p>すきまが閉じるまでは自由、当たった後に力が流れるストッパーを例に、片当たりする継手を扱います。</p></div>
+<div class="element-key"><strong>この記事で分かること</strong><ul><li>当たる位置が決まっているとき、2節点の接触を使う理由。</li><li>開閉方向と初期すきまを定め、荷重増分ごとの反力を確認する方法。</li></ul><strong>前提として読む記事</strong>：<a href="elements.html#scalar">ばね要素</a>、<a href="coordinates.html#systems">座標系</a>。<ol><li>物体側と相手側の節点番号を分ける。</li><li>当たる向きと初期すきまを別々に与える。</li><li>状態・相対変位・圧縮力を同じ増分で照合する。</li></ol></div>
+<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#gap-choice" data-jump="gap-choice">ストッパー・浮き上がり・面接触</a></li><li><a href="#gap-setup" data-jump="gap-setup">取付方向と初期すきま</a></li><li><a href="#gap-stroke" data-jump="gap-stroke">操作例と荷重の分担</a></li><li><a href="#gap-output" data-jump="gap-output">解析と結果の読み方</a></li><li><a href="#gap-quiz" data-jump="gap-quiz">自分で確かめる</a></li></ol></nav>
+<section class="theory-section" id="gap-choice"><h2>1. 既知の点で当たるか、接触位置が動くか</h2>
+<p><strong>機械のストッパー</strong>では、可動部の突起が台座のどこに当たるかを設計段階で決められます。突起側と受け側に一つずつ節点を用意し、その対にCGAPを置きます。すきまがある間は別の支持経路が荷重を負担し、当たった後はストッパーにも反力が出ます。通常の両効きばねでは、離れる側にも力を伝えてしまいます。</p>
+<p><strong>浮き上がる脚</strong>では鉛直の押しだけを伝えたい各支持位置に置きます。偏心荷重で片側が開けば、残りの脚に反力が移ります。機器重量を先に載せた状態から外力を増す場合は、その工程と荷重履歴を表し、各脚の圧縮力の和とそのモーメントを確認します。開く方向にSPCを重ねると浮き上がれません。</p>
+<p><strong>ローラーが面上を移動する、接触面積や面圧分布を知りたい</strong>場合、点対一つでは接触位置を探索できません。面接触を検討します。点対の力を任意の面積で割った値から局部の最大面圧は決められません。</p></section>
+<section class="theory-section" id="gap-setup"><h2>2. 「どれだけ近づいたら当たるか」を決める</h2>
+<p><a href="bulk.html#CGAP">CGAP</a>で接続する異なる節点GA・GBと向きを指定し、PIDで<a href="bulk.html#PGAP">PGAP</a>を参照します。PGAPのU0が初期すきまです。同じ位置に二つのGRIDを置いてU0=0.5 mmと指定できます。逆に座標を0.5 mm離しただけではU0は設定されません。同位置で要素のx軸を2点から決められないときは、押し込み方向に第1軸を持つCIDを明示します。</p>
+<p>GA側だけを要素+x方向へ動かすと閉じる向きです。要素軸へ投影した接近量を d = uAx − uBx とすれば、予圧なしの単純例では d が U0 を超えてから閉側の力が増えます。両側が同量動いても d は変わりません。最初に小さな既知変位で向きと状態を確かめます。MSCのCGAPの軸は変形に追従して回転しないので、大回転する部品にも注意します。</p></section>
+<section class="theory-section" id="gap-stroke"><h2>3. 当たり始める荷重と、当たった後の反力</h2>
+<p>可動部を支持ばね k=100 N/mm が保持し、同じ方向に U0=0.5 mm のストッパーを置きます。摩擦・予圧はゼロとし、開側の弱い剛性はこの手計算では無視します。閉側剛性 KA=1,000 N/mm とします。</p>
+<figure data-gap-stopper></figure>
+<p class="element-formula">当たる直前の荷重 P*=k U0=50 N<br>接触後の釣合い P=k d+KA(d−U0)<br>整理して d=(P+KA U0)/(k+KA)</p>
+<p>押す荷重が105 Nなら d=0.55 mm。元の支持ばねが55 N、ストッパーが50 Nを負担します。0.05 mmは有限の閉側剛性に対応する食い込み量です。KAを変えたとき、食い込み・支持反力・収束の三つを比較します。大きくしすぎると数値条件が悪化し、小さすぎると位置や荷重分担が変わります。</p></section>
+<section class="theory-section" id="gap-output"><h2>4. 結果を増分順に読む</h2>
+<p>開閉を追うには対象版の対応する非線形解法を選びます。MSCの通常の線形解法でCGAPを置いた場合、初期剛性のまま線形化されます。SOL 101の一回の通常計算で荷重途中の開閉が追えたとは判断できません。</p>
+<ol><li><strong>最初の増分</strong>で節点変位と要素軸からdを求め、U0・予圧・期待した初期状態と照合します。すきまがあるはずなのに大きな力が出たら、単位・向き・永久拘束を確認します。</li><li><strong>当たる前後</strong>の同じ要素番号を追います。MSC 2025.1ではFORCEで要素力、対応する非線形解法ではNLSTRESSでGAPの状態も要求できます。軸力は要素座標で圧縮が正です。せん断力・すべりも要素の横方向で読みます。支持点のSPCFORCESとは作用する対象と符号が異なります。</li><li><strong>除荷時</strong>は圧縮力が減り、開いた後は開側剛性に応じた小さな力に戻るかを確認します。摩擦ありなら、閉状態でも固着とすべりを区別します。開閉をまたぐ増分を細かくし、同じ荷重で結果が安定するか比べます。</li></ol>
+<p>摩擦や適応ペナルティの設定は<a href="theory.html#contact/gap">接触・摩擦・締結のCGAP・PGAP</a>、8文字欄・空欄時の扱いは<a href="bulk.html#PGAP">InputのPGAP</a>で確認できます。</p></section>
+<section class="theory-section" id="gap-quiz"><h2>5. 自分で確かめる</h2><div class="theory-quiz"><details><summary>すきまが0.5 mmで、可動側が+0.7 mm、台座も+0.3 mm動いた。接触した？</summary><p>同じ要素軸で測れば接近は0.4 mm。初期予圧がなく、まだ0.1 mmのすきまが残ります。</p></details><details><summary>脚が開いているのに、その支持点に大きな引張反力がある。何を見る？</summary><p>GAP要素力とSPC反力の対象を区別し、並列のばね・剛体結合・固定条件など、引張を受け持つ別の荷重経路を追います。</p></details></div>
+<p class="element-note">操作例は一次元の手計算です。MSC 2025.1 QRGの<a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=1418" target="_blank" rel="noopener">CGAP（PDF 1418–1419頁）</a>、<a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Quick_Reference_Guide/raw/resource/enus/MSC_Nastran_2025.1_Quick_Reference_Guide.pdf#page=2616" target="_blank" rel="noopener">PGAP（2616–2618頁）</a>で要素軸・適用範囲・出力を照合しました。</p></section></article>
 </main>
-<script src="lesson-article.js"></script><script src="lesson-diagrams.js"></script><script src="element-visuals.js"></script><script src="beam-labs.js"></script><script src="element-labs.js"></script>
+<script src="lesson-article.js"></script><script src="lesson-diagrams.js"></script><script src="element-visuals.js"></script><script src="beam-labs.js"></script><script src="gap-stopper.js"></script><script src="element-labs.js"></script>
 <script src="connection-labs.js"></script><script src="elements.js"></script><script src="teaching-diagrams.js"></script><script src="home-visuals.js"></script><script src="learning-data.js"></script><script src="learning.js"></script></body></html>

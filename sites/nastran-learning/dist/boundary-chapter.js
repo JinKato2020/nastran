@@ -142,6 +142,29 @@
  A.table(['解析・場面','線形静解析からの違い','次に読む場所'],[['強制振動・基礎加振','SPCDの空間分布とRLOAD／TLOADの時間・周波数関数を分ける。変位・速度・加速度のTYPEを区別','周波数応答・過渡応答の入力'],['MSC SOL 400のSTEP','SPCとSPCDは全変位、SPC1はステップの相対変位0として前ステップ位置を保持する場合がある。SPCRと区別','対象STEPの指定とQRG'],['接触・摩擦','接触範囲や滑りは解に依存。初めから固定すると開離を再現できない','接触の理論・製品別の手順'],['大回転','小変位の固定係数MPCを、回転する継手へそのまま使えない','非線形要素・結合の定式化'],['熱伝導','未知量は温度、反力に対応する収支は熱流。構造の123456の意味を流用しない','熱伝導の境界条件']])+
  p('動解析のSPCD参照はLOADSETの有無でEXCITEIDから直接選ぶ経路とLSEQを介する経路が異なります。SOL 101のLOAD選択をそのまま移さないようにします。非線形では「どの位置をゼロと呼ぶか」もステップ間の結果に直結します。具体的な適用SOL・既定値はInputデータと、その製品・版のQRGで確認します。')]
  ];
+ sections.push(
+ ['coincident','同じ位置の節点を共有するか、二つに分けるか',
+ p('実物の継ぎ目で、左右にどんな相対運動を許すかを決めます。GRIDの位置は初期形状を、各要素が参照するGRID番号は変位を共有する範囲を決めます。同じ位置にある別番号の2点は、通常の要素接続では独立です。')+
+ A.table(['継ぎ目で許す運動','選び方','結果で見ること'],[
+ ['連続材で両側が一緒に動く','適合メッシュで同じGRIDを共有。梁では端部解放の有無も確認','要素が使う変位成分が連続。通常のソリッドには節点回転剛性がない'],
+ ['並進は一致、一軸まわりの回転は自由','同位置の別GRIDで必要成分だけをMPC等で結ぶ、または梁端の対象成分を解放','両側の並進差、許した相対回転、解放軸の端モーメント'],
+ ['ずれに比例して力を伝える','別GRIDの間に方向と剛性を指定したばね','軸をそろえた両点の相対変位とばね力'],
+ ['離れると力を伝えず、当たると押す','既知の点対にはCGAP／PGAP。接触位置が移るなら面接触を検討','初期すきま、接触の開閉、圧縮力、開いた後の荷重経路']])+
+ p('接合部に重複節点があるからといって一括統合すると、意図したヒンジ・ばね・接触を消してしまいます。反対に連続材の節点が未結合だと、自由辺や部品の相対運動が現れます。<a href="elements.html#rigid-hinge">RBARヒンジの手計算</a> · <a href="elements.html#gap">GAP要素の使い方</a>。')],
+ ['reflection','地盤を途中で切ったとき、何が戻ってくるか',
+ p('半無限の地盤を有限の範囲で切ると、本来は遠方へ進む波がモデルの端まで到達します。人工的な端を固定すると変位・粒子速度の反射波は逆符号、自由端では同符号になります。これは同一媒質中を垂直に入射する一次元波の説明です。応力波の符号を読むときは逆の関係です。')+
+ '<figure data-mesh-wave-lab="reflect"></figure>'+
+ p('同じ材料の中で境界の位置だけを外へ動かすと、境界からの反射波は観測点に遅れて届きます。層境界など物理的に存在する反射は、その位置で生じます。実在する自由表面まで吸収端へ変更すると、必要な反射を消してしまいます。')],
+ ['impedance','法線・接線の速度を、境界に作用する力へ変える',
+ p('局所粘性境界は、境界の外側へ進む波が運ぶ力と速度の関係をダッシュポットで近似します。均質・等方な線形弾性体に垂直入射する平面波を考え、密度をρ、縦波速度をVp、せん断波速度をVsとします。nは境界の法線、tは面内の接線です。')+
+ f('応力と粒子速度の比（波動インピーダンス） Zp = ρVp、Zs = ρVs<br>静止した外部に対する境界表面力　tn = −Zp vn、tt = −Zs vt<br>節点の負担面積をAiとして　cn,i = ρVp Ai、ct,i = ρVs Ai<br>節点力 Fi = −ci vi　　仕事率 Fi vi = −ci vi² ≤ 0')+
+ p('例としてρ=1,800 kg/m³、Vp=600 m/s、Vs=200 m/s、Ai=2 m²なら、法線方向は2,160,000 N·s/m、接線方向は720,000 N·s/mです。接線速度が+0.01 m/sなら抵抗力は−7,200 N。節点を増やしてもΣAiが同じなら、均一速度に対する境界全体の抵抗は同じです。平面モデルでは境界辺の負担長さにモデルの奥行きを掛けて面積にします。')+
+ p('速度がゼロのとき、この抵抗力もゼロです。静的な支持や初期地圧の釣合いは別途必要です。地震波を外から入力する自由地盤境界では、基準地盤との相対速度と外部地盤からの作用を扱います。各節点を一律に静止地面へ結ぶだけで同じ条件にはなりません。')],
+ ['return-wave','反射係数・往復時間で設定を検算する',
+ f('垂直入射の一次元速度波。対象面積Aの媒質の係数 C = ρcA、境界の係数をDとすると<br>速度振幅比 Rv = (C−D)/(C+D)。反射エネルギー比 = Rv²<br>D=Cなら0、D=C/2ならRv=1/3、戻るエネルギーは1/9')+
+ p('境界から距離Lだけ内側に観測点を置き、短いパルスを与えます。均一媒質なら入射波から約2L/c後に戻る成分を探します。観測する速度成分・符号・時間刻みは比較間でそろえます。斜入射、表面波、異方性や複雑な地層では、係数を合わせても反射が残り得ます。領域を拡げた場合と観測波形・ピークを比べます。')+
+ p('この係数は局所吸収境界の一般理論です。Nastranで等価なダンパを配置する際は、対象SOL、基準側の運動、各方向、単位、対象面積を確認します。材料減衰を増やして反射を隠すと、観測したい入射波まで変わります。<a href="theory.html#mesh/waves">波長・時間刻み</a> · <a href="theory.html#damping">減衰の理論</a>。')]
+ );
  const questions=[
  ['ソリッドの一点を123456で止めれば、その点を中心とする回転も止まる？','通常の構造ソリッドの変位場は並進で表されます。一点の並進を止めても、その点まわりの剛体回転は残ります。離れた点・面の並進によって必要な回転を止めます。'],
  ['Aを123、Bを23、Cを3で止めた。3点がx軸上なら十分？','6条件のうち独立なのは5です。x軸まわりの剛体回転では3点の並進が変わらないので、その回転を止められません。'],
@@ -156,16 +179,18 @@
  ['支持と部材を直列ばねで近似。固定支持との差をこの例で1%以下にするks/kbは？','差はkb/ksなのでks/kb≥100です。これは1方向の直列例の結果で、他の構造へ万能な基準として使いません。'],
  ['400 mmの単純支持梁。左から100 mmで下向き120 N。左右の反力は？','RB×400−120×100=0よりRB=30 N、RA=90 N。合力90+30−120=0、左端まわりモーメント30×400−120×100=0です。']
  ];
+ questions.push(['面積2 m²の境界を等面積の4区画に分けたら各ダンパは？','速度が一様なら各係数を元の1/4にして全体の抵抗を保ちます。節点での実装では、各点が負担する面積を集計します。'],['同位置の2節点間にばねを置き、同じ方向をMPCでも等置すると？','その方向の相対変位が0になるため、ばねの伸縮を表せません。意図が弾性継手なら重複した等置を見直します。']);
  sections.push(['questions','自分で確かめる',p('先に条件を図や式へ書き、答えを開いて照合します。符号と座標系も答えの一部です。')+'<div class="theory-quiz">'+questions.map(([q,a],i)=>`<details><summary>${i+1}. ${q}</summary><p>${a}</p></details>`).join('')+'</div>']);
  sections.push(['sources','参照範囲と関連教材',
  p('説明と新しい操作図は、この章の学習順序に合わせて独自に構成しました。操作図は一般理論の計算であり、Nastran本体での実行結果ではありません。公式の入力リスト・出力一覧・図は転載していません。')+
  A.table(['資料','確認範囲'],[['MSC Nastran 2025.1 線形静解析ユーザーガイド','第6章 PDF235–252：SPC、自動拘束、指定変位、MPC、非同次拘束。第9章 PDF379–381：対称条件'],['MSC Nastran 2025.1 QRG','SPC 2882–2883、SPC1 2884–2885、SPCADD 2886、SPCD 2888–2890、MPC 2363、MPCADD 2364、MPCD 2366、MPCY 2367'],['同QRG：自動拘束・自由物体','AUTOSPC (Case) 266–268、旧PARAM 858、EPZERO 880、SUPORT 2919–2920、SUPORT1 2921'],['MIT OCW, K. J. Bathe','Finite Element Procedures for Solids and Structures：変位型有限要素法と境界条件'],['A. F. Bower, Applied Mechanics of Solids §7.1','境界条件、剛体運動、結合とモデル化の一般的な整理']])+
  p(source(stat+'#page=235','MSC 線形静解析ガイド 第6章')+' · '+source(stat+'#page=379','対称条件')+' · '+source(qrg+'#page=2882','QRG：SPC／SPCD')+' · '+source(qrg+'#page=2363','QRG：MPC')+' · '+source(qrg+'#page=266','QRG：AUTOSPC'))+
  p(source('https://ocw.mit.edu/courses/res-2-002-finite-element-procedures-for-solids-and-structures-spring-2010/resources/lecture-3/','MIT OCW：変位型有限要素法')+' · '+source('https://solidmechanics.org/Text/Chapter7_1/Chapter7_1.htm','Bower：有限要素解析の境界条件と結合'))+
+ p(source('https://docs.itascacg.com/itasca900/3dec/docproject/source/options/dynamic/dynamic_boudaryconditions.html','Itasca：局所粘性境界と自由地盤境界の仮定')+' · '+source('https://www.jepoc.or.jp/upload/news/160725155459.pdf','電力中央研究所の講義資料：波長、底面・側方境界（スライド4–7）'))+
  note('一般理論はNastran共通です。カードの適用条件はMSC 2025.1を照合した範囲で記載しています。Siemens版の非線形手順・既定値まで同じと断定していません。')]);
  function html(){return '<div class="analysis-head"><span class="analysis-sol">境界条件と拘束</span><h1>境界条件と拘束の理論</h1><p>支持・指定変位・部材間の関係を分け、許す動きと伝わる力を、式・図・結果から判断します。</p></div>'+A.intro({goals:['実物が許す動きから、節点・成分・座標系を選ぶ','SPC・MPC・RBEの役割と、変位・反力の関係を理解する','拘束不足・過拘束・重複・自動拘束の問題を結果から見分ける'],prerequisites:[['coordinates.html#systems','座標'],['basics.html#node','節点と自由度'],['elements.html#scalar-overview','要素の全体像']],points:['拘束は、点の数ではなく止める運動で決める。','独立・従属は節点と成分の組で追い、地面への支持と部材間の結合を分ける。','計算の終了だけで判断せず、変形・反力・拘束式・支持への感度で確かめる。']})+p('初めて学ぶ場合は1〜6節で支持の考え方を確認します。入力の使い分けは7節から、多点拘束は10節から、診断は18節から進めます。')+A.toc(sections.map(([id,title])=>['boundary-'+id,title]))+sections.map(([id,title,body],i)=>A.section(`${i+1}. ${title}`,body,'boundary-'+id)).join('');}
  const labels={'固定':'u = 0','対象成分を止める':'SPC','対称面':'n','法線の並進を止める':'un = 0','自由面':'t = 0','面荷重ゼロの例':'σn = 0','指定変位':'d','ばね力':'F = kd'};
- function connect(root){for(const el of root.querySelectorAll('[data-boundary-legacy]')){el.innerHTML=window.TheoryTopicVisuals.boundary[+el.dataset.boundaryLegacy].replace('uA − uB = 指定値','uA − r uB = 0');for(const t of el.querySelectorAll('svg text'))if(labels[t.textContent]!==undefined)t.textContent=labels[t.textContent];}window.BoundaryLabs.connect(root);A.bindNavigation(root);}
+ function connect(root){for(const el of root.querySelectorAll('[data-boundary-legacy]')){el.innerHTML=window.TheoryTopicVisuals.boundary[+el.dataset.boundaryLegacy].replace('uA − uB = 指定値','uA − r uB = 0');for(const t of el.querySelectorAll('svg text'))if(labels[t.textContent]!==undefined)t.textContent=labels[t.textContent];}window.BoundaryLabs.connect(root);window.MeshWaveLabs.connect(root);A.bindNavigation(root);}
  const aliases={overview:'meaning',supports:'supports',spc:'sets',mpc:'mpc',connections:'rbe',verification:'autospc'};
  function focusSection(key){const t=document.getElementById('boundary-'+(aliases[key]||key));if(t)requestAnimationFrame(()=>t.scrollIntoView({block:'start'}));}
  function mount(root){root.innerHTML=html();connect(root);}

@@ -11,6 +11,7 @@
  // Full material chapter lives in material-chapter.js; this is routing metadata.
  entries.push({key:'materials',title:'材料の理論',summary:'弾性・異方性・積層・熱膨張・塑性',sections:[],links:[],sources:[]});
 
+ entries.push({key:'mesh',title:'メッシュ分割の理論',sections:[],links:[],sources:[]});
  // Boundary chapter is authored once in boundary-chapter.js.
 
 

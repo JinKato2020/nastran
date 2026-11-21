@@ -11,6 +11,7 @@
  const theoryGroups=[...new Set(nav.materials.map(item=>item.group))].map(group=>[group,nav.materials.filter(item=>item.group===group)]);
  const navGroups=[
   ['各要素理論', [[null,nav.elements]]],
+  ['メッシュ分割の理論', [[null,nav.meshTheory]]],
   ['材料理論', [[null,nav.materialTheory]]],
   ['境界条件と拘束', [[null,nav.boundaryTheory]]],
   ['荷重の理論', [[null,nav.loadTheory]]],

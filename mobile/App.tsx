@@ -254,6 +254,7 @@ function LearningApp({purchaseClient}:{purchaseClient:ProPurchases|null}){
   const [materialGroup,setMaterialGroup]=useState('elements');
   const materialGroups=[
     {key:'elements',title:'各要素理論',description:'ばね・梁・シェル・ソリッド・結合・剛体・GENELの仕組み・モデル化・結果の読み方',items:NAVIGATION.elements},
+    {key:'meshTheory',title:'メッシュ分割の理論',description:'粗密の遷移・要素品質・応力と振動の精度を学ぶ',items:NAVIGATION.meshTheory},
     {key:'materialTheory',title:'材料理論',description:'弾性・異方性・積層・熱膨張・塑性を、式と操作図で学ぶ',items:NAVIGATION.materialTheory},
     {key:'boundaryTheory',title:'境界条件と拘束',description:'支持・指定変位・多点拘束と、過拘束・拘束不足を学ぶ',items:NAVIGATION.boundaryTheory},
     {key:'loadTheory',title:'荷重の理論',description:'集中・分布・慣性・温度荷重から、組合せと検算へ',items:NAVIGATION.loadTheory},
