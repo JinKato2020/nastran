@@ -7,18 +7,11 @@
  function relocate(){const url=moved[document.body.dataset.learningPage+location.hash];if(!url)return false;const a=document.createElement('a');a.href=url;document.body.append(a);a.click();a.remove();return true;}
  let done=[];try{const v=JSON.parse(localStorage.getItem(storageKey)||'[]');if(Array.isArray(v))done=[...new Set(v.filter(k=>course.steps.some(s=>s.key===k)))];}catch{}
  const nav=course.navigation;
- const basics=[nav.intro[0],nav.homeResources[0],...nav.intro.slice(1)];
- const theoryGroups=[...new Set(nav.materials.map(item=>item.group))].map(group=>[group,nav.materials.filter(item=>item.group===group)]);
- const navGroups=[
-  ['各要素理論', [[null,nav.elements]]],
-  ['メッシュ分割の理論', [[null,nav.meshTheory]]],
-  ['材料理論', [[null,nav.materialTheory]]],
-  ['境界条件と拘束', [[null,nav.boundaryTheory]]],
-  ['荷重の理論', [[null,nav.loadTheory]]],
-  ['接触・摩擦・締結', [[null,nav.contactTheory]]],
-  ['減衰の理論', [[null,nav.dampingTheory]]],
-  ['各解析技術理論', [['共通の解析技術論',nav.common],...theoryGroups]],
- ];
+ const basics=[...nav.intro.slice(0,1),...nav.homeResources.filter(item=>item.hash!=='#linear-guide-help'),...nav.intro.slice(1)];
+ const materials=nav.materials||[];
+ const theoryGroups=[...new Set(materials.map(item=>item.group))].map(group=>[group,materials.filter(item=>item.group===group)]);
+ const navGroups=course.materialChapters.map(chapter=>[chapter.title,chapter.sources.flatMap(source=>
+  source==='materials'?theoryGroups:[[source==='common'?'共通の解析技術論':null,nav[source]]])]);
  const learningCard=x=>'<a class="learning-card" href="'+href(x)+'"><div><strong>'+esc(x.title)+'</strong><p>'+esc(x.description)+'</p></div></a>';
  function learningGroup(title,sections,open=false,key=''){
   const count=sections.reduce((total,[,items])=>total+items.length,0);

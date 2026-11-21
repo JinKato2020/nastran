@@ -5,6 +5,7 @@
  const scenarios=window.AnalysisScenarios;
  const byId=id=>document.getElementById(id);
  const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const groupTitle=key=>window.NASTRAN_LEARNING.analysisHeadings?.[key]?.title||key;
  const picker=byId('analysis-picker');
  const detail=byId('analysis-detail');
  const list=items=>`<ul>${items.map(item=>`<li>${esc(item)}</li>`).join('')}</ul>`;
@@ -254,11 +255,11 @@
    document.title='解析 — FEM Guide';
    const items=window.NASTRAN_LEARNING.navigation.analyses;
    const groups=[...new Set(items.map(item=>item.group))];
-   detail.innerHTML='<div class="analysis-head"><h1>解析</h1><p>解析の種類、または確認したい作業を選んでください。</p></div>'+groups.map(group=>section(esc(group),items.filter(item=>item.group===group).map(item=>`<article class="analysis-index-item"><a href="${esc(item.path+item.hash)}"><strong>${esc(item.title)}</strong> · ${esc(item.kind)}</a><p>${esc(item.description)}</p></article>`).join(''))).join('');
+   detail.innerHTML='<div class="analysis-head"><h1>解析</h1><p>解析の種類、または確認したい作業を選んでください。</p></div>'+groups.map(group=>section(esc(groupTitle(group)),items.filter(item=>item.group===group).map(item=>`<article class="analysis-index-item"><a href="${esc(item.path+item.hash)}"><strong>${esc(item.title)}</strong> · ${esc(item.kind)}</a><p>${esc(item.description)}</p></article>`).join(''))).join('');
    return;
   }
   if(Object.hasOwn(window.AnalysisReferenceTopics,key)){
-   picker.value=['model-verification','restart','database'].includes(key)?key:'index';
+   picker.value=Array.from(picker.options).some(option=>option.value===key)?key:'index';
    const title=window.AnalysisReferenceTopics[key];
    document.title=title+' — FEM Guide';
    const template=document.createElement('template');
@@ -281,19 +282,15 @@
  }
  document.addEventListener('DOMContentLoaded',()=>{
   const groups=new Map();
-  const listed=new Set();
   for(const item of window.NASTRAN_LEARNING.navigation.analyses){
-   const entry=catalog.entries.find(e=>e.key===item.hash.slice(1));
-   if(!entry)continue;
+   const key=item.hash.slice(1),entry=catalog.entries.find(e=>e.key===key);
+   if(!entry && !Object.hasOwn(window.AnalysisReferenceTopics,key))continue;
    if(!groups.has(item.group))groups.set(item.group,[]);
-   groups.get(item.group).push(entry);
-   listed.add(entry.key);
+   const sol=entry?.sol;
+   groups.get(item.group).push('<option value="'+esc(key)+'">'+esc(item.title)+(sol?'（'+esc(sol)+'）':'')+'</option>');
   }
-  const remaining=catalog.entries.filter(e=>!listed.has(e.key));
-  if(remaining.length)groups.set('その他',remaining);
-  picker.innerHTML='<option value="index">解析一覧</option>'+[...groups].map(([group,entries])=>
-   `<optgroup label="${esc(group)}">${entries.map(e=>`<option value="${e.key}">${esc(e.title)}（${esc(e.sol)}）</option>`).join('')}</optgroup>`).join('')+
-   '<optgroup label="検証・再実行">'+['model-verification','restart','database'].map(key=>`<option value="${key}">${esc(window.AnalysisReferenceTopics[key])}</option>`).join('')+'</optgroup>';
+  picker.innerHTML='<option value="index">解析一覧</option>'+[...groups].map(([group,options])=>
+   '<optgroup label="'+esc(groupTitle(group))+'">'+options.join('')+'</optgroup>').join('');
   picker.addEventListener('change',()=>{location.hash=picker.value;window.scrollTo(0,0);});
   addEventListener('hashchange',route);
   route();

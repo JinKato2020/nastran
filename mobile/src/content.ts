@@ -1,4 +1,5 @@
 import bundle from './generated/lessons.json';
+import {BUNDLED_INDEX,type CourseIndex} from './course-index';
 import type { Position } from './protocol';
 export const LESSONS = bundle.catalog;
 export const COURSE = bundle.course;
@@ -6,17 +7,18 @@ export const NAVIGATION = bundle.course.navigation;
 export const DOWNLOADS: Record<string,{name:string;base64:string}> = bundle.downloads;
 const pages: Record<string,string> = bundle.pages;
 export const CHAPTERS = ['学ぶ順序','線形静解析の考え方','単位をそろえる','節点・要素・材料','拘束と荷重','入力ファイルの構成','棒1本の引張り','結果を確かめる','条件を変える演習','つまずいたとき','原典と次の学習'];
-export function titleFor(p:Position):string {
+export function titleFor(p:Position,index:CourseIndex=BUNDLED_INDEX,comparisons:{key:string;title:string}[]=bundle.comparisonTopics):string {
+  const nav=index.navigation;
   const chapter=p.path==='index.html'?/^#chapter-(\d+)$/.exec(p.hash):null;
   if(chapter&&CHAPTERS[Number(chapter[1])-1])return `${chapter[1]}. ${CHAPTERS[Number(chapter[1])-1]}`;
   const title=LESSONS.find(l=>l.id===p.path)?.title||'Nastran学習';
-  const home=[...NAVIGATION.intro,...NAVIGATION.homeResources,...NAVIGATION.operations].find(item=>item.path===p.path&&item.hash===p.hash);
+  const home=[...nav.intro,...nav.homeResources,...nav.operations].find(item=>item.path===p.path&&item.hash===p.hash);
   if(home)return home.title;
-  if(p.path==='comparisons.html'){const t=bundle.comparisonTopics.find(t=>t.key===p.hash.slice(1).split('/')[0]);if(t)return t.title;}
-  if(p.path==='theory.html'){const t=[...NAVIGATION.meshTheory,...NAVIGATION.materialTheory,...NAVIGATION.boundaryTheory,...NAVIGATION.loadTheory,...NAVIGATION.contactTheory,...NAVIGATION.dampingTheory,...NAVIGATION.common,...NAVIGATION.materials].find(t=>t.path===p.path&&t.hash===p.hash);if(t)return t.title;}
-  if(p.path==='elements.html'){const t=NAVIGATION.elements.find(t=>t.hash===p.hash);if(t)return t.title;}
+  if(p.path==='comparisons.html'){const key=p.hash.slice(1).split('/')[0];const t=comparisons.find(t=>t.key===key)??bundle.comparisonTopics.find(t=>t.key===key);if(t)return t.title;}
+  const article=index.materialChapters.flatMap(c=>c.sources.flatMap(key=>nav[key])).find(t=>t.path===p.path&&t.hash===p.hash);
+  if(article)return article.title;
   if(p.path==='index.html'&&p.hash==='#home')return '教材一覧';
-  if(p.path==='analysis.html'){const [hash,view]=p.hash.split('/');const a=NAVIGATION.analyses.find(a=>a.hash===hash);if(a)return a.title+(view==='simcenter'?' · Simcenter Nastran':'');}
+  if(p.path==='analysis.html'){const [hash,view]=p.hash.split('/');const a=nav.analyses.find(a=>a.hash===hash);if(a)return a.title+(view==='simcenter'?' · Simcenter Nastran':'');}
   if(p.path==='errors.html'){const m=/^#error-([\d.]+)(?:-p\d+)?$/.exec(p.hash);if(m)return title+' · '+m[1];}
   if(p.path==='relations.html'&&/^#sol-(101|103|111|112)$/.test(p.hash))return title+' · SOL '+p.hash.slice(5);
   if(p.path==='modeling.html'){const m=/^#model-(?:input-)?(simple|standard|detailed)$/.exec(p.hash);if(m)return title+' · '+({simple:'簡易',standard:'標準',detailed:'詳細'}[m[1] as 'simple'|'standard'|'detailed']);}

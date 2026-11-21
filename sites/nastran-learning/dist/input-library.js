@@ -7,7 +7,7 @@
  const qrg=(p,v)=>{const n='MSC_Nastran_'+(v||'2020')+'_Quick_Reference_Guide';return 'https://documentation-be.hexagon.com/bundle/'+n+'/raw/resource/enus/'+n+'.pdf#page='+p;};
  const home=$('input-home'),browser=$('input-browser');
  const chapters=document.querySelector('.input-home-cards');
- chapters.innerHTML=window.NastranInputSearch.groups(entries,window.CardComparisonIndex).map(g=>window.NastranLearningUI.group(g.title,[[null,g.items]],false,g.key)).join('');
+ chapters.innerHTML=window.NastranInputSearch.groups(entries,window.CardComparisonIndex,window.NASTRAN_LEARNING.inputChapters).map(g=>window.NastranLearningUI.group(g.title,[[null,g.items]],false,g.key)).join('');
  try{const saved=sessionStorage.getItem('nastran-input-chapter');chapters.querySelectorAll('details').forEach(el=>el.open=el.dataset.chapter===saved);}catch{}
  chapters.addEventListener('toggle',event=>{
   if(event.target.open)chapters.querySelectorAll('details').forEach(el=>{if(el!==event.target)el.open=false;});

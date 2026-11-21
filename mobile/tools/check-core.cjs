@@ -3,6 +3,7 @@ require.extensions['.ts']=(mod,file)=>mod._compile(ts.transpileModule(fs.readFil
 const root=path.resolve(__dirname,'..'),p=require('../src/protocol.ts'),content=require('../src/content.ts');
 const release=require('./release-version.cjs');
 require('./check-pro-core.cjs');
+require('./check-course-index.cjs');
 assert.deepEqual(release.nextRelease('1.2.1','1001','next'),{version:'1.2.2',build:'1001'});
 assert.deepEqual(release.nextRelease('1.2.1','1001','rebuild'),{version:'1.2.1',build:'1002'});
 assert.deepEqual(release.nextRelease('1.2.9','1021','next'),{version:'1.2.10',build:'1001'});
@@ -44,30 +45,15 @@ for(const colors of Object.values(PALETTES)){
  for(const bg of [colors.background,colors.surface,colors.soft])for(const fg of [colors.text,colors.muted])assert(contrast(fg,bg)>=4.5,`${fg} on ${bg}`);
  assert(contrast(colors.onAccent,colors.accent)>=4.5);
 }
-assert.equal(content.NAVIGATION.analyses.length,18);
-assert.ok(!content.NAVIGATION.analyses.some(e=>e.hash==='#common'));
-assert.deepEqual(content.NAVIGATION.analyses.slice(-3).map(e=>e.hash),['#model-verification','#restart','#database']);
-assert.equal(content.NAVIGATION.analyses[0].hash,'#static');
-assert.equal(content.titleFor({path:'analysis.html',hash:'#restart',y:0}),'リスタート');
-assert.deepEqual(content.NAVIGATION.intro.map(e=>e.title),['初めての解析','入力規則','節点・スカラー点','座標','要素の向き','応力方向']);
-assert.equal(content.NAVIGATION.materials.length,14);
-assert.deepEqual(content.NAVIGATION.elements.map(e=>e.path+e.hash),['elements.html#scalar','elements.html#beam','elements.html#shell','elements.html#solid','elements.html#rigid','elements.html#connector','elements.html#gap','elements.html#genel']);
-assert.equal(content.titleFor({path:'elements.html',hash:'#rigid',y:0}),'剛体要素（RBE2・RBE3・RBAR）');
-assert.equal(content.titleFor({path:'elements.html',hash:'#beam',y:0}),'梁要素（CROD・CBAR・CBEAM）');
-assert.equal(content.titleFor({path:'analysis.html',hash:'#modes',y:0}),'実固有値解析');
-assert.equal(content.titleFor({path:'analysis.html',hash:'#complex-modes',y:0}),'複素固有値解析');
-assert.equal(content.titleFor({path:'theory.html',hash:'#complex-modes',y:0}),'複素固有値解析の理論');
-assert.equal(content.titleFor({path:'comparisons.html',hash:'#eigensolvers',y:0}),'EIGRL・EIGR・EIGC');
-assert.deepEqual(content.NAVIGATION.operations.map(e=>e.path),['modeling.html','include.html','batch.html','workflow.html']);
-assert.ok(!content.NAVIGATION.common.some(e=>content.NAVIGATION.operations.some(item=>item.path===e.path)));
-assert.deepEqual(content.NAVIGATION.common.map(e=>e.path+e.hash),['theory.html#restart','comparisons.html#beam']);
-assert.equal(content.NAVIGATION.materialTheory.length,6);
-assert.equal(content.NAVIGATION.boundaryTheory.length,7);
-assert.equal(content.NAVIGATION.meshTheory.length,5);
-assert.equal(content.NAVIGATION.loadTheory.length,7);
-assert.equal(content.titleFor({path:'theory.html',hash:'#common-loads/inertia',y:0}),'自重・加速度・回転');
-assert.equal(content.titleFor({path:'theory.html',hash:'#boundary/mpc',y:0}),'MPC・独立と従属');
-assert.equal(content.titleFor({path:'theory.html',hash:'#materials/composites',y:0}),'複合材料・積層板');
+// Editorial order, names and membership come from the released curriculum.
+const curriculum=JSON.parse(fs.readFileSync(path.resolve(root,'../sites/nastran-learning/learning-path.json'),'utf8'));
+assert.deepEqual(content.NAVIGATION,curriculum.navigation);
+for(const items of Object.values(curriculum.navigation)){
+ assert.equal(new Set(items.map(item=>item.path+item.hash)).size,items.length);
+ for(const item of items){
+  if(['elements.html','analysis.html','theory.html'].includes(item.path))assert.equal(content.titleFor({...item,y:0}),item.title);
+ }
+}
 assert.equal(content.titleFor({path:'comparisons.html',hash:'#beam/compare',y:0}),'棒・梁の選び方（CROD・CONROD・CBAR・CBEAM）');
 assert.equal(content.titleFor({path:'comparisons.html',hash:'#rigid-interpolation',y:0}),'支持・拘束の選び方（SPC・RBE2・RBE3・MPC）');
 assert.equal(content.titleFor({path:'comparisons.html',hash:'#support-or-rigid',y:0}),'支持・拘束の選び方（SPC・RBE2・RBE3・MPC）');

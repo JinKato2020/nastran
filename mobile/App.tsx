@@ -8,7 +8,8 @@ import * as Clipboard from 'expo-clipboard';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
-import { NAVIGATION, DOWNLOADS, readerHTML, titleFor } from './src/content';
+import { DOWNLOADS, readerHTML, titleFor as courseTitle } from './src/content';
+import {BUNDLED_INDEX,courseIndexFromHTML,homeLinks,isRetired,type CourseIndex,type CourseItem} from './src/course-index';
 import { updateLessons } from './src/content-ota';
 import type { UpdatedPages } from './src/content-ota-core';
 import { ROOT_TABS, type TabKey } from './src/navigation';
@@ -18,7 +19,7 @@ import {PALETTES,type Palette} from './src/appearance';
 import {HomeScreen,HomeDesignPicker,INITIAL_HOME_UI} from './src/home-screen';
 import {UiIcon,type IconName} from './src/ui-icon';
 import {UI_ICON_LICENSE} from './src/ui-icon-license';
-import {canOpenLesson, FREE_ANALYSIS_HASHES, isAnalysisIndex} from './src/pro-access';
+import {canOpenLesson, freeAnalysisRoutes, isAnalysisIndex} from './src/pro-access';
 import type {ProPurchases} from './src/pro-purchases';
 import {nativeProPurchases} from './src/pro-purchases-native';
 import {useProAccess} from './src/use-pro-access';
@@ -27,26 +28,20 @@ const STORAGE_KEY='nastran-learning-state-v1';
 type Entry=Position&{key:string};
 let entryNumber=0;
 const newEntry=(p:Position):Entry=>({...p,key:String(++entryNumber)});
-type CourseItem={key?:string;title:string;description:string;path:string;hash:string;kind?:string;group?:string};
 type CourseGroup={key:string;title:string;description:string;items:CourseItem[]};
-const analysisDescriptions:Record<string,string>={
- '構造・静解析':'静解析・内圧とメッシュ収束・線形座屈',
- '振動・動解析':'固有値・周波数応答・過渡応答',
- '熱解析':'熱伝導・温度変化による熱応力',
- '非線形・破壊':'大変形・弾塑性・接触と締結・亀裂先端',
- '検証・再実行':'モデル検証・リスタート・データベース管理',
-};
-const analysisGroups=NAVIGATION.analyses.reduce<CourseGroup[]>((groups,item)=>{
- const title=item.group;
+function groupAnalyses(items:CourseItem[],headings:CourseIndex['analysisHeadings']) {
+ return items.reduce<CourseGroup[]>((groups,item)=>{
+ const title=item.group!;
  let group=groups.find(g=>g.key===title);
- if(!group){group={key:title,title,description:analysisDescriptions[title]||'',items:[]};groups.push(group);}
+ if(!group){group={key:title,title:headings[title]?.title||title,description:headings[title]?.description||'',items:[]};groups.push(group);}
  group.items.push(item);return groups;
 },[]);
+}
 
-function Reader({entry,saved,updatedHTML,onMessage,onExternal,onNavigate,onRestart,webRef,freeAnalysis}:{entry:Entry;freeAnalysis:boolean;saved:SavedState;updatedHTML?:string;onMessage:(event:WebViewMessageEvent)=>void;onExternal:(url:string)=>void;onNavigate:(p:Position)=>void;onRestart:()=>void;webRef:React.RefObject<WebView<object>|null>}){
+function Reader({entry,saved,updatedHTML,onMessage,onExternal,onNavigate,onRestart,webRef,freeAnalysisHashes}:{entry:Entry;freeAnalysisHashes?:string[];saved:SavedState;updatedHTML?:string;onMessage:(event:WebViewMessageEvent)=>void;onExternal:(url:string)=>void;onNavigate:(p:Position)=>void;onRestart:()=>void;webRef:React.RefObject<WebView<object>|null>}){
   const styles=useContext(StylesContext);
   // Freeze the initial HTML: progress and scroll messages must not reload the reader.
-  const [source]=useState(()=>({html:readerHTML(entry,saved.progress,entry.key,saved.courseProgress,saved.textScale,updatedHTML,freeAnalysis?FREE_ANALYSIS_HASHES:undefined),baseUrl:'https://nastran.invalid/'+entry.path}));
+  const [source]=useState(()=>({html:readerHTML(entry,saved.progress,entry.key,saved.courseProgress,saved.textScale,updatedHTML,freeAnalysisHashes),baseUrl:'https://nastran.invalid/'+entry.path}));
   const [error,setError]=useState(false);
   return <View style={styles.reader}>
     <WebView<object> ref={webRef} source={source} originWhitelist={['*']} style={styles.reader} javaScriptEnabled domStorageEnabled
@@ -57,8 +52,8 @@ function Reader({entry,saved,updatedHTML,onMessage,onExternal,onNavigate,onResta
         if(req.url==='about:blank'||req.url.startsWith('about:blank#'))return true;
         try{const u=new URL(req.url);if(u.origin==='https://nastran.invalid'){
           const p=position({path:u.pathname.slice(1),hash:u.hash,y:0});
-          if(u.pathname.slice(1)===entry.path&&(!freeAnalysis||!u.hash||
-            (p&&canOpenLesson(p,false))))return true;
+          if(u.pathname.slice(1)===entry.path&&(!freeAnalysisHashes||!u.hash||
+            (p&&canOpenLesson(p,false,freeAnalysisHashes))))return true;
           if(p)onNavigate(p);
           return false;
         }}catch{return false;}
@@ -99,7 +94,11 @@ function LearningApp({purchaseClient}:{purchaseClient:ProPurchases|null}){
     setProVisible(true);
     if(!pro.isPro)void pro.loadOffer();
   }
-  const canOpen=(p:Pick<Position,'path'|'hash'>)=>canOpenLesson(p,pro.isPro);
+  const [courseIndex,setCourseIndex]=useState(BUNDLED_INDEX);
+  const nav=courseIndex.navigation;
+  const analysisGroups=useMemo(()=>groupAnalyses(nav.analyses,courseIndex.analysisHeadings),[courseIndex,nav]);
+  const freeAnalysisHashes=useMemo(()=>freeAnalysisRoutes(nav.analyses),[nav]);
+  const canOpen=(p:Pick<Position,'path'|'hash'>)=>!isRetired(courseIndex,p)&&canOpenLesson(p,pro.isPro,freeAnalysisHashes);
   const [saved,setSaved]=useState<SavedState>(EMPTY_STATE);
   const styles=APP_STYLES[saved.homeDesign],palette=PALETTES[saved.homeDesign];
   const [homeUI,setHomeUI]=useState(INITIAL_HOME_UI);
@@ -117,6 +116,7 @@ function LearningApp({purchaseClient}:{purchaseClient:ProPurchases|null}){
   const [tab,setTab]=useState<TabKey>('home');
   const [inputQuery,setInputQuery]=useState('');
   const [inputIndex,setInputIndex]=useState(INPUT_INDEX);
+  const titleFor=(p:Position)=>courseTitle(p,courseIndex,inputIndex.comparisons);
   const [inputGroup,setInputGroup]=useState('');
   const [analysisGroup,setAnalysisGroup]=useState('');
   const inputChapters=useMemo(()=>inputGroups(inputIndex),[inputIndex]);
@@ -137,8 +137,12 @@ function LearningApp({purchaseClient}:{purchaseClient:ProPurchases|null}){
     void updateLessons(pages=>{
       const place=current.current;
       const changed=place && pages[place.path]!==updatedPages.current[place.path];
+      const nextIndex=courseIndexFromHTML(pages['index.html']);
       updatedPages.current=pages;
-      setInputIndex(inputIndexFromHTML(pages['bulk.html']));
+      setCourseIndex(nextIndex);
+      const nextInput=inputIndexFromHTML(pages['bulk.html']);
+      setInputIndex(nextInput);
+      if(place)setLocationTitle(courseTitle(place,nextIndex,nextInput.comparisons));
       if(changed && place){
         const refreshed=newEntry(place);
         readerReported.current=false;
@@ -164,13 +168,14 @@ function LearningApp({purchaseClient}:{purchaseClient:ProPurchases|null}){
   function ownerTab(p:Position):TabKey{
     if(p.path==='bulk.html'||p.path==='comparisons.html')return 'input';
     if(p.path==='analysis.html'||p.path==='relations.html')return 'analysis';
-    if(p.path==='errors.html'||NAVIGATION.operations.some(item=>item.path===p.path)||
-      NAVIGATION.homeResources.some(item=>item.path===p.path&&item.hash===p.hash)||
-      NAVIGATION.intro.some(item=>item.path===p.path&&item.hash===p.hash)||
+    if(p.path==='errors.html'||nav.operations.some(item=>item.path===p.path)||
+      nav.homeResources.some(item=>item.path===p.path&&item.hash===p.hash)||
+      nav.intro.some(item=>item.path===p.path&&item.hash===p.hash)||
       (p.path==='index.html'&&(/^#chapter-\d+$/.test(p.hash)||p.hash==='#lab')))return 'home';
     return 'materials';
   }
   function open(p:Position,remember=true){
+    if(isRetired(courseIndex,p)){Alert.alert('この記事は掲載を終了しました','各タブの一覧から、現在の教材を選べます。');return;}
     if(!pro.isPro&&isAnalysisIndex(p)){setTab('analysis');root();return;}
     if(!canOpen(p)){showPro(titleFor(p));return;}
     if(isInputHome(p)){setTab('input');if(p.hash.startsWith('#family/'))setInputGroup(p.hash.slice(8));root();return;}
@@ -198,9 +203,9 @@ function LearningApp({purchaseClient}:{purchaseClient:ProPurchases|null}){
   }
   useEffect(()=>{
     const active=entryRef.current;
-    if(active&&!canOpenLesson(active,pro.isPro))root();
-  },[pro.isPro]);
-  useEffect(()=>{const sub=BackHandler.addEventListener('hardwareBackPress',()=>{if(menu){setMenu(false);return true;}if(entry){back();return true;}if(tab!=='home'){home();return true;}return false;});return()=>sub.remove();},[entry,menu,tab,pro.isPro]);
+    if(active&&!canOpen(active))root();
+  },[pro.isPro,courseIndex]);
+  useEffect(()=>{const sub=BackHandler.addEventListener('hardwareBackPress',()=>{if(menu){setMenu(false);return true;}if(entry){back();return true;}if(tab!=='home'){home();return true;}return false;});return()=>sub.remove();},[entry,menu,tab,pro.isPro,courseIndex]);
   async function external(raw:string){const url=externalURL(raw);if(!url)return;try{await Linking.openURL(url);}catch{Alert.alert('リンクを開けません','原典PDFなどの外部ページには、インターネット接続が必要です。');}}
   function reply(session:string,id:unknown,ok:boolean,error?:string){
     if(session!==entryRef.current?.key||typeof id!=='string'||!/^\d{1,8}$/.test(id))return;
@@ -236,7 +241,7 @@ function LearningApp({purchaseClient}:{purchaseClient:ProPurchases|null}){
         if(!canOpen(p)){
           const previous=current.current;
           if(previous&&canOpen(previous))open(previous,false);else root();
-          showPro(titleFor(p));
+          if(isRetired(courseIndex,p))open(p,false);else showPro(titleFor(p));
           return;
         }
         if(readerReported.current&&current.current&&!samePlace(current.current,p))trail.current=[...trail.current.slice(-49),current.current];
@@ -252,22 +257,17 @@ function LearningApp({purchaseClient}:{purchaseClient:ProPurchases|null}){
   }
   function bookmark(){const p=current.current;if(!p)return;const old=savedRef.current.bookmarks;const exists=old.some(b=>samePlace(b,p));updateSaved({...savedRef.current,bookmarks:exists?old.filter(b=>!samePlace(b,p)):[p,...old].slice(0,100)});}
   const [materialGroup,setMaterialGroup]=useState('elements');
-  const materialGroups=[
-    {key:'elements',title:'各要素理論',description:'ばね・梁・シェル・ソリッド・結合・剛体・GENELの仕組み・モデル化・結果の読み方',items:NAVIGATION.elements},
-    {key:'meshTheory',title:'メッシュ分割の理論',description:'粗密の遷移・要素品質・応力と振動の精度を学ぶ',items:NAVIGATION.meshTheory},
-    {key:'materialTheory',title:'材料理論',description:'弾性・異方性・積層・熱膨張・塑性を、式と操作図で学ぶ',items:NAVIGATION.materialTheory},
-    {key:'boundaryTheory',title:'境界条件と拘束',description:'支持・指定変位・多点拘束と、過拘束・拘束不足を学ぶ',items:NAVIGATION.boundaryTheory},
-    {key:'loadTheory',title:'荷重の理論',description:'集中・分布・慣性・温度荷重から、組合せと検算へ',items:NAVIGATION.loadTheory},
-    {key:'contactTheory',title:'接触・摩擦・締結',description:'開閉・摩擦・締付けから荷重分担と検証へ',items:NAVIGATION.contactTheory},
-    {key:'dampingTheory',title:'減衰の理論',description:'損失の意味・測定・モデル化から入力と検証へ',items:NAVIGATION.dampingTheory},
-    {key:'theory',title:'各解析技術理論',description:'共通の解析技術から、解析ごとの理論へ',items:[...NAVIGATION.common,...NAVIGATION.materials]},
-  ];
+  const materialGroups=useMemo(()=>courseIndex.materialChapters.map(chapter=>({
+    ...chapter,items:chapter.sources.flatMap(key=>nav[key]),
+  })),[courseIndex,nav]);
+  const {basics,support}=homeLinks(nav);
   const menuGroups:{title:string;tab:TabKey;items:CourseItem[]}[]=[
-    {title:'最初に学ぶ',tab:'home',items:[...NAVIGATION.intro,NAVIGATION.homeResources[0]]},
-    {title:'モデル作成・実行・結果',tab:'home',items:NAVIGATION.operations},
-    {title:'資料・サポート',tab:'home',items:[NAVIGATION.homeResources[1]]},
+    {title:'最初に学ぶ',tab:'home',items:basics},
+    {title:'モデル作成・実行・結果',tab:'home',items:nav.operations},
+    ...(support?[{title:support.title,tab:'home' as TabKey,items:[support]}]:[]),
+    ...courseIndex.home.sections.map(section=>({title:section.title,tab:'home' as TabKey,items:section.items})),
     ...materialGroups.map(g=>({title:g.title,tab:'materials' as TabKey,items:g.items})),
-    {title:'解析',tab:'analysis',items:NAVIGATION.analyses},
+    {title:'解析',tab:'analysis',items:nav.analyses},
     {title:'Inputデータ',tab:'input',items:[{title:'入力データ学習',description:'5つの入口・語句検索 → カテゴリー → カード',path:'bulk.html',hash:''}]},
     {title:'エラーメッセージ',tab:'home',items:[{title:'エラー検索と意味',description:'番号・診断文・F06から検索',path:'errors.html',hash:''}]},
   ];
@@ -287,19 +287,18 @@ function LearningApp({purchaseClient}:{purchaseClient:ProPurchases|null}){
     <StatusBar style={palette.dark?'light':'dark'}/>
     {entry&&canOpen(entry)?<>
       <View style={styles.toolbar}><Pressable accessibilityRole="button" onPress={back} style={styles.toolButton}><Text style={styles.toolText}>‹ 戻る</Text></Pressable><Text style={styles.readerTitle} numberOfLines={2}>{locationTitle}</Text><Pressable onPress={bookmark} accessibilityRole="button" accessibilityLabel={marked?'しおりを外す':'しおりを付ける'} accessibilityState={{selected:marked}} style={styles.starButton}><Text style={[styles.star,marked&&styles.marked]}>{marked?'★':'☆'}</Text></Pressable><Pressable onPress={()=>setMenu(true)} accessibilityRole="button" style={styles.toolButton}><Text style={styles.toolText}>目次</Text></Pressable></View>
-      <Reader key={entry.key+':'+pro.isPro} entry={entry} saved={saved} freeAnalysis={!pro.isPro&&entry.path==='analysis.html'} updatedHTML={updatedPages.current[entry.path]} onMessage={message} onExternal={external} onNavigate={open} onRestart={()=>{if(current.current)open(current.current,false);}} webRef={webRef}/>
+      <Reader key={entry.key+':'+(pro.isPro?'pro':entry.path==='analysis.html'?freeAnalysisHashes.join('|'):'free')} entry={entry} saved={saved} freeAnalysisHashes={!pro.isPro&&entry.path==='analysis.html'?freeAnalysisHashes:undefined} updatedHTML={updatedPages.current[entry.path]} onMessage={message} onExternal={external} onNavigate={open} onRestart={()=>{if(current.current)open(current.current,false);}} webRef={webRef}/>
       {sharing&&<View style={styles.shareStatus} accessibilityLiveRegion="polite"><Text style={styles.shareText}>共有メニューで「ファイルに保存」を選べます</Text></View>}
     </>:<ScrollView key={tab} style={styles.screen} contentContainerStyle={styles.home} keyboardShouldPersistTaps="handled" testID="tab-screen">
       <TabHeader tab={tab}/>
       {tab==='home'&&<>
-        <HomeScreen design={saved.homeDesign} saved={saved} ui={homeUI} onUI={change=>setHomeUI(old=>({...old,...change}))} onOpen={p=>open(p,false)} canOpen={canOpen} isPro={pro.isPro} onDeleteBookmark={p=>updateSaved({...savedRef.current,bookmarks:savedRef.current.bookmarks.filter(item=>!samePlace(item,p))})}/></>}
-      {tab==='materials'&&<><Text style={styles.screenLead}>分類を選び、経験と目的に合う内容から学べます。</Text>{materialGroups.map(g=><LessonGroup key={g.key} title={g.title} description={g.description} expanded={materialGroup===g.key} locked={!pro.isPro&&g.key!=='elements'} onToggle={()=>setMaterialGroup(materialGroup===g.key?'':g.key)}>{g.key==='theory'?<>
-          <Text accessibilityRole="header" style={styles.menuSection}>共通の解析技術論</Text>
-          {NAVIGATION.common.map(lesson)}
-          <Text accessibilityRole="header" style={styles.menuSection}>解析ごとの理論</Text>
-          {groupedLessons(NAVIGATION.materials,NAVIGATION.common.length)}
-        </>:g.items.map(lesson)}</LessonGroup>)}</>}
-      {tab==='analysis'&&<><Text style={styles.screenLead}>分類を開き、解析条件・入力・出力・検証を確認できます。</Text>{analysisGroups.map(g=><LessonGroup key={g.key} title={g.title} description={g.description} expanded={analysisGroup===g.key} locked={!pro.isPro&&g.key!=='構造・静解析'} onToggle={()=>setAnalysisGroup(analysisGroup===g.key?'':g.key)}>{g.items.map(lesson)}</LessonGroup>)}</>}
+        <HomeScreen course={courseIndex} titleFor={titleFor} design={saved.homeDesign} saved={saved} ui={homeUI} onUI={change=>setHomeUI(old=>({...old,...change}))} onOpen={p=>open(p,false)} canOpen={canOpen} isPro={pro.isPro} onDeleteBookmark={p=>updateSaved({...savedRef.current,bookmarks:savedRef.current.bookmarks.filter(item=>!samePlace(item,p))})}/></>}
+      {tab==='materials'&&<><Text style={styles.screenLead}>分類を選び、経験と目的に合う内容から学べます。</Text>{materialGroups.map(g=><LessonGroup key={g.key} title={g.title} description={g.description} expanded={materialGroup===g.key} locked={!pro.isPro&&g.items.every(item=>!canOpen(item))} onToggle={()=>setMaterialGroup(materialGroup===g.key?'':g.key)}>{g.sources.map((source,i)=>{
+          const items=nav[source],offset=g.sources.slice(0,i).reduce((n,key)=>n+nav[key].length,0);
+          const heading=source==='common'?'共通の解析技術論':source==='materials'?'解析ごとの理論':'';
+          return <Fragment key={source}>{!!heading&&<Text accessibilityRole="header" style={styles.menuSection}>{heading}</Text>}{groupedLessons(items,offset)}</Fragment>;
+        })}</LessonGroup>)}</>}
+      {tab==='analysis'&&<><Text style={styles.screenLead}>分類を開き、解析条件・入力・出力・検証を確認できます。</Text>{analysisGroups.map(g=><LessonGroup key={g.key} title={g.title} description={g.description} expanded={analysisGroup===g.key} locked={!pro.isPro&&g.items.every(item=>!canOpen(item))} onToggle={()=>setAnalysisGroup(analysisGroup===g.key?'':g.key)}>{g.items.map(lesson)}</LessonGroup>)}</>}
       {tab==='input'&&<>
         <Text style={styles.screenLead}>章を開いてカテゴリーを選び、本文でカード・設定名を切り替えます。</Text>
         <View style={styles.searchRow}>
@@ -318,7 +317,7 @@ function LearningApp({purchaseClient}:{purchaseClient:ProPurchases|null}){
           <Text style={styles.description}>{pro.isPro?'Pro利用中':pro.checking?'購入状況を確認中':'無料版を利用中'}</Text>
           <Pressable style={styles.toolButton} accessibilityRole="button" onPress={()=>showPro()}><Text style={styles.toolText}>購入・復元を開く</Text></Pressable>
         </View>
-        <View style={styles.settingsCard}><Text style={styles.sectionTitle}>ホームデザイン</Text><Text style={styles.description}>ホームの構成と、一覧・ヘッダーの配色を切り替えます。</Text><HomeDesignPicker value={saved.homeDesign} onChange={homeDesign=>updateSaved({...savedRef.current,homeDesign})}/></View>
+        <View style={styles.settingsCard}><Text style={styles.sectionTitle}>ホームデザイン</Text><Text style={styles.description}>ホームの構成と、一覧・ヘッダーの配色を切り替えます。</Text><HomeDesignPicker course={courseIndex} value={saved.homeDesign} onChange={homeDesign=>updateSaved({...savedRef.current,homeDesign})}/></View>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>本文の文字サイズ</Text><Text style={styles.description}>説明文のサイズを変更します。入力表は8文字の配置を保ちます。</Text><View style={styles.sizeOptions}>{([{value:1,label:'標準'},{value:1.15,label:'大'},{value:1.3,label:'特大'}]).map(x=><Pressable key={x.value} style={[styles.sizeOption,saved.textScale===x.value&&styles.selectedSize]} onPress={()=>updateSaved({...savedRef.current,textScale:x.value})} accessibilityRole="radio" accessibilityLabel={'文字サイズ '+x.label} accessibilityState={{checked:saved.textScale===x.value}} aria-checked={saved.textScale===x.value}><Text style={[styles.sizeOptionText,saved.textScale===x.value&&styles.selectedSizeText]}>{x.label}</Text></Pressable>)}</View></View>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>保存データ</Text><Text style={styles.body}>学習記録としおりは端末内に保存します。基礎コースの読了は {complete} / 6、しおりは {saved.bookmarks.length} 件です。</Text><Text style={styles.description}>アプリの削除で端末内の記録も削除されます。</Text></View>
         <View style={styles.settingsCard}><Text style={styles.sectionTitle}>このアプリについて</Text><Text style={styles.body}>Nastranの非公式日本語教材です。基本解析の理論は共通で、カード解説・入力例・エラー検索はMSC Nastranを対象にしています。非線形・接触のSimcenter編では設定を確認する観点を紹介します。教材と入力例はオフラインで利用できます。</Text><Text style={styles.description}>Nastranを実行する機能はありません。原典の掲載結果と独自の検算値を区別しています。入力例はMSC Nastran本体では未実行です。原典PDFの参照には通信が必要です。</Text><Text style={styles.description}>本アプリは開発元の提供・認定を受けたものではありません。製品名・商標は各権利者に帰属します。</Text><Pressable accessibilityRole="button" onPress={()=>open({path:'analysis.html',hash:'#rights',y:0},false)}><Text style={styles.linkText}>出典・第三者ライセンス →</Text></Pressable><Pressable accessibilityRole="button" accessibilityLabel="アイコンライセンス" onPress={()=>setShowIconLicense(true)}><Text style={styles.linkText}>アイコンライセンス →</Text></Pressable><Text style={styles.version}>バージョン {appConfig.expo.version}（{appConfig.expo.ios.buildNumber}）</Text></View>

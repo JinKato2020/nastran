@@ -4,10 +4,8 @@ const { NAVIGATION } = require('../src/content.ts');
 const { PAGE_IDS } = require('../src/protocol.ts');
 const { PRO_ENTITLEMENT, isProPackage, hasProEntitlement, validPublicAppleKey } = require('../src/pro-purchases.ts');
 
-assert.deepEqual(FREE_ANALYSIS_HASHES, ['#static', '#thick-cylinder', '#buckling']);
-for (const item of [...NAVIGATION.elements, ...NAVIGATION.analyses, ...NAVIGATION.materialTheory,
-  ...NAVIGATION.meshTheory, ...NAVIGATION.boundaryTheory, ...NAVIGATION.loadTheory, ...NAVIGATION.contactTheory, ...NAVIGATION.dampingTheory,
-  ...NAVIGATION.common, ...NAVIGATION.materials, ...NAVIGATION.intro, ...NAVIGATION.operations, ...NAVIGATION.homeResources]) {
+assert.deepEqual(FREE_ANALYSIS_HASHES,NAVIGATION.analyses.filter(item=>item.group==='構造・静解析').map(item=>item.hash));
+for (const item of Object.values(NAVIGATION).flat()) {
   const expected = ['elements.html', 'bulk.html', 'comparisons.html'].includes(item.path) || (item.path === 'analysis.html' && FREE_ANALYSIS_HASHES.includes(item.hash));
   assert.equal(canOpenLesson(item, false), expected, item.path + item.hash);
   assert(canOpenLesson(item, true));

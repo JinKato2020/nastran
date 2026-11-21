@@ -27,6 +27,10 @@ const catalog=[
  ['include.html','INCLUDEファイルの作成','ファイルの分割と荷重の切替え','実践',''],
 ].map(([id,title,description,category,hash])=>({id,title,description,category,hash}));
 const course=JSON.parse(fs.readFileSync(path.join(source,'../learning-path.json'),'utf8'));
+// Both the browser and the native OTA reader use this exact JSON assignment in index.html.
+const courseScript='window.NASTRAN_LEARNING = '+JSON.stringify(course).replace(/</g,'\\u003c')+';\n';
+const courseAsset=path.join(source,'learning-data.js');
+if(fs.readFileSync(courseAsset,'utf8')!==courseScript)fs.writeFileSync(courseAsset,courseScript);
 const comparisons=JSON.parse(fs.readFileSync(path.join(source,'../card-comparisons.json'),'utf8'));
 const comparisonTopics=comparisons.topics.map(({key,title})=>({key,title}));
 for(const [key,target] of Object.entries(comparisons.aliases||{}))comparisonTopics.push({key,title:comparisonTopics.find(topic=>topic.key===target).title});
@@ -35,11 +39,18 @@ const read=name=>{const p=path.resolve(source,name);if(!p.startsWith(source+path
 // Build the native search index from the same final, merged card definitions.
 const context={window:{}};vm.createContext(context);
 for(const name of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards','element-input-cards'])vm.runInContext(read(name+'.js'),context);
-const inputIndex={families:context.window.InputCatalog.families,entries:context.window.InputCatalog.entries.map(({key,id,title,summary,family,category,aliases=[]})=>({key,id,title,summary,family,category,aliases})),comparisons:comparisons.topics.map(({key,title,summary})=>({key,title,summary}))};
+const inputIndex={chapters:course.inputChapters,families:context.window.InputCatalog.families,entries:context.window.InputCatalog.entries.map(({key,id,title,summary,family,category,aliases=[]})=>({key,id,title,summary,family,category,aliases})),comparisons:comparisons.topics.map(({key,title,summary})=>({key,title,summary}))};
 const pdf='https://documentation-be.hexagon.com/bundle/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2020_Linear_Static_Analysis_User_Guide.pdf';
 for(const item of catalog){
  let html=read(item.id);
- if(item.id==='bulk.html')html=html.replace('</head>','<script type="application/json" id="nastran-input-index">'+JSON.stringify(inputIndex).replace(/</g,'\\u003c')+'</script></head>');
+ if(item.id==='index.html' && course.home.hero.image){
+  const name=course.home.hero.image;
+  if(!/^[\w-]+\.(jpe?g|png|webp)$/i.test(name))throw Error('Invalid home hero image name');
+  const bytes=fs.readFileSync(path.join(root,'assets/home',name));
+  const mime=/\.jpe?g$/i.test(name)?'jpeg':path.extname(name).slice(1).toLowerCase();
+  html=html.replace('</head>',()=>'<script type="application/json" id="nastran-home-art">'+JSON.stringify('data:image/'+mime+';base64,'+bytes.toString('base64'))+'</script></head>');
+ }
+ if(item.id==='bulk.html')html=html.replace('</head>',()=>'<script type="application/json" id="nastran-input-index">'+JSON.stringify(inputIndex).replace(/</g,'\\u003c')+'</script></head>');
  html=html.replace(/<link\b[^>]*>/g,tag=>{if(!/rel="stylesheet"/.test(tag))return tag;const name=/href="([^"]+)"/.exec(tag)?.[1];if(!name)throw Error('Missing stylesheet path');return `<style>${read(name)}</style>`;});
  html=html.replace(/<script\s+src="([^"]+)"[^>]*><\/script>/g,(_,name)=>`<script>${read(name).replace(/<\/script/gi,'<\\/script')}</script>`);
  html=html.replace('<a href="reference/linear-static-text.txt">原典全709ページの抽出テキスト</a>',`<a href="${pdf}">原典PDF（オンライン）</a>`);

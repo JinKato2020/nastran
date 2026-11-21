@@ -1,4 +1,39 @@
 {
+  "home": {
+    "hero":{"image":"mesh-hero.jpg","blueprintTitle":"FEM","blueprintSubtitle":"LEARNING DESK","minimalTitle":"力学を、\n手元から。","minimalSubtitle":"UNDERSTAND. ANALYZE.","graphiteTitle":"","graphiteStart":"START LEARNING","graphiteContinue":"CONTINUE LEARNING","graphiteAction":"学び始める","graphiteResume":"読み進める"},
+    "featured":["index.html#first-analysis","input.html#rules","coordinates.html#systems","coordinates.html#signs"],
+    "sections":[],
+    "layouts":{
+      "graphite":["hero","basics","work","utilities"],
+      "blueprint":["hero","resume","segments","support"],
+      "minimal":["hero","resume","basics","work","utilities"]
+    }
+  },
+  "inputChapters":[
+    {"key":"executive","title":"Executive Control","description":"SOL・実行の制御"},
+    {"key":"case","title":"Case Control","description":"ケース・拘束・荷重・出力の選択"},
+    {"key":"parameter","title":"パラメータ","description":"計算方法・出力などの設定"},
+    {"key":"bulk","title":"Bulk Data","description":"節点・要素・材料・荷重・解析条件"},
+    {"key":"comparisons","title":"似たカードの使い分け","description":"長所・短所と、状況に応じた選択"}
+  ],
+  "analysisHeadings":{
+    "構造・静解析":{"title":"構造・静解析","description":"静解析・内圧とメッシュ収束・線形座屈"},
+    "振動・動解析":{"title":"振動・動解析","description":"固有値・周波数応答・過渡応答"},
+    "熱解析":{"title":"熱解析","description":"熱伝導・温度変化による熱応力"},
+    "非線形・破壊":{"title":"非線形・破壊","description":"大変形・弾塑性・接触と締結・亀裂先端"},
+    "検証・再実行":{"title":"検証・再実行","description":"モデル検証・リスタート・データベース管理"}
+  },
+  "retiredLinks":[],
+  "materialChapters": [
+    {"key":"elements","title":"各要素理論","description":"ばね・梁・シェル・ソリッド・結合・剛体・GAP・GENELの仕組みと使い方","sources":["elements"]},
+    {"key":"meshTheory","title":"メッシュ分割の理論","description":"粗密の遷移・要素品質・応力と振動の精度を学ぶ","sources":["meshTheory"]},
+    {"key":"materialTheory","title":"材料理論","description":"弾性・異方性・積層・熱膨張・塑性を、式と操作図で学ぶ","sources":["materialTheory"]},
+    {"key":"boundaryTheory","title":"境界条件と拘束","description":"支持・指定変位・多点拘束と、過拘束・拘束不足を学ぶ","sources":["boundaryTheory"]},
+    {"key":"loadTheory","title":"荷重の理論","description":"集中・分布・慣性・温度荷重から、組合せと検算へ","sources":["loadTheory"]},
+    {"key":"contactTheory","title":"接触・摩擦・締結","description":"開閉・摩擦・締付けから荷重分担と検証へ","sources":["contactTheory"]},
+    {"key":"dampingTheory","title":"減衰の理論","description":"損失の意味・測定・モデル化から入力と検証へ","sources":["dampingTheory"]},
+    {"key":"theory","title":"各解析技術理論","description":"共通の解析技術から、解析ごとの理論へ","sources":["common","materials"]}
+  ],
   "steps": [
     {
       "key": "purpose",

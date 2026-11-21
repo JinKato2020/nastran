@@ -1,30 +1,32 @@
-import {useState} from 'react';
+import {Fragment,useState} from 'react';
 import {Image,Pressable,StyleSheet,Text,useWindowDimensions,View} from 'react-native';
 import {HOME_DESIGNS,PALETTES,type HomeDesign,type Palette} from './appearance';
-import {NAVIGATION,titleFor} from './content';
+import {homeLinks,type CourseIndex} from './course-index';
 import type {Position,SavedState} from './protocol';
 import {UiIcon,type IconName} from './ui-icon';
 
 const hero=require('../assets/home/mesh-hero.jpg');
 type Item={title:string;description:string;path:string;hash:string};
-export const HOME_BASICS=[...NAVIGATION.intro,NAVIGATION.homeResources[0]];
-const FEATURED=HOME_BASICS.filter(x=>['#first-analysis','#rules','#systems','#signs'].includes(x.hash));
-const EXTRAS=HOME_BASICS.filter(x=>!FEATURED.includes(x));
 const icons:Record<string,IconName>={'#first-analysis':'route','#rules':'braces','#points':'points','#systems':'axes','#elements':'orientation','#signs':'move','#file-structure':'files','modeling.html':'boxes','include.html':'folders','batch.html':'cpu','workflow.html':'results'};
 const shortDescriptions:Record<string,string>={'#first-analysis':'6つのステップ','#rules':'8文字と入力の構造','#systems':'位置・変位・荷重の軸','#signs':'曲げ・ねじり・符号'};
 export type HomeUI={section:'basics'|'work'|'saved';allBasics:boolean;workOpen:boolean;bookmarksOpen:boolean;allBookmarks:boolean};
 export const INITIAL_HOME_UI:HomeUI={section:'basics',allBasics:false,workOpen:false,bookmarksOpen:false,allBookmarks:false};
-type Props={design:HomeDesign;saved:SavedState;ui:HomeUI;onUI:(change:Partial<HomeUI>)=>void;onOpen:(p:Position)=>void;canOpen:(p:Pick<Position,'path'|'hash'>)=>boolean;isPro:boolean;onDeleteBookmark:(p:Position)=>void};
+type Props={course:CourseIndex;titleFor:(p:Position)=>string;design:HomeDesign;saved:SavedState;ui:HomeUI;onUI:(change:Partial<HomeUI>)=>void;onOpen:(p:Position)=>void;canOpen:(p:Pick<Position,'path'|'hash'>)=>boolean;isPro:boolean;onDeleteBookmark:(p:Position)=>void};
 
-export function HomeScreen({design,saved,ui,onUI,onOpen,canOpen,isPro,onDeleteBookmark}:Props){
+export function HomeScreen({course,titleFor,design,saved,ui,onUI,onOpen,canOpen,isPro,onDeleteBookmark}:Props){
+ const {navigation,home}=course,{hero:cover}=home;
+ const {basics,support}=homeLinks(navigation);
+ const art=course.heroArt?{uri:course.heroArt}:hero;
+ const featured=home.featured.flatMap(key=>basics.filter(item=>item.path+item.hash===key));
+ const extras=basics.filter(item=>!featured.includes(item));
  const colors=PALETTES[design],s=HOME_STYLES[design],{width,fontScale}=useWindowDimensions();
  const compact=width<350,largeText=fontScale>1.3;
  const [height,setHeight]=useState(0);
  const recent=saved.last&&canOpen(saved.last)?saved.last:null;
- const first=isPro?HOME_BASICS[0]:NAVIGATION.elements[0];
- const start=()=>onOpen(recent||{...first,y:0});
- const resumeTitle=recent?titleFor(recent):first.title;
- const resumeLabel=recent?'続きから読む →':isPro?'初めての解析を開く':first.title+'を開く';
+ const first=isPro?(basics[0]||navigation.elements[0]):navigation.elements[0];
+ const start=()=>{if(recent)onOpen(recent);else if(first)onOpen({...first,y:0});};
+ const resumeTitle=recent?titleFor(recent):first?.title||'';
+ const resumeLabel=recent?'続きから読む →':(first?.title||'教材')+'を開く';
  const resumeDetail=isPro?'初学者向けの6ステップ':'無料で読める要素教材';
  function badge(item:Pick<Position,'path'|'hash'>){
   return !canOpen(item)&&<Text style={s.proBadge}>Pro</Text>;
@@ -35,7 +37,7 @@ export function HomeScreen({design,saved,ui,onUI,onOpen,canOpen,isPro,onDeleteBo
   <View style={s.copy}><Text style={s.rowTitle}>{item.title}</Text><Text style={s.rowDescription}>{item.description}</Text></View>{badge(item)}<UiIcon name="right" color={colors.muted} size={16}/>
  </Pressable>;}
  function heading(title:string,detail?:string){return <View style={s.heading}><Text accessibilityRole="header" style={s.headingTitle}>{title}</Text>{detail&&<Text style={s.headingDetail}>{detail}</Text>}</View>;}
- function operations(){return <View testID="home-operations">{NAVIGATION.operations.map(item=>row(item))}</View>;}
+ function operations(){return <View testID="home-operations">{navigation.operations.map(item=>row(item))}</View>;}
  function errorRow(){return <Pressable style={s.row} onPress={()=>onOpen({path:'errors.html',hash:'',y:0})} accessibilityRole="button" accessibilityLabel="エラーメッセージ"><UiIcon name="search" color={colors.muted}/><View style={s.copy}><Text style={s.rowTitle}>エラーメッセージ</Text><Text style={s.rowDescription}>番号・メッセージから調べる</Text></View><UiIcon name="right" color={colors.muted} size={16}/></Pressable>;}
  function bookmarks(){return <View testID="home-bookmarks">
   {heading('しおり',`${saved.bookmarks.length}件`)}
@@ -48,46 +50,64 @@ export function HomeScreen({design,saved,ui,onUI,onOpen,canOpen,isPro,onDeleteBo
  function utilities(){return <View style={s.utility}>
   <Pressable style={s.utilityButton} onPress={()=>onUI({bookmarksOpen:!ui.bookmarksOpen})} accessibilityRole="button" accessibilityLabel="しおり一覧" accessibilityState={{expanded:ui.bookmarksOpen}} aria-expanded={ui.bookmarksOpen}><UiIcon name="bookmark" color={colors.muted} size={16}/><Text style={s.utilityText}>しおり</Text></Pressable>
   <Pressable style={s.utilityButton} onPress={()=>onOpen({path:'errors.html',hash:'',y:0})} accessibilityRole="button" accessibilityLabel="エラーメッセージ"><UiIcon name="search" color={colors.muted} size={16}/><Text style={s.utilityText}>エラー検索</Text></Pressable>
-  <Pressable style={s.utilityButton} onPress={()=>onOpen({...NAVIGATION.homeResources[1],y:0})} accessibilityRole="button" accessibilityLabel="資料・サポート"><Text style={s.utilityText}>資料・サポート</Text><UiIcon name="outward" color={colors.muted} size={16}/></Pressable>
+  {support&&<Pressable style={s.utilityButton} onPress={()=>onOpen({...support,y:0})} accessibilityRole="button" accessibilityLabel={support.title}><Text style={s.utilityText}>{support.title}</Text><UiIcon name="outward" color={colors.muted} size={16}/></Pressable>}
  </View>;}
- function resume(){return <Pressable style={s.resume} onPress={start} accessibilityRole="button" accessibilityLabel={resumeLabel}>
+ function resume(){if(!recent&&!first)return null;return <Pressable style={s.resume} onPress={start} accessibilityRole="button" accessibilityLabel={resumeLabel}>
   <View style={s.copy}><Text style={s.resumeLabel}>{recent?'最近開いた内容':'はじめの一歩'}</Text><Text style={s.resumeTitle}>{resumeTitle}</Text>{!recent&&<Text style={s.rowDescription}>{resumeDetail}</Text>}</View><UiIcon name="forward" color={colors.accent}/>
  </Pressable>;}
- return <View testID={'home-design-'+design} onLayout={event=>setHeight(Math.ceil(event.nativeEvent.layout.height))}>
-  {design==='blueprint'&&<View style={[StyleSheet.absoluteFill,{overflow:"hidden"}]} pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{Array.from({length:Math.ceil(Math.min(width,760)/24)},(_,i)=><View key={'v'+i} style={{position:'absolute',top:0,bottom:0,left:i*24,width:1,backgroundColor:'#86b4e2',opacity:.04}}/>)}{Array.from({length:Math.ceil(height/24)},(_,i)=><View key={'h'+i} style={{position:'absolute',left:0,right:0,top:i*24,height:1,backgroundColor:'#86b4e2',opacity:.04}}/>)}</View>}
-  {design==='graphite'?<>
-   <Pressable style={s.hero} onPress={start} accessibilityRole="button" accessibilityLabel={resumeLabel}>
-    <Image source={hero} style={s.heroImage} resizeMode="cover" accessible={false}/>
-    <View style={s.heroCopy}><Text style={s.heroKicker}>{recent?'CONTINUE LEARNING':'START LEARNING'}</Text><Text style={s.heroTitle} numberOfLines={3}>{resumeTitle}</Text><Text style={s.heroDescription}>{recent?'前回の続きから':resumeDetail}</Text><View style={s.heroAction}><Text style={s.heroActionText}>{recent?'読み進める':'学び始める'}</Text><UiIcon name="outward" color="#d9e8ff" size={17}/></View></View>
-   </Pressable>
-   {heading('最初に学ぶ','基礎をひとつずつ')}
-   <View style={s.tiles}>{FEATURED.map(item=><Pressable key={item.hash} style={[s.tile,largeText&&s.tileFull]} onPress={()=>onOpen({...item,y:0})} accessibilityRole="button" accessibilityLabel={item.title}>
-    <View style={s.tileIcons}><UiIcon name={icons[item.hash]} color={colors.accent}/>{badge(item)}<UiIcon name="outward" color={colors.muted} size={14}/></View><Text style={s.tileTitle}>{item.title}</Text><Text style={s.tileDescription}>{shortDescriptions[item.hash]}</Text>
+ function block(key:string){
+  switch(key){
+   case 'hero':
+    if(design==='graphite')return (<Pressable disabled={!recent&&!first} style={s.hero} onPress={start} accessibilityRole="button" accessibilityLabel={resumeLabel}>
+    {!!cover.image&&<Image source={art} style={s.heroImage} resizeMode="cover" accessible={false}/>}
+    <View style={s.heroCopy}><Text style={s.heroKicker}>{recent?cover.graphiteContinue:cover.graphiteStart}</Text><Text style={s.heroTitle} numberOfLines={3}>{cover.graphiteTitle||resumeTitle}</Text><Text style={s.heroDescription}>{recent?'前回の続きから':resumeDetail}</Text><View style={s.heroAction}><Text style={s.heroActionText}>{recent?cover.graphiteResume:cover.graphiteAction}</Text><UiIcon name="outward" color="#d9e8ff" size={17}/></View></View>
+   </Pressable>);
+    if(design==='blueprint')return (<View style={s.blueCover}>{!!cover.image&&<Image source={art} style={s.blueArt} resizeMode="cover" accessible={false}/>}<View style={s.blueBrand}><Text style={s.blueFEM}>{cover.blueprintTitle}</Text><Text style={s.blueLabel}>{cover.blueprintSubtitle}</Text></View></View>);
+    return (<View style={s.editorial}><View style={s.copy}><Text style={s.kicker}>{cover.minimalSubtitle}</Text><Text style={[s.editorialTitle,compact&&s.editorialTitleSmall]}>{cover.minimalTitle}</Text></View>{!!cover.image&&<Image source={art} style={[s.editorialImage,compact&&s.editorialImageSmall]} resizeMode="cover" accessible={false}/>}</View>);
+   case 'resume':return resume();
+   case 'basics':
+    if(design==='graphite')return <>
+     {heading('最初に学ぶ','基礎をひとつずつ')}
+   <View style={s.tiles}>{featured.map(item=><Pressable key={item.path+item.hash} style={[s.tile,largeText&&s.tileFull]} onPress={()=>onOpen({...item,y:0})} accessibilityRole="button" accessibilityLabel={item.title}>
+    <View style={s.tileIcons}><UiIcon name={icons[item.hash]||'book'} color={colors.accent}/>{badge(item)}<UiIcon name="outward" color={colors.muted} size={14}/></View><Text style={s.tileTitle}>{item.title}</Text><Text style={s.tileDescription}>{shortDescriptions[item.hash]||item.description}</Text>
    </Pressable>)}</View>
    <Pressable style={s.more} onPress={()=>onUI({allBasics:!ui.allBasics})} accessibilityRole="button" accessibilityLabel="基礎項目をすべて見る" accessibilityState={{expanded:ui.allBasics}} aria-expanded={ui.allBasics}><Text style={s.link}>{ui.allBasics?'基礎項目を閉じる':'基礎項目をすべて見る'}</Text><UiIcon name="down" color={colors.muted} size={16}/></Pressable>
-   {ui.allBasics&&<View testID="home-extra-basics">{EXTRAS.map(item=>row(item))}</View>}
-   {heading('モデル作成・実行・結果')}{operations()}{utilities()}{ui.bookmarksOpen&&bookmarks()}
-  </>:design==='blueprint'?<>
-   <View style={s.blueCover}><Image source={hero} style={s.blueArt} resizeMode="cover" accessible={false}/><View style={s.blueBrand}><Text style={s.blueFEM}>FEM</Text><Text style={s.blueLabel}>LEARNING DESK</Text></View></View>
-   {resume()}
-   <View style={[s.segments,largeText&&s.segmentsStack]} accessibilityRole="tablist" accessibilityLabel="ホームの項目">{([{key:'basics',title:'基礎を学ぶ'},{key:'work',title:'実務で調べる'},{key:'saved',title:'しおり'}] as const).map(x=><Pressable key={x.key} style={[s.segment,ui.section===x.key&&s.segmentSelected]} accessibilityRole="tab" accessibilityLabel={x.key==='saved'?'しおり一覧':x.title} accessibilityState={{selected:ui.section===x.key}} aria-selected={ui.section===x.key} onPress={()=>onUI({section:x.key})}><Text style={[s.segmentText,ui.section===x.key&&s.segmentSelectedText]}>{x.title}</Text></Pressable>)}</View>
+   {ui.allBasics&&<View testID="home-extra-basics">{extras.map(item=>row(item))}</View>}
+</>;
+    return <>{heading('最初に学ぶ','FOUNDATIONS')}<View testID="home-basics">{basics.map((item,i)=>row(item,i))}</View></>;
+   case 'work':
+    if(design==='minimal')return <>
+     <Pressable style={s.workToggle} accessibilityRole="button" accessibilityLabel="モデル作成・実行・結果" accessibilityState={{expanded:ui.workOpen}} aria-expanded={ui.workOpen} onPress={()=>onUI({workOpen:!ui.workOpen})}><Text style={[s.headingTitle,s.copy]}>モデル作成・実行・結果</Text><UiIcon name={ui.workOpen?'down':'plus'} color={colors.muted}/></Pressable>
+   {ui.workOpen&&operations()}</>;
+    return <>{heading('モデル作成・実行・結果')}{operations()}</>;
+   case 'segments':return <>
+     <View style={[s.segments,largeText&&s.segmentsStack]} accessibilityRole="tablist" accessibilityLabel="ホームの項目">{([{key:'basics',title:'基礎を学ぶ'},{key:'work',title:'実務で調べる'},{key:'saved',title:'しおり'}] as const).map(x=><Pressable key={x.key} style={[s.segment,ui.section===x.key&&s.segmentSelected]} accessibilityRole="tab" accessibilityLabel={x.key==='saved'?'しおり一覧':x.title} accessibilityState={{selected:ui.section===x.key}} aria-selected={ui.section===x.key} onPress={()=>onUI({section:x.key})}><Text style={[s.segmentText,ui.section===x.key&&s.segmentSelectedText]}>{x.title}</Text></Pressable>)}</View>
    <View style={s.sectionBody}>
-    {ui.section==='basics'?<View testID="home-basics">{HOME_BASICS.map((item,i)=>row(item,i))}</View>:ui.section==='work'?<>{operations()}{errorRow()}</>:bookmarks()}
+    {ui.section==='basics'?<View testID="home-basics">{basics.map((item,i)=>row(item,i))}</View>:ui.section==='work'?<>{operations()}{errorRow()}</>:bookmarks()}
    </View>
-   <Pressable style={s.support} onPress={()=>onOpen({...NAVIGATION.homeResources[1],y:0})} accessibilityRole="button" accessibilityLabel="資料・サポート"><Text style={s.link}>資料・サポート</Text><UiIcon name="outward" color={colors.muted} size={16}/></Pressable>
-  </>:<>
-   <View style={s.editorial}><View style={s.copy}><Text style={s.kicker}>UNDERSTAND. ANALYZE.</Text><Text style={[s.editorialTitle,compact&&s.editorialTitleSmall]}>力学を、{'\n'}手元から。</Text></View><Image source={hero} style={[s.editorialImage,compact&&s.editorialImageSmall]} resizeMode="cover" accessible={false}/></View>
-   {resume()}{heading('最初に学ぶ','FOUNDATIONS')}<View testID="home-basics">{HOME_BASICS.map((item,i)=>row(item,i))}</View>
-   <Pressable style={s.workToggle} accessibilityRole="button" accessibilityLabel="モデル作成・実行・結果" accessibilityState={{expanded:ui.workOpen}} aria-expanded={ui.workOpen} onPress={()=>onUI({workOpen:!ui.workOpen})}><Text style={[s.headingTitle,s.copy]}>モデル作成・実行・結果</Text><UiIcon name={ui.workOpen?'down':'plus'} color={colors.muted}/></Pressable>
-   {ui.workOpen&&operations()}{utilities()}{ui.bookmarksOpen&&bookmarks()}
-  </>}
+</>;
+   case 'support':return support&&<Pressable style={s.support} onPress={()=>onOpen({...support,y:0})} accessibilityRole="button" accessibilityLabel={support.title}><Text style={s.link}>{support.title}</Text><UiIcon name="outward" color={colors.muted} size={16}/></Pressable>;
+   case 'utilities':return <>{utilities()}{ui.bookmarksOpen&&bookmarks()}</>;
+   default:{
+    const section=home.sections.find(item=>item.key===key);
+    if(!section)return null;
+    return <View testID={'home-section-'+key}>{heading(section.title,section.description)}
+      {section.style==='list'?section.items.map((item,i)=>row(item,i)):<View style={s.tiles}>{section.items.map(item=><Pressable key={item.path+item.hash} style={[s.tile,largeText&&s.tileFull]} accessibilityRole="button" accessibilityLabel={item.title} onPress={()=>onOpen({...item,y:0})}>
+       <View style={s.tileIcons}>{badge(item)}<UiIcon name="outward" color={colors.muted} size={16}/></View><Text style={s.tileTitle}>{item.title}</Text><Text style={s.tileDescription}>{item.description}</Text>
+      </Pressable>)}</View>}</View>;
+   }
+  }
+ }
+ return <View testID={'home-design-'+design} onLayout={event=>setHeight(Math.ceil(event.nativeEvent.layout.height))}>
+  {design==='blueprint'&&<View style={[StyleSheet.absoluteFill,{overflow:"hidden"}]} pointerEvents="none" accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">{Array.from({length:Math.ceil(Math.min(width,760)/24)},(_,i)=><View key={'v'+i} style={{position:'absolute',top:0,bottom:0,left:i*24,width:1,backgroundColor:'#86b4e2',opacity:.04}}/>)}{Array.from({length:Math.ceil(height/24)},(_,i)=><View key={'h'+i} style={{position:'absolute',left:0,right:0,top:i*24,height:1,backgroundColor:'#86b4e2',opacity:.04}}/>)}</View>}
+  {home.layouts[design].map(key=><Fragment key={key}>{block(key)}</Fragment>)}
   {complete>0&&complete<6&&<Text style={s.progressNote}>初めての解析の読了 {complete} / 6</Text>}
  </View>;
 }
 
-export function HomeDesignPicker({value,onChange}:{value:HomeDesign;onChange:(value:HomeDesign)=>void}){
+export function HomeDesignPicker({value,onChange,course}:{course:CourseIndex;value:HomeDesign;onChange:(value:HomeDesign)=>void}){
  const p=PALETTES[value];return <View style={picker.group} accessibilityRole="radiogroup" accessibilityLabel="ホームデザイン">{HOME_DESIGNS.map(d=>{const c=PALETTES[d.id],selected=d.id===value;return <Pressable key={d.id} testID={'home-design-option-'+d.id} style={[picker.option,{backgroundColor:p.surface,borderColor:selected?p.accent:p.line}]} accessibilityRole="radio" accessibilityLabel={'ホームデザイン '+d.name} accessibilityState={{checked:selected}} aria-checked={selected} onPress={()=>onChange(d.id)}>
-  <View style={[picker.swatch,{backgroundColor:c.background,borderColor:c.line}]} accessible={false}><View style={[picker.swatchBar,{backgroundColor:c.surface}]}><View style={[picker.swatchDot,{backgroundColor:c.accent}]}/></View><Image source={hero} style={picker.swatchImage} resizeMode="cover"/><View style={picker.swatchRows}><View style={[picker.swatchRow,{backgroundColor:c.muted}]}/><View style={[picker.swatchRow,{backgroundColor:c.muted,width:'60%'}]}/></View></View>
+  <View style={[picker.swatch,{backgroundColor:c.background,borderColor:c.line}]} accessible={false}><View style={[picker.swatchBar,{backgroundColor:c.surface}]}><View style={[picker.swatchDot,{backgroundColor:c.accent}]}/></View>{!!course.home.hero.image&&<Image source={course.heroArt?{uri:course.heroArt}:hero} style={picker.swatchImage} resizeMode="cover"/>}<View style={picker.swatchRows}><View style={[picker.swatchRow,{backgroundColor:c.muted}]}/><View style={[picker.swatchRow,{backgroundColor:c.muted,width:'60%'}]}/></View></View>
   <View style={picker.copy}><Text style={[picker.name,{color:p.text}]}>{d.name}</Text><Text style={[picker.description,{color:p.muted}]}>{d.description}</Text></View><View style={[picker.radio,{borderColor:selected?p.accent:p.muted,backgroundColor:selected?p.accent:'transparent'}]}>{selected&&<UiIcon name="check" color={p.onAccent} size={15}/>}</View>
  </Pressable>;})}</View>;
 }
