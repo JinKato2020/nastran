@@ -211,3 +211,5 @@
 - Inputのカード・カテゴリー・検索語は dist の InputCatalog、比較記事は card-comparisons.json、章の表示と順番は learning-path.json の inputChapters を編集する。削除時はカードの本文・検索索引・関連リンクも照合する。
 - ホームの home.hero.image は mobile/assets/home 内の JPG・PNG・WebP を指定する（空文字で非表示）。画像は教材OTAのindex.htmlに格納し、同じ配信版の目次・画像・本文をオフラインでも使う。home.hero でテーマ別の見出しを設定する。カード・リストは home.sections に key・title・style（cards または list）・items（title、description、path、hash）を追加し、home.layouts の各テーマにキーを表示順で並べる。標準の hero・resume・basics・work・segments・utilities・support もテーマごとに移動・非表示にできる。掲載内容と表示順だけを変える場合はネイティブに記事名を手書きしない。
 - 配信前は mobile で npm run content:ota、npm run typecheck、npm run test:core を実行する。目次受信や画面構成の変更時は node tools/preview-app.mjs と python -X utf8 tools/check-course-ota.py で、模擬R2からの追加・削除・画像差し替え・旧版への復元を検査する。
+
+- ユーザー指定（2026-11-21、教材全体の導入）：すべての章・節は、実物の形・加える力や動き・観察する場所を想像できる具体例から始める。操作図がある場合は何を変えてどこを見比べるかを示し、観察した違いに名称を付けてから式・カード・適用条件へ進む。記事冒頭と節で同じ説明を繰り返さない。既に具体例から始まる節は活かす。参照資料や確認問題に定型の導入を足さない。

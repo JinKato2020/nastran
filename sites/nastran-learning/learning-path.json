@@ -916,22 +916,22 @@
     ],
     "meshTheory": [
       {
-        "title": "評価位置と円孔のCQUAD4分割",
-        "description": "円周方向と径方向の分割を別々に選ぶ・肩R・近接孔・狭い肉の評価位置を決める",
+        "title": "穴のある板を、どこで細かく分けるか",
+        "description": "板を引く例で、穴の輪郭と、穴のそばに並ぶ四角形の幅を見比べる",
         "path": "theory.html",
         "hash": "#mesh",
         "kind": "メッシュ分割の理論"
       },
       {
         "title": "粗密の遷移と節点の接続",
-        "description": "列の幅と列の本数を区別する・全四角形の3対1の遷移例を読む",
+        "description": "穴の周りの細かい網目を、外側の粗い網目へどうつなぐか",
         "path": "theory.html",
         "hash": "#mesh/transitions",
         "kind": "メッシュ分割の理論"
       },
       {
         "title": "要素形状とヤコビアン",
-        "description": "細長さ・ゆがみ・反りを見分ける・ヤコビアンと品質比の意味を区別する",
+        "description": "四角形の角を動かして、全体を小さくする場合と片隅がつぶれる場合を比べる",
         "path": "theory.html",
         "hash": "#mesh/quality",
         "kind": "メッシュ分割の理論"

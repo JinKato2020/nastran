@@ -6,6 +6,15 @@ for(const [key,cfg] of Object.entries(ctx.window.TopicArticleData)){
  assert.deepEqual([...ids].sort(),[...expected].sort(),key+' all authored sections exactly once');
  const quiz=chapter.sections.find(s=>['questions','quiz'].includes(s[0]))[2],count=(quiz.match(/<details>/g)||[]).length,q=cfg.articles.flatMap(g=>g.questions);
  assert.deepEqual([...q].sort((a,b)=>a-b),Array.from({length:count},(_,i)=>i),key+' all questions exactly once');
- for(const g of cfg.articles){assert(g.sections.length<=6,key);assert(g.questions.length>0,key+'/'+g.key);assert.equal(g.points.length,3);}
+ for(const g of cfg.articles){
+  assert(g.sections.length<=6,key);assert(g.questions.length>0,key+'/'+g.key);assert.equal(g.points.length,3);
+  assert.ok(g.opening?.trim(),key+'/'+g.key+' missing opening example');
+  if(g.previewSection){
+   assert(g.sections.includes(g.previewSection));
+   assert.match(chapter.sections.find(s=>s[0]===g.previewSection)[2],/<figure\b/);
+  }
+ }
 }
+for(const name of ['theory-data','extended-theory-data','practice-theory-data','linear-foundations'])vm.runInContext(fs.readFileSync(path.join(dir,name+'.js'),'utf8'),ctx);
+for(const entry of ctx.window.NastranTheory)if(!entry.chapter&&!ctx.window.TopicArticleData[entry.key])assert.ok(entry.opening,entry.key+' missing opening example');
 console.log('PASS: Separate articles preserve every section and question exactly once.');

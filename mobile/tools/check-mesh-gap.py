@@ -11,6 +11,10 @@ with sync_playwright() as pw:
     for width in (320, 390, 768):
         page.set_viewport_size({"width": width, "height": 844})
         page.goto((DIST / "theory.html").as_uri() + "#mesh")
+        intro = page.locator("#theory-detail .analysis-head p")
+        assert "薄板" in intro.inner_text()
+        assert page.locator("#theory-detail > figure[data-mesh-wave-lab=hole]").count() == 1
+        assert page.locator("[data-lab-input=n]").input_value() == "16"
         for n in (16, 32, 48):
             page.locator("[data-lab-input=n]").select_option(str(n))
             for bias in ("1", "1.3"):
@@ -31,7 +35,15 @@ with sync_playwright() as pw:
         for key in ("transitions","quality","convergence","waves","sources"):
             page.locator("[data-topic-picker]").select_option(key)
             page.wait_for_function("k=>document.querySelector('#theory-detail').dataset.article===k", arg=key)
+            if key=="quality":
+                shape=page.locator("#theory-detail > figure[data-mesh-wave-lab=shape]")
+                for preset,values in (("square","100、100"),("small","25、25"),("pinch","100、10"),("fold","100、-20")):
+                    shape.locator("[data-lab-input=corner]").select_option(preset)
+                    assert values in shape.locator(".theory-lab-readout").inner_text()
             assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), (width,key)
+        page.goto((DIST / "theory.html").as_uri() + "#modes")
+        assert "定規" in page.locator("#theory-detail .analysis-head p").first.inner_text()
+        assert page.locator("#theory-detail .theory-section").first.locator(".theory-formula").count()==1
         page.goto((DIST / "theory.html").as_uri() + "#boundary/soil-dynamics")
         assert page.locator("#theory-detail h1").inner_text() == "地盤の動的境界"
         assert page.locator("[data-soil-lab] svg").count() == 3

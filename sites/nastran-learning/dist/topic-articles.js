@@ -27,9 +27,23 @@
     const questions=[...container.querySelectorAll('details')];
     const selectedQuestions=reference?[]:group.questions.map(i=>questions[i]?.outerHTML).filter(Boolean);
     const local=sections.map(([id,t,b])=>[cfg.prefix+'-'+id,t.replace(/^\d+\.\s*/,''),b]);
+    let preview='';
+    if(!reference&&group.previewSection){
+     const part=local.find(([id])=>id===cfg.prefix+'-'+group.previewSection);
+     const body=document.createElement('template');
+     body.innerHTML=part[2];
+     const figure=body.content.querySelector('figure');
+     const id=cfg.prefix+'-'+group.previewSection+'-figure';
+     figure.id=id;
+     preview=figure.outerHTML;
+     const back=document.createElement('a');
+     back.href='#'+id;back.dataset.jump=id;back.textContent='冒頭の図で確かめる ↑';
+     figure.replaceWith(back);
+     part[2]=body.innerHTML;
+    }
     if(selectedQuestions.length)local.push([cfg.prefix+'-questions','自分で確かめる','<div class="theory-quiz">'+selectedQuestions.join('')+'</div>']);
     const i=cfg.articles.indexOf(group);
-    root.innerHTML='<div class="analysis-head"><span class="analysis-sol">'+esc(cfg.title)+'</span><h1>'+esc(title)+'</h1></div>'+
+    root.innerHTML='<div class="analysis-head"><span class="analysis-sol">'+esc(cfg.title)+'</span><h1>'+esc(title)+'</h1>'+(reference?'':'<p>'+esc(group.opening)+'</p>')+'</div>'+preview+
      '<label class="analysis-selector">この章の記事<select aria-label="この章の記事" data-topic-picker>'+cfg.articles.map(g=>'<option value="'+esc(g.key)+'"'+(!reference&&g===group?' selected':'')+'>'+esc(g.title)+'</option>').join('')+'<option value="sources"'+(reference?' selected':'')+'>参照資料</option></select></label>'+
      (reference?'':A.intro({goals:group.goals,prerequisites:i?[[`theory.html#${chapter}/${cfg.articles[i-1].key}`,cfg.articles[i-1].title]]:cfg.prerequisites,points:group.points}))+
      A.toc(local.map(([id,t])=>[id,t]))+local.map(([id,t,b],j)=>A.section(`${j+1}. ${t}`,b,id)).join('')+

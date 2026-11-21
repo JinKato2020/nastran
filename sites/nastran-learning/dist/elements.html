@@ -5,7 +5,7 @@
 
 <article id="scalar" data-element="scalar" data-title="ばね要素（CELAS・CBUSH）">
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 0次元要素</span><h1>ばね要素（CELAS・CBUSH）</h1>
-<p>節点の成分どうしをつなぐ CELAS と、要素座標を持つ CBUSH を比較します。剛性の値が同じでも、接続位置と成分が違うと結果は変わります。すきまが閉じた後だけ力を伝える継手は<a href="elements.html#gap">GAP要素</a>へ。</p></div>
+<p>2台の台車をばねでつなぎます。2台とも右へ1 mm動けば、ばねの長さは変わりません。片方だけが動くとばねに力が生じます。CELASとCBUSHで、この相対変位をどの向きに測るかを比べます。剛性の値が同じでも、接続位置と成分が違うと結果は変わります。すきまが閉じた後だけ力を伝える継手は<a href="elements.html#gap">GAP要素</a>へ。</p></div>
 
 
 <div class="element-key"><strong>この記事で分かること</strong>
@@ -51,6 +51,7 @@
 </section>
 
 <section class="theory-section" id="scalar-concept"><h2>2. スカラー要素 — 形を持たない要素</h2>
+<p>同じばねの試験で分かっているのが「1 mm縮むと何N押し返すか」だけなら、その情報だけでも両端へ返る力を計算できます。</p>
 <figure data-element-lab="relative"></figure>
 <p>スカラー要素は、モデルの中の<strong>2つの自由度</strong>、または<strong>1つの自由度と地面</strong>をつなぐ要素です。つなげる自由度は、節点（GRID）の6成分（3つの並進と3つの回転）のどれか、またはスカラー点（<a href="bulk.html#SPOINT">SPOINT</a>）の1成分です。ばね（CELAS）、質量（CMASS）、粘性ダンパー（CDAMP）があり、静解析で主に使うのはばねです。ダンパーは静解析では使いません。</p>
 <h3>長さを使わず、何を表すのか</h3>
@@ -123,6 +124,7 @@
 </section>
 
 <section class="theory-section" id="scalar-dof"><h2>5. 自由度の指定と「内部拘束」</h2>
+<p>ばねの両端を正面から見ると一直線でも、横から見ると段差がある場合があります。どの向きの動きを拾い、どこへ逆向きの力を返すかを追います。</p>
 <figure data-element-lab="gap"></figure>
 <h3>成分番号は節点の変位座標系で決まる</h3>
 <p>成分1〜3の向きは各節点の変位座標系（GRIDのCD）で決まります。CDが基本座標なら基本X・Y・Zです。節点が離れているときは、成分の向きと力の作用線を両方確認します。</p>
@@ -142,6 +144,7 @@
 </section>
 
 <section class="theory-section" id="scalar-cbush"><h2>6. CBUSH — 要素座標を持つばね・ダンパー</h2>
+<p>ゴム支持は、上下に押すと硬く、横にずらすと柔らかいことがあります。支持を90度回せば、モデルでも硬い方向が一緒に回る必要があります。</p>
 <figure data-element-lab="direction"></figure>
 <p><a href="bulk.html#CBUSH">CBUSH</a> は、ばねとダンパーをまとめた一般化した要素です。CELAS と違い、これを「構造的なスカラー要素」と位置づけています。2つの節点の位置を知っていて、<strong>要素座標系</strong>を持ち、剛体として動いた時に力が出ない（剛体の釣合いを満たす）ように作られています。CELAS の機能をすべて持ちながら、前節の内部拘束の問題を避けられる要素です。</p>
 <p>CBUSH は1枚のカードで6方向（並進3つと回転3つ）のばねを同時に表します。つなぐのは「節点の成分」ではなく「節点そのもの」なので、ばね6本を6行で書く CELAS より入力がずっと短くなります。</p>
@@ -247,7 +250,7 @@
 
 <article id="beam" data-element="beam" data-title="梁要素（CROD・CBAR・CBEAM）">
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 1次元要素</span><h1>梁要素（CROD・CBAR・CBEAM）</h1>
-<p>梁要素は、断面の形を捨てて「数」だけで計算します。捨てた形の情報を、向き・オフセット・応力点・既定値として正しく戻せるかで、答えが何倍も変わります。その「何倍」を、動く図で確かめながら進みます。</p></div>
+<p>平たい定規を机の端で押さえ、先端を押してみます。平らに寝かせたときと縦に立てたときでは、同じ定規でもたわみが違います。梁要素では、断面の形と向きにこの違いを持たせます。捨てた形の情報を、向き・オフセット・応力点・既定値として正しく戻せるかで、答えが何倍も変わります。その「何倍」を、動く図で確かめながら進みます。</p></div>
 
 <div class="element-key"><strong>この記事で分かること</strong>
 <ul>
@@ -585,7 +588,7 @@
 </article>
 <article id="shell" data-element="shell" data-title="シェル要素（CQUAD4・CTRIA3ほか）">
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 2次元要素</span><h1>シェル要素（CQUAD4・CTRIA3ほか）</h1>
-<p>薄肉部材を面で表します。中立面、法線、板厚、材料方向が、力と表裏の応力にどう表れるかを追います。</p></div>
+<p>薄い金属板を指で押してたわませると、曲がった場所では片面が伸びて反対面が縮みます。板の厚みを面1枚で表すとき、どうやって両面の違いを残すのかを考えます。中立面、法線、板厚、材料方向が、力と表裏の応力にどう表れるかを追います。</p></div>
 
 
 <div class="element-key"><strong>この記事で分かること</strong>
@@ -663,6 +666,7 @@
 </section>
 
 <section class="theory-section" id="shell-theory"><h2>3. 板の理論の土台 — 膜・曲げ・横せん断・連成</h2>
+<p>薄板の端を引くと表も裏も伸びます。同じ板を反らせると片面は伸び、反対面は縮みます。二つの荷重でどの変形を表すかを比べます。</p>
 <figure data-element-lab="thickness"></figure>
 <p class="element-note">この節の式は板理論の教科書にある一般的な内容の補足です。</p>
 <p>シェルの変形は、厚さ方向の中央の面（基準面）の動きと、法線の傾きだけで表します。基準面から z の位置の面内変位は、中央面の変位に「z × 法線の傾き」を足したものです（式4-5、4-6）。これを微分すると、ひずみは次の形になります。</p>
@@ -683,6 +687,7 @@
 </section>
 
 <section class="theory-section" id="shell-input"><h2>4. CQUAD4・CTRIA3 の入力</h2>
+<p>長方形の板の四隅を一周して指でたどります。その順序で節点番号を読んで初めて、入力の四つの点が板の一枚の面になります。</p>
 <div class="element-table-wrap"><table class="element-table narrow">
 <thead><tr><th>カード</th><th>項目</th><th>意味</th></tr></thead>
 <tbody>
@@ -721,6 +726,7 @@
 <h3>表皮を離すと、なぜ曲げ剛性が増えるか</h3><p>中立面から距離ziにある層の断面二次モーメントは、平行軸の定理でIi + Ai zi²です。各層のEiを掛けて足したB = ΣEi(Ii + Ai zi²)が、細帯の曲げ剛性になります。</p><figure data-element-lab="sandwich"></figure><p>対称積層の膜剛性はΣEi ti、曲げ剛性は上のB、質量はΣρi tiで別々に計算します。板厚1個だけを変えて3つとも合わせられるとは限りません。PSHELLのMID1・MID2・MID3や12I/T³は役割を分けて設定します。積層の材料ごとの応力が必要ならPCOMPなどの層情報を持つ定義を検討します。Z1・Z2だけを外面に移しても、層ごとの材料則が追加されるわけではありません。</p></section>
 
 <section class="theory-section" id="shell-axes"><h2>6. 節点順・法線・材料方向</h2>
+<p>表面に印を付けた板で、面を表す4点を逆順に入力したら、その印は結果のどちらの面に対応するでしょうか。</p>
 <figure data-element-lab="surfaces"></figure>
 <p><a href="coordinates.html#elements">最初に学ぶ「要素の向き」へ →</a></p>
 <p>右手の指を節点順に回したとき、親指が局所＋zを示します。Z1・Z2は要素基準面からの符号付き距離です。既定の対称断面では−z側と＋z側に対応します。オフセットや出力点を指定した場合は距離を確認します。</p><p>要素xは、四辺形では一般にG1→G2と一致するとは限りません。三角形と四辺形で面内軸の決め方が異なります。一方、THETAで指定する材料方向はG1→G2を基準に法線まわりに回します。MCIDを使う場合は指定座標系のx軸を要素面へ投影します。投影が小さくなる向きは避けます。</p><p>圧力はプリプロセッサの矢印と合反力で実空間の向きを確認します。座標系を変えると、等方材でも出力する応力成分の表示が変わる場合があります。隣接要素のNORMAL-Xを比べる前に、共通の方向へそろえます。</p>
@@ -766,6 +772,7 @@ VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</p>
 </section>
 
 <section class="theory-section" id="shell-k6rot"><h2>8. 法線まわりの回転（第6自由度）と K6ROT</h2>
+<p>紙の上に矢印を描き、その中心を動かさず紙面内で矢印を回す場面を考えます。板を面外に反らせる回転とは軸が異なります。</p>
 <figure data-element-lab="drilling"></figure>
 <p>CQUAD4・CTRIA3 は、各節点の6自由度のうち5つにだけ剛さを持ちます。面に垂直な軸まわりの回転（ドリリング回転と呼ばれます）には、直接の剛さがありません。板の理論に、面の中で板を回す回転に抵抗する仕組みがないためです。</p>
 <p>そのため、平らに並んだ CQUAD4 だけにつながる節点では、法線まわりの回転の剛さがゼロになり、剛性行列が特異（解けない状態）になって計算が止まります。曲面のシェルでは、隣の要素の法線が少しずつ傾いているので、他の要素の曲げの剛さがこの方向にも少し入り、特異になりにくくなります。</p>
@@ -818,6 +825,7 @@ VON MISES = √(MAJOR² − MAJOR·MINOR + MINOR²)</p>
 </section>
 
 <section class="theory-section" id="shell-omid"><h2>13. 材料座標で結果を出す（PARAM,OMID）</h2>
+<p>斜めに繊維の入った板を左右へ引きます。破断を考えるときに読みたいのは、画面の左右と上下の応力だけでなく、繊維に沿う応力です。</p>
 <figure data-element-lab="material"></figure>
 <p>CQUAD4・CTRIA3・CQUAD8・CTRIA6 では、<a href="bulk.html#PARAM_OMID">PARAM,OMID</a>,YES とすると、要素の力・応力・ひずみを、THETA／MCID で決めた材料座標で出力できます（既定は NO で要素座標）。中心も角も材料座標になります。</p>
 <p>要素座標はメッシュの切り方の産物で、ふつう物理的な意味がありません。一方、利用者が決めた共通の座標で出せば、多くの要素の結果を同じ向きで見比べられ、設計の公式に入れる前に座標を変換する手間もなくなります。</p>
@@ -944,7 +952,7 @@ F2 も辺 2-3・1-4 について同様</p>
 </article>
 <article id="solid" data-element="solid" data-title="ソリッド要素（CHEXA・CTETRAほか）">
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 3次元要素</span><h1>ソリッド要素（CHEXA・CTETRAほか）</h1>
-<p>立体内部の変位・応力を求める要素です。節点順、面にかかる荷重、他の要素との接続、比較する応力の位置を確認します。</p></div>
+<p>厚いブロックの上面を小さな押し板で押します。真下の材料と、押し板から離れた側面とでは変形が違います。その違いを追うには、表面だけでなく内部にも節点を置きます。節点順、面にかかる荷重、他の要素との接続、比較する応力の位置を確認します。</p></div>
 
 
 <div class="element-key"><strong>この記事で分かること</strong>
@@ -962,6 +970,7 @@ F2 も辺 2-3・1-4 について同様</p>
 <nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#solid-overview" data-jump="solid-overview">全体像</a></li><li><a href="#solid-nodes" data-jump="solid-nodes">節点の並びと中間節点</a></li><li><a href="#solid-dof" data-jump="solid-dof">回転自由度がない</a></li><li><a href="#solid-psolid" data-jump="solid-psolid">PSOLID と積分・応力</a></li><li><a href="#solid-axes" data-jump="solid-axes">要素座標系</a></li><li><a href="#solid-taper" data-jump="solid-taper">検算：厚さ方向の分割と曲げ</a></li><li><a href="#solid-triax" data-jump="solid-triax">CTRIAX6（軸対称）</a></li><li><a href="#solid-crack" data-jump="solid-crack">CRAC3D（き裂先端）</a></li><li><a href="#solid-choose" data-jump="solid-choose">選び方と注意点</a></li><li><a href="#solid-quiz" data-jump="solid-quiz">自分で確かめる</a></li><li><a href="#solid-sources" data-jump="solid-sources">仕様を調べる</a></li></ol></nav>
 
 <section class="theory-section" id="solid-overview"><h2>1. 3次元要素の全体像</h2>
+<p>角材の端面全体を押した場合と、同じ力を小さな座金から入れた場合では、端面近くの内部の変形が違います。</p>
 <figure data-element-lab="poisson"></figure>
 <p>ソリッド要素は、立体を小さなブロックに分け、各ブロックの角（と辺の途中）の節点の動きから内部の変形を求める要素です。梁は「断面は平面のまま」、板は「厚さ方向の直線は直線のまま」という仮定で自由度を減らしていますが、ソリッドにはそうした仮定がありません。そのかわり、厚さ方向の応力の変化を見たければ、厚さ方向にも要素を何層か並べる必要があり、モデルは大きくなります。</p>
 <p>使い分けを、エンジンブロックのような本当に立体的な部品にはソリッド、自動車のボンネットのような薄い部品には板要素、と説明しています。ボンネットをソリッドで作ると、薄い方向に要素を何層も並べることになり、規模が大きいうえ形のゆがんだ要素ができやすくなります。</p>
@@ -982,6 +991,7 @@ F2 も辺 2-3・1-4 について同様</p>
 </section>
 
 <section class="theory-section" id="solid-nodes"><h2>2. 節点の並びと中間節点</h2>
+<p>円筒の曲面上にある辺を両端の2点だけで描くと直線になります。曲面上の途中にも点を置くと、その辺の曲がりを表せます。</p>
 <figure data-element-lab="interpolation"></figure>
 
 <figure data-element-lab="hexa"></figure><h3>並び順を守る理由</h3>
@@ -999,6 +1009,7 @@ F2 も辺 2-3・1-4 について同様</p>
 </section>
 
 <section class="theory-section" id="solid-dof"><h2>3. 回転自由度を持たないことと、その影響</h2>
+<p>ブロックを指先一つで引く場合と、離れた2点を反対方向に押してねじる場合を比べます。後者では並進力の組でモーメントを伝えられます。</p>
 <figure data-element-lab="couple"></figure>
 <p>ソリッド要素の剛さは、各節点の<strong>並進3方向（T1・T2・T3）だけ</strong>にあります。立体の回転は、隣り合う節点が違う量だけ動くことで自然に表されるので、節点に回転の自由度を持たせる必要がないからです。ところが Nastran の節点（<a href="bulk.html#GRID">GRID</a>）は、もともと6自由度（並進3・回転3）を持っています。ソリッドだけにつながる節点では、回転の3自由度がどの剛性ともつながらず、剛性マトリクスが特異（逆行列が作れない状態）になります。</p>
 
@@ -1015,6 +1026,7 @@ F2 も辺 2-3・1-4 について同様</p>
 </section>
 
 <section class="theory-section" id="solid-psolid"><h2>4. PSOLID ― 材料の向き・積分法・応力の出力位置</h2>
+<p>穴の周りの立体要素で、要素の中央と縁に近い点の応力が違うとします。どの位置の結果を読んだかを先に決めておけば、隣の要素と比較できます。</p>
 <figure data-element-lab="pressure"></figure>
 <div class="element-table-wrap"><table class="element-table narrow">
 <thead><tr><th>欄</th><th>項目</th><th>意味と使い方</th></tr></thead>
@@ -1043,6 +1055,7 @@ F2 も辺 2-3・1-4 について同様</p>
 </section>
 
 <section class="theory-section" id="solid-axes"><h2>5. 要素座標系 ― ゆがみに強い決め方</h2>
+<p>直方体の一つの角をずらすと、もとは平行だった辺の向きがそろわなくなります。この形に対して結果を読む軸をどう定めるかを見ます。</p>
 <figure data-element-lab="tetra"></figure>
 
 <p>CHEXA の要素座標系は、まず向かい合う面の中心を結ぶ3本のベクトル R・S・T を作ります。原点は3本の交点です。ゆがんだ要素では R・S・T は互いに直角ではないので、固有値解析によって直交する3本 R′・S′・T′ を作り、要素の x・y・z 軸はそれぞれ R′・S′・T′ と同じ面の組に向けられます。</p>
@@ -1056,6 +1069,7 @@ F2 も辺 2-3・1-4 について同様</p>
 </section>
 
 <section class="theory-section" id="solid-triax"><h2>7. CTRIAX6 ― 軸対称の回転体</h2>
+<p>円形の管に全周同じ内圧を掛けます。輪切りのどの角度でも同じ変形なら、厚みと長さが見える一断面から全周を表せます。</p>
 <figure data-element-lab="cylinder"></figure>
 <p><a href="bulk.html#CTRIAX6">CTRIAX6</a> は、三角形の断面を軸のまわりに1周させた「回転体」の要素です。角の3節点が必須で、辺の中点の3節点を任意で追加できます。断面だけをメッシュすれば、円筒・円板・圧力容器のような回転体全体を表せるので、立体でモデル化するよりずっと小さな規模で済みます。</p>
 <p class="element-key">要点：CTRIAX6 が使えるのは「構造が軸対称」で「荷重も軸対称」な場合だけです。片側から押す、曲げる、のように周方向に変わる荷重は扱えません。</p>
@@ -1136,7 +1150,7 @@ F2 も辺 2-3・1-4 について同様</p>
 </article>
 <article data-element="connector" data-title="結合要素（溶接・締結・接着）" id="connector">
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 結合要素</span><h1>結合要素（溶接・締結・接着）</h1>
-<p>つなぎ目の硬さ、力が入る範囲、開きやずれの許容を分けて考えます。部品の変形と結合部の変形を見比べ、目的に合う結合を選びます。</p></div><div class="element-key"><strong>この記事で分かること</strong><ul><li>CWELD・CFAST・CSEAM・凝着要素を、点・線・面と結合の物理で選び分ける</li><li>結合剛性、直径、結合位置を変えたとき、変位と荷重経路のどこが変わるか</li><li>つながっているように見えて力が伝わらない場合や、過度に硬くした場合の確認方法</li></ul><strong>前提として読む記事</strong>：<a href="elements.html#scalar">ばね要素</a>、<a href="elements.html#shell">シェル要素</a>、<a href="coordinates.html#elements">要素の向き</a>。力と変位の関係 F = kδ を使います。<ol><li>結合部の剛性と、部品側へ力を配る範囲は別の設定。どちらも変形に影響する。</li><li>剛結合、有限剛性の結合、開閉する接触は違う物理。見た目の形だけでは選べない。</li><li>接着の面積・開き・応力・合力を分ける。線形の凝着要素だけでは、はく離開始後の損傷を予測しない。</li></ol></div>
+<p>重ねた薄板を2か所だけで溶接すると、溶接点の間は開くことができます。同じ板を全面接着した場合と、どこが一緒に動き、どこで力を受け渡すかを比べます。部品の変形と結合部の変形を見比べ、目的に合う結合を選びます。</p></div><div class="element-key"><strong>この記事で分かること</strong><ul><li>CWELD・CFAST・CSEAM・凝着要素を、点・線・面と結合の物理で選び分ける</li><li>結合剛性、直径、結合位置を変えたとき、変位と荷重経路のどこが変わるか</li><li>つながっているように見えて力が伝わらない場合や、過度に硬くした場合の確認方法</li></ul><strong>前提として読む記事</strong>：<a href="elements.html#scalar">ばね要素</a>、<a href="elements.html#shell">シェル要素</a>、<a href="coordinates.html#elements">要素の向き</a>。力と変位の関係 F = kδ を使います。<ol><li>結合部の剛性と、部品側へ力を配る範囲は別の設定。どちらも変形に影響する。</li><li>剛結合、有限剛性の結合、開閉する接触は違う物理。見た目の形だけでは選べない。</li><li>接着の面積・開き・応力・合力を分ける。線形の凝着要素だけでは、はく離開始後の損傷を予測しない。</li></ol></div>
 
 <nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#connector-why" data-jump="connector-why">なぜ結合要素か</a></li><li><a href="#connector-cweld" data-jump="connector-cweld">CWELD の接続形式</a></li><li><a href="#connector-patch" data-jump="connector-patch">パッチ結合の仕組み</a></li><li><a href="#connector-cweld-ex" data-jump="connector-cweld-ex">CWELD の例題</a></li><li><a href="#connector-cfast" data-jump="connector-cfast">CFAST</a></li><li><a href="#connector-cseam" data-jump="connector-cseam">CSEAM</a></li><li><a href="#connector-cintc" data-jump="connector-cintc">CINTC</a></li><li><a href="#connector-cohesive" data-jump="connector-cohesive">凝着要素</a></li><li><a href="#connector-choose" data-jump="connector-choose">選び方と注意点</a></li><li><a href="#connector-quiz" data-jump="connector-quiz">自分で確かめる</a></li><li><a href="#connector-sources" data-jump="connector-sources">出典</a></li></ol></nav>
 <section class="theory-section" id="connector-why"><h2>1. なぜ専用の結合要素があるのか</h2>
@@ -1178,6 +1192,7 @@ F2 も辺 2-3・1-4 について同様</p>
 <p class="element-note">PWELD の MSET・TYPE・LDMIN・LDMAX の意味と、D から剛性を作る式は、このユーザーガイドの本文に説明がなく、クイックリファレンスガイドを参照するよう書かれています。「直径 D の梁として剛性を作る」という点は、CWELD の出力が CBEAM と同じ形式で出ること、PWELD に材料と直径を入れることからの理解で、式は未確認です。</p>
 </section>
 <section class="theory-section" id="connector-patch"><h2>3. パッチ結合の仕組み ― 補助点と投影</h2>
+<p>上下の板の網目がずれていて、溶接したい位置に節点がありません。溶接点が荷重をどの周辺節点に渡すかを見ます。</p>
 <figure class="element-figure"><div data-description="直径Dの円と同じ面積の正方形の4つの角を補助点とし、上下のシェルに投影する。投影点GA・GBはその場所の要素の節点から補間され、GAとGBの間を溶接の梁がつなぐ" data-element-sketch="weldPatch"></div><figcaption>パッチ結合では、溶接の断面を「同じ面積の正方形」で表し、その4つの角（補助点）を上下の面に投影します。補助点が落ちた要素の節点の動きが、溶接の端点 GA・GB に伝わります。</figcaption></figure>
 <p>点と点の結合では、溶接の力は1つの節点だけに集中します。パッチ結合では、溶接の断面の範囲に広がる複数の節点で力を受けるので、実際の溶接の太さに近い剛さになります。CFAST の例題（5節）の出力から、仕組みを数値で確かめられます。</p>
 <ol>
@@ -1414,7 +1429,7 @@ F2 も辺 2-3・1-4 について同様</p>
 </article>
 <article data-element="rigid" data-title="剛体・補間要素（RBE2・RBE3・RBAR）" id="rigid">
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 剛体要素</span><h1>剛体・補間要素（RBE2・RBE3・RBAR）</h1>
-<p>剛に結ぶ、平均でつなぐ、地面に支える。この3つを区別し、独立・従属自由度の向きと結果への影響を確かめます。</p></div><div class="element-key"><strong>この記事で分かること</strong><ul><li>RBE2の剛体運動とRBE3の平均化が、荷重配分と変形をどう変えるか</li><li>RBE2とRBE3で逆になる独立・従属の関係と、SPCとの衝突を避ける方法</li><li>節点を増やしても直らない配置の不足、二重の従属指定、拘束の循環を見抜く</li></ul><strong>前提として読む記事</strong>：<a href="coordinates.html#systems">変位の座標系</a>、<a href="elements.html#beam">梁要素</a>。並進と回転、および力のモーメントを使います。<ol><li>RBE2は剛体運動を強制する。離れた節点の並進は、中心の並進に回転の効果を加えた値になる。</li><li>RBE3の参照点は既定で従属側。周囲の節点を剛な面にせず、変位を平均し荷重を配る。</li><li>独立・従属は節点全体ではなく成分ごとの役割。全体を支えるSPCと、節点間を結ぶ条件を分ける。</li></ol></div>
+<p>薄板の穴へ力を加えたいとします。穴の縁を硬い円盤と一緒に動かす場合と、縁の変形を許して力だけを配る場合では、同じ力を入れても板のたわみが変わります。独立・従属自由度の向きと結果への影響を確かめます。</p></div><div class="element-key"><strong>この記事で分かること</strong><ul><li>RBE2の剛体運動とRBE3の平均化が、荷重配分と変形をどう変えるか</li><li>RBE2とRBE3で逆になる独立・従属の関係と、SPCとの衝突を避ける方法</li><li>節点を増やしても直らない配置の不足、二重の従属指定、拘束の循環を見抜く</li></ul><strong>前提として読む記事</strong>：<a href="coordinates.html#systems">変位の座標系</a>、<a href="elements.html#beam">梁要素</a>。並進と回転、および力のモーメントを使います。<ol><li>RBE2は剛体運動を強制する。離れた節点の並進は、中心の並進に回転の効果を加えた値になる。</li><li>RBE3の参照点は既定で従属側。周囲の節点を剛な面にせず、変位を平均し荷重を配る。</li><li>独立・従属は節点全体ではなく成分ごとの役割。全体を支えるSPCと、節点間を結ぶ条件を分ける。</li></ol></div>
 
 <nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#rigid-overview" data-jump="rigid-overview">全体像</a></li><li><a href="#rigid-mset" data-jump="rigid-mset">独立・従属と m-set</a></li><li><a href="#rigid-method" data-jump="rigid-method">線形法とラグランジュ法</a></li><li><a href="#rigid-rbar" data-jump="rigid-rbar">RBAR</a></li><li><a href="#rigid-hinge" data-jump="rigid-hinge">RBARのヒンジ</a></li><li><a href="#rigid-rbe2" data-jump="rigid-rbe2">RBE2</a></li><li><a href="#rigid-rbe3" data-jump="rigid-rbe3">RBE3の仕組み</a></li><li><a href="#rigid-rbe3-plate" data-jump="rigid-rbe3-plate">RBE3の例題（板）</a></li><li><a href="#rigid-rbe3-ring" data-jump="rigid-rbe3-ring">RBE3の例題（取付リング）</a></li><li><a href="#rigid-compare" data-jump="rigid-compare">RBE2とRBE3の違い</a></li><li><a href="#rigid-rjoint" data-jump="rigid-rjoint">RJOINT</a></li><li><a href="#rigid-choose" data-jump="rigid-choose">選び方と注意点</a></li><li><a href="#rigid-quiz" data-jump="rigid-quiz">自分で確かめる</a></li><li><a href="#rigid-sources" data-jump="rigid-sources">出典</a></li></ol></nav>
 <section class="theory-section" id="rigid-overview"><h2>1. R型要素の全体像</h2>
@@ -1777,7 +1792,7 @@ b = Σ (x − 50)·w / Σ (x − 50)² = (2 × 50 × 6×10⁻⁴) / (4 × 50²) 
 </article>
 <article data-element="genel" data-title="一般要素（GENEL）" id="genel">
 <div class="analysis-head"><span class="analysis-sol">各要素理論 · 一般要素</span><h1>一般要素（GENEL）</h1>
-<p>試験や別の計算で分かった「力と変位の関係」を行列で組み込みます。連成、自由度の並び、剛体運動の扱いを順に確かめ、行列の数字が何を意味するかを読み解きます。</p></div><div class="element-key"><strong>この記事で分かること</strong><ul><li>荷重がゼロの方向にも変位が出る連成と、剛性K・柔性Zの関係</li><li>UIの並びを変えるとき、行列の行・列・荷重を一緒に並べ替える理由</li><li>基準側も動く部品で ui − S ud を使う意味と、釣合い・エネルギーによる検算</li></ul><strong>前提として読む記事</strong>：<a href="elements.html#scalar">ばね要素</a>、<a href="elements.html#rigid">剛体運動と拘束</a>。行列は「各変位が各力にどれだけ効くかを並べた表」として読みます。<ol><li>対角項だけでなく連成項も物理を表す。小さく見える項の省略でも別のモデルになる。</li><li>UDは剛体運動の基準であり、SPCではない。UIの弾性変位は ui − S ud で取り出す。</li><li>GENELは内部形状を持たない。変位と界面の釣合いは確認できても、内部応力は別の回収方法が必要。</li></ol></div>
+<p>形状が分からない防振部品でも、取付け口を押して、どの向きへどれだけ動くかを測れます。その測定値から、部品が周囲へ返す力をモデルに持たせます。連成、自由度の並び、剛体運動の扱いを順に確かめ、行列の数字が何を意味するかを読み解きます。</p></div><div class="element-key"><strong>この記事で分かること</strong><ul><li>荷重がゼロの方向にも変位が出る連成と、剛性K・柔性Zの関係</li><li>UIの並びを変えるとき、行列の行・列・荷重を一緒に並べ替える理由</li><li>基準側も動く部品で ui − S ud を使う意味と、釣合い・エネルギーによる検算</li></ul><strong>前提として読む記事</strong>：<a href="elements.html#scalar">ばね要素</a>、<a href="elements.html#rigid">剛体運動と拘束</a>。行列は「各変位が各力にどれだけ効くかを並べた表」として読みます。<ol><li>対角項だけでなく連成項も物理を表す。小さく見える項の省略でも別のモデルになる。</li><li>UDは剛体運動の基準であり、SPCではない。UIの弾性変位は ui − S ud で取り出す。</li><li>GENELは内部形状を持たない。変位と界面の釣合いは確認できても、内部応力は別の回収方法が必要。</li></ol></div>
 
 <nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#genel-what" data-jump="genel-what">GENELとは</a></li><li><a href="#genel-theory" data-jump="genel-theory">剛性形式と柔性形式</a></li><li><a href="#genel-ud" data-jump="genel-ud">UD と S の役割</a></li><li><a href="#genel-input" data-jump="genel-input">入力カード</a></li><li><a href="#genel-example" data-jump="genel-example">ロボットアームの例題</a></li><li><a href="#genel-choose" data-jump="genel-choose">選び方と注意点</a></li><li><a href="#genel-quiz" data-jump="genel-quiz">自分で確かめる</a></li><li><a href="#genel-sources" data-jump="genel-sources">出典</a></li></ol></nav>
 <section class="theory-section" id="genel-what"><h2>1. GENEL とは — 行列で直接書く要素</h2>
@@ -1831,6 +1846,7 @@ b = Σ (x − 50)·w / Σ (x − 50)² = (2 × 50 × 6×10⁻⁴) / (4 × 50²) 
 <p class="element-formula">平面の例：ud=(tx,ty,θ)、S=[[1,0,0],[0,1,L],[0,0,1]]<br/>ui,y = ty + Lθ + δ → (ui − S ud)y = δ<br/>fi,y = kδ、fd = −Sᵀfi → 基準側の力 −fi,y とモーメント −Lfi,y</p><figure data-connection-lab="genel-reference"></figure>
 <p>δ=0として全体回転だけを動かすと、正しい式では内力0のままです。uiをそのまま使う誤解例では、剛体運動にもばね力が出ます。また基準側へ力だけを返してモーメントを落とすと、全体の釣合いが崩れます。変位の確認と力・モーメントの確認を対にします。</p></section>
 <section class="theory-section" id="genel-input"><h2>4. 入力カードの書き方</h2>
+<p>取付け口を横へ押した試験値を入力したら、上向きに動きました。行と列がどの位置・どの成分を指すかを、試験の記録と同じ順でたどります。</p>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>部分</th><th>書く内容</th><th>並べ方</th></tr></thead>
 <tbody>

@@ -25,9 +25,9 @@
  }
  const labs = {
    hole: {
-     html:()=>ui.box('hole',ui.select('n','円周の分割数',[['16','16'],['32','32'],['48','48']],'32')+
+     html:()=>ui.box('hole',ui.select('n','円周の分割数',[['16','16'],['32','32'],['48','48']],'16')+
        ui.select('bias','径方向の間隔',[['1','均等'],['1.3','外へ1.3倍ずつ']],'1.3'),
-       '左右に引張を受ける板の中央部。青い四角形は節点を共有し、穴縁の点は上下の応力評価位置を示します。操作例の倍率は寸法の比較用です。'),
+       'まず円周を16分割から48分割に変え、穴の輪郭を見比べてください。太枠が四角形要素1個、四隅の白丸がその節点です。上下の黒丸は、分割を変えても同じ場所で応力を読むための印です。'),
      draw(el,v) {
        const n=Number(v.n), rows=holeRings(n,Number(v.bias));
        const xy=([x,y])=>[180+1.34*x,83-1.34*y];
@@ -45,11 +45,33 @@
            const x=180+side*133,end=x+side*17;
            edges+=line([[x,y],[end,y],[end-side*4,y-3]],'b2-move')+line([[end,y],[end-side*4,y+3]],'b2-move');
          }
-         edges+='<circle class="b2-pt" cx="180" cy="'+xy([0,side*15])[1]+'" r="2.5"/>';
+         edges+='<circle fill="currentColor" cx="180" cy="'+xy([0,side*15])[1]+'" r="2.8"/>';
        }
-       el.plot.innerHTML=svg('対称な円孔板の四角形分割と左右の引張',edges);
+       // Mark an outer cell so that even the finest mesh leaves room for the four nodes.
+       const i=n/8, cell=[rows[4][i],rows[5][i],rows[5][i+1],rows[4][i+1]].map(xy);
+       edges+='<g stroke="currentColor" stroke-width="2"><polygon fill="currentColor" fill-opacity=".14" points="'+cell.map(p=>p.join(',')).join(' ')+'"/>'+cell.map(([x,y])=>'<circle fill="white" stroke-width="1.2" cx="'+x+'" cy="'+y+'" r="1.8"/>').join('')+'</g>';
+       el.plot.innerHTML=svg('円孔板を左右に引く。穴を囲む四角形のうち1個と、その4節点を強調',edges);
        const at=n/8;
-       el.readout.textContent='穴半径15 mm。水平中心線上で穴に接する第1層の幅 '+fmt(rows[1][at][0]-15)+' mm。穴縁の1辺の弦長 '+fmt(30*Math.sin(Math.PI/n))+' mm。';
+       el.readout.textContent='半径15 mmの穴を '+n+' 本の直線で囲んでいます。1辺の長さ '+fmt(30*Math.sin(Math.PI/n))+' mm。穴の右端で測った第1層の幅 '+fmt(rows[1][at][0]-15)+' mm。';
+     }
+   },
+   shape: {
+     html:()=>ui.box('shape',ui.select('corner','四角形の形',[['square','20 mmの正方形'],['small','全体を半分に縮小'],['pinch','右上の角を中心近くへ'],['fold','角を中心より内側へ']],'square'),
+       '破線は元の外形、実線は形を変えた後の方眼です。右上の角と、その周りの升目を見てください。'),
+     draw(el,v){
+       const [side,corner]={square:[20,20],small:[10,10],pinch:[20,11],fold:[20,8]}[v.corner];
+       // Bilinear four-node map of the unit square. Display det J on [-1,1]².
+       const point=(u,w)=>[119+5.5*(side*u+(corner-side)*u*w),143-5.5*(side*w+(corner-side)*u*w)];
+       let grid=line([[119,143],[229,143],[229,33],[119,33],[119,143]],'b2-ghost');
+       for(let i=0;i<=4;i++){
+         const t=i/4;
+         grid+=line([point(t,0),point(t,1)],'b2-sec')+line([point(0,t),point(1,t)],'b2-sec');
+       }
+       const [x,y]=point(1,1);
+       grid+='<circle cx="'+x+'" cy="'+y+'" r="3.4" fill="white" stroke="currentColor" stroke-width="1.8"/>';
+       el.plot.innerHTML=svg('正方形の縮小と、右上の角の移動による方眼のつぶれ',grid);
+       const observation={square:'升目はどこも同じ広さです。',small:'全体が相似に縮み、升目の形は保たれます。',pinch:'角の近くだけ升目が細くなります。',fold:'角の近くで内側の線が外形からはみ出し、写像が折り返します。'}[v.corner];
+       el.readout.textContent=observation+' 左下と白丸の面積倍率（det J）は順に '+fmt(side*side/4)+'、'+fmt(side*(2*corner-side)/4)+' mm²。';
      }
    },
    reflect: {

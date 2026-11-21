@@ -7,6 +7,7 @@ window.TopicArticleData = {
       {
         "key": "overview",
         "title": "材料の基本・等方弾性",
+        "opening": "同じ長さの平たい帯を引っ張ります。幅を半分にした帯も、同じ寸法で鋼をアルミに替えた帯も、元より大きく伸びます。前者で変えたのは断面、後者で変えたのは材料です。",
         "sections": [
           "roles",
           "stress-strain",
@@ -34,6 +35,7 @@ window.TopicArticleData = {
       {
         "key": "anisotropy",
         "title": "異方性・材料方向",
+        "opening": "繊維が一方向に並ぶ板から、繊維に沿った帯と直角の帯を切り出します。同じ寸法で同じ力をかけても、伸びは違います。解析で板を90度回したとき、この違いがついてくるかを確かめます。",
         "sections": [
           "anisotropy",
           "orientation",
@@ -58,6 +60,7 @@ window.TopicArticleData = {
       {
         "key": "composites",
         "title": "複合材料・積層板",
+        "opening": "同じ繊維シートを同じ枚数だけ重ねても、表裏のどこにどの向きの層を置くかで曲げたときの反応が変わります。曲げると外側の層ほど伸び縮みするためです。",
         "sections": [
           "shell-property",
           "abd",
@@ -81,6 +84,7 @@ window.TopicArticleData = {
       {
         "key": "thermal",
         "title": "熱膨張・密度・減衰",
+        "opening": "日なたに置いた金属の棒は温まると長くなります。片端を滑れるようにする場合と、両端を壁で止める場合で、長さの変化と壁を押す力を比べます。",
         "sections": [
           "thermal",
           "mass-damping"
@@ -102,6 +106,7 @@ window.TopicArticleData = {
       {
         "key": "plasticity",
         "title": "塑性・試験データ",
+        "opening": "針金を少し曲げて手を離すと戻り、大きく曲げると曲がりが残ります。押している最中の硬さだけでは、手を離した後の形まで決まりません。",
         "sections": [
           "plasticity",
           "test-data",
@@ -124,6 +129,7 @@ window.TopicArticleData = {
       {
         "key": "diagnosis",
         "title": "材料の検証",
+        "opening": "引張試験に合わせたはずの板が、計算では大きく伸びました。材料を替える前に、断面積、力の単位、繊維の向きを一つずつ元の試験と比べます。",
         "sections": [
           "diagnosis"
         ],
@@ -164,6 +170,7 @@ window.TopicArticleData = {
       {
         "key": "overview",
         "title": "境界条件・自由度・支持",
+        "opening": "棚板の両端を台に載せて中央を押すと、板の端は傾きます。同じ板を端まで万力で挟むと、その傾きが止まります。支持を選ぶ出発点は、実物が許す動きを見つけることです。",
         "sections": [
           "meaning",
           "dofs",
@@ -186,6 +193,7 @@ window.TopicArticleData = {
       {
         "key": "geometry",
         "title": "剛体運動・座標・対称",
+        "opening": "硬い板を一直線に並ぶ3点で支えます。各点が動かなくても、板はその線を軸に回れる場合があります。どの位置でどの動きを止めたかを図にしてみます。",
         "sections": [
           "rigid-body",
           "coordinates",
@@ -209,6 +217,7 @@ window.TopicArticleData = {
       {
         "key": "spc",
         "title": "SPC・指定変位",
+        "opening": "配管の支持台が2 mm沈んだとします。分かっているのは台の移動量で、配管を通じて台にかかる力は未知です。ここでは、動かない支持と、動く量が決まった支持を扱います。",
         "sections": [
           "sets",
           "imposed",
@@ -230,6 +239,7 @@ window.TopicArticleData = {
       {
         "key": "mpc",
         "title": "MPC・独立と従属",
+        "opening": "てこの一端が1 mm上がると、もう一端が2 mm下がる機構を考えます。両端を地面に固定しなくても、二つの変位の比は決められます。",
         "sections": [
           "mpc",
           "work",
@@ -255,6 +265,7 @@ window.TopicArticleData = {
       {
         "key": "connections",
         "title": "結合と支持の選択",
+        "opening": "2本の梁の端を同じ位置に置きます。溶接すれば角度を保ち、ピンで留めれば互いに回れます。画面上の位置が同じでも、伝わる力とモーメントは接合方法で変わります。",
         "sections": [
           "coincident",
           "rbe",
@@ -279,6 +290,7 @@ window.TopicArticleData = {
       {
         "key": "verification",
         "title": "自動拘束と結果の検証",
+        "opening": "計算は終了したのに、荷重を受けるはずの支持の反力がゼロでした。どこか別の点が支えていないか、まず変形の形と反力の位置を照合します。",
         "sections": [
           "autospc",
           "freebody",
@@ -302,6 +314,8 @@ window.TopicArticleData = {
       {
         "key": "soil-dynamics",
         "title": "地盤の動的境界",
+        "opening": "建物の基礎は、左右にも下にも続く地盤に載っています。計算ではその一部を切り出します。図の破線を動かして、要素で残した土と、側面・底面の条件で表す土の境目を見てください。",
+        "previewSection": "soil-extent",
         "sections": ["soil-extent", "soil-side", "soil-base", "soil-check"],
         "questions": [14, 15, 16],
         "goals": ["基礎・地表・地層を描き、要素で計算する範囲を決める", "側面と底面にどんな地盤を想定したか、波の向きで説明する"],
@@ -310,6 +324,7 @@ window.TopicArticleData = {
       {
         "key": "viscous",
         "title": "波の反射と粘性境界",
+        "opening": "地盤の中で短い波が観測点を通った後、遅れて二つ目の山が現れました。境界を遠ざけると二つ目だけが遅くなるなら、モデルの端で折り返した波を疑えます。",
         "sections": [
           "reflection",
           "impedance",
@@ -352,6 +367,7 @@ window.TopicArticleData = {
       {
         "key": "overview",
         "title": "荷重の基本・集中荷重",
+        "opening": "ドアを同じ力で押しても、取っ手と蝶番のすぐ横では回しやすさが違います。力をモデルに入れるときは、何Nかに加えて、どこをどの向きに押したかを残します。",
         "sections": [
           "meaning",
           "units",
@@ -376,6 +392,7 @@ window.TopicArticleData = {
       {
         "key": "distributed",
         "title": "分布荷重と等価節点荷重",
+        "opening": "棚の中央に重りを一つ置く場合と、同じ重さの本を棚いっぱいに並べる場合。左右の支えが受ける合計は同じでも、棚の曲がり方は変わります。",
         "sections": [
           "line",
           "projection",
@@ -404,6 +421,7 @@ window.TopicArticleData = {
       {
         "key": "inertia",
         "title": "自重・加速度・回転",
+        "opening": "空の棚と、機器を載せた棚を同じように横へ加速させます。重い機器を付けた方では固定部がより大きな力を負担します。質量がどこにあるかを先に考えます。",
         "sections": [
           "mass",
           "gravity",
@@ -425,6 +443,7 @@ window.TopicArticleData = {
       {
         "key": "initial",
         "title": "初期ひずみ・温度荷重",
+        "opening": "配管を温め、伸びる端をストッパーで止めます。温度は同じでも、端が動ける間と止めた後では、受け持つ力が違います。",
         "sections": [
           "initial",
           "thermal",
@@ -447,6 +466,7 @@ window.TopicArticleData = {
       {
         "key": "cases",
         "title": "ケースと結果の組合せ",
+        "opening": "機械の自重は常に下向き、横風は左右どちらからも来ます。自重＋右風、自重＋左風を別々に作ると、支点が浮きやすいのはどちらかを比べられます。",
         "sections": [
           "sets",
           "combination",
@@ -468,6 +488,7 @@ window.TopicArticleData = {
       {
         "key": "applications",
         "title": "部分モデル・予荷重・動荷重",
+        "opening": "大きな架台のうち、一つの取付金具だけを細かく解析します。架台から切り離した面に、元の計算で伝わっていた力と曲げを引き継ぐ必要があります。",
         "sections": [
           "transfer",
           "preload",
@@ -490,6 +511,7 @@ window.TopicArticleData = {
       {
         "key": "verification",
         "title": "荷重の検証",
+        "opening": "右向きに押したつもりの板が下に曲がりました。荷重矢印、変形の向き、支点反力を順に見ると、値の大きさを調整する前に方向の取り違えを探せます。",
         "sections": [
           "diagnosis"
         ],
@@ -528,6 +550,7 @@ window.TopicArticleData = {
       {
         "key": "overview",
         "title": "接触の基本・開閉",
+        "opening": "机の上の金属板を押せば机が支えます。板を持ち上げると、机は板を下へ引き止めません。押す力がある場所と、すきまがある場所を分けるのが接触の出発点です。",
         "sections": [
           "meaning",
           "normal",
@@ -552,6 +575,7 @@ window.TopicArticleData = {
       {
         "key": "friction",
         "title": "摩擦・固着・滑り",
+        "opening": "机に置いた板を少しずつ横へ引きます。最初は動かず、ある力で滑り始めます。上から押さえる力を変えると、その切り替わりも変わります。",
         "sections": [
           "friction",
           "history",
@@ -573,6 +597,7 @@ window.TopicArticleData = {
       {
         "key": "surfaces",
         "title": "接触面のモデル化",
+        "opening": "丸い先端を板へ押し付けます。中心の1点だけで接触を表せば当たり始めは追えても、荷重とともに広がる接触面や面圧の分布までは追えません。",
         "sections": [
           "surface",
           "mesh",
@@ -596,6 +621,7 @@ window.TopicArticleData = {
       {
         "key": "products",
         "title": "製品・SOL別の接触設定",
+        "opening": "組み立て時には隙間のある2枚の板が、運転時の荷重で当たります。同じ現象をMSC版とSiemens版で設定するときは、どの面を組にするか、どの段階で荷重をかけるかから照合します。",
         "sections": [
           "msc101",
           "msc400",
@@ -617,6 +643,7 @@ window.TopicArticleData = {
       {
         "key": "bolts",
         "title": "締付け・保持・外力",
+        "opening": "2枚の板をボルトで締めてから、板を引き離します。外力を加える前からボルトは伸び、板は圧縮されています。その初期状態から力の分担を追います。",
         "sections": [
           "preload",
           "stiffness",
@@ -644,6 +671,7 @@ window.TopicArticleData = {
       {
         "key": "management",
         "title": "トルク・予荷重の変化・詳細化",
+        "opening": "トルクレンチが同じ値で止まった2本のボルトでも、ねじ面の潤滑状態が違えば軸力はそろわないことがあります。管理した量と、本当に知りたい締付け力を分けます。",
         "sections": [
           "torque",
           "loss",
@@ -664,6 +692,7 @@ window.TopicArticleData = {
       {
         "key": "verification",
         "title": "収束と結果の検証",
+        "opening": "押し付けた部品の端だけに赤い面圧が出ました。最大値の前に、接触跡の広さ、開いた部分、押した力に見合う合力があるかを確認します。",
         "sections": [
           "convergence",
           "diagnosis",
@@ -702,6 +731,7 @@ window.TopicArticleData = {
       {
         "key": "overview",
         "title": "減衰の意味・式・単位",
+        "opening": "たわませた薄い定規から手を離すと、先端は何度も往復し、振れ幅が小さくなります。往復の速さと、何往復で振れが弱くなるかは別々に観察できます。",
         "sections": [
           "meaning",
           "equation",
@@ -723,6 +753,7 @@ window.TopicArticleData = {
       {
         "key": "response",
         "title": "自由振動・共振・構造減衰",
+        "opening": "同じ台車でも、押して手を離す場合と、同じ間隔で押し続ける場合では、時間を追うと違う揺れになります。減衰が効いたことをどこで読むかも変わります。",
         "sections": [
           "free",
           "harmonic",
@@ -743,6 +774,7 @@ window.TopicArticleData = {
       {
         "key": "identify",
         "title": "実測からの同定",
+        "opening": "振動試験で、手を離した後の山が順に10、8、6.4 mmと記録されました。山と山の時間から周期を、同じ向きの山の減り方から減衰を推定できます。",
         "sections": [
           "identify"
         ],
@@ -762,6 +794,7 @@ window.TopicArticleData = {
       {
         "key": "distribution",
         "title": "モード・局所・Rayleigh",
+        "opening": "揺れる架台にダンパーを1本取り付けます。両端が一緒に動く位置では、架台が大きく振れてもダンパーは伸び縮みしません。配置と揺れ方を対にして考えます。",
         "sections": [
           "modal",
           "local",
@@ -786,6 +819,7 @@ window.TopicArticleData = {
       {
         "key": "implementation",
         "title": "過渡・材料・入力の対応",
+        "opening": "共振試験で得た減衰を使って、今度は短い衝撃の後の揺れを予測します。同じ「2 %」でも、何の振動数・何のモデルに与えた値かを確かめてから入力します。",
         "sections": [
           "transient",
           "implementation",
@@ -807,6 +841,7 @@ window.TopicArticleData = {
       {
         "key": "verification",
         "title": "複素固有値・非線形・検証",
+        "opening": "衝撃後の波形が実測より早く小さくなりました。継手の摩擦で失ったのか、減衰を二重に入れたのか、時間刻みで波形を鈍らせたのか。設定を一つずつ戻して調べます。",
         "sections": [
           "complex",
           "nonlinear",
@@ -845,7 +880,9 @@ window.TopicArticleData = {
     "articles": [
       {
         "key": "sizing",
-        "title": "評価位置と円孔のCQUAD4分割",
+        "title": "穴のある板を、どこで細かく分けるか",
+        "opening": "中央に丸い穴のある薄板を、左右に引っ張ります。穴の中には力を伝える材料がありません。力は穴の上下の細い部分を通ります。板全体の伸びと、穴の上端の応力。どちらを知りたいかで、細かく分けたい場所が変わります。",
+        "previewSection": "ring",
         "sections": [
           "target",
           "ring",
@@ -867,6 +904,7 @@ window.TopicArticleData = {
       {
         "key": "transitions",
         "title": "粗密の遷移と節点の接続",
+        "opening": "穴の周りだけ細かく刻んだら、外側の粗い四角形の辺の途中に節点が来ました。画面を拡大すると線は触れています。このまま板を引っ張ると、境目を越えて力は伝わるでしょうか。",
         "sections": [
           "transition"
         ],
@@ -886,6 +924,8 @@ window.TopicArticleData = {
       {
         "key": "quality",
         "title": "要素形状とヤコビアン",
+        "opening": "同じ4本の辺で囲んでも、四隅の一つを反対の角へ押し込むと、片隅に面積がほとんど残りません。外から見た細長さと、内側がつぶれていないかは、別々に調べます。",
+        "previewSection": "jacobian",
         "sections": [
           "shape",
           "jacobian"
@@ -906,6 +946,7 @@ window.TopicArticleData = {
       {
         "key": "convergence",
         "title": "応力・固有振動数のメッシュ収束",
+        "opening": "円孔の上端に印を付けて応力を読むと、粗い分割と細かい分割で違う値が出ました。次もその印を見ます。毎回「いちばん赤い要素」だけを選ぶと、違う場所を比べてしまいます。",
         "sections": [
           "study",
           "modes"
@@ -926,6 +967,7 @@ window.TopicArticleData = {
       {
         "key": "waves",
         "title": "波長・せん断波速度・時間刻み",
+        "opening": "地盤を伝わる揺れを、離れた2点で観測します。点と点の間に波の山と谷が収まると、両端の値だけでは途中の形を捉えきれません。点を空間にどれだけ置くかと、時間をどれだけ細かく記録するかを考えます。",
         "sections": [
           "wavelength",
           "time"
