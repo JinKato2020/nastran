@@ -15,6 +15,15 @@ with sync_playwright() as pw:
         assert "薄板" in intro.inner_text()
         assert page.locator("#theory-detail > figure[data-mesh-wave-lab=hole]").count() == 1
         assert page.locator("[data-lab-input=n]").input_value() == "16"
+        for feature, expected_lines in (("shoulder", (7,13)), ("holes", (11,14))):
+            figure = page.locator("#mesh-features [data-mesh-feature="+feature+"]")
+            assert figure.locator("svg[role=img]").count()==3
+            views = figure.locator(".mesh-feature-pair svg")
+            for index, count in enumerate(expected_lines):
+                assert views.nth(index).locator("polyline").count()==count
+                assert views.nth(index).bounding_box()["width"] >= 95
+            assert views.first.get_attribute("viewBox")==views.last.get_attribute("viewBox")
+        assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
         for n in (16, 32, 48):
             page.locator("[data-lab-input=n]").select_option(str(n))
             for bias in ("1", "1.3"):
