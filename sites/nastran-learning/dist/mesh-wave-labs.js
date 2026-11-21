@@ -24,6 +24,15 @@
    return rings;
  }
  const labs = {
+   hanging: {
+     html:()=>ui.box('hanging',ui.select('motion','節点20だけを',[['start','元の位置に置く'],['move','左へずらす']],'start'),
+       '黒丸の10・30・50は左右が共有する節点、白いひし形の20・40は左側だけの節点です。ほかの節点をその場に残して20だけをずらし、両側が一緒に動くかを見る模式図です。'),
+     draw(el,v){
+       const moved=v.motion==='move';
+       el.plot.innerHTML=window.MeshFeatureFigures.mismatched(moved);
+       el.readout.textContent=moved?'左の要素は20について動き、右の辺10–30は元の位置に残ります。境目に白いすきまが開きます。':'左の角20が、右の要素の辺10–30の途中に重なっています。右の要素には節点20があるでしょうか。';
+     }
+   },
    hole: {
      html:()=>ui.box('hole',ui.select('n','円周の分割数',[['16','16'],['32','32'],['48','48']],'16')+
        ui.select('bias','径方向の間隔',[['1','均等'],['1.3','外へ1.3倍ずつ']],'1.3'),

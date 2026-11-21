@@ -916,17 +916,17 @@
     ],
     "meshTheory": [
       {
-        "title": "穴のある板を、どこで細かく分けるか",
-        "description": "板を引く例で、穴の輪郭と、穴のそばに並ぶ四角形の幅を見比べる",
+        "title": "接続の基本形：長方形の4分割から2分割へ",
+        "description": "長方形の板で、縦4段の網目を2段につなぐ。節点を一つ動かして接続を確かめる",
         "path": "theory.html",
-        "hash": "#mesh",
+        "hash": "#mesh/transitions",
         "kind": "メッシュ分割の理論"
       },
       {
-        "title": "粗密の遷移と節点の接続",
-        "description": "穴の周りの細かい網目を、外側の粗い網目へどうつなぐか",
+        "title": "応用：穴のある板を、どこで細かく分けるか",
+        "description": "板を引く例で、穴の輪郭と、穴のそばに並ぶ四角形の幅を見比べる",
         "path": "theory.html",
-        "hash": "#mesh/transitions",
+        "hash": "#mesh/sizing",
         "kind": "メッシュ分割の理論"
       },
       {

@@ -67,5 +67,66 @@
    ['穴と穴の間に1段','同じ幅の中に4段'],
    '白い円が穴で、淡い青が残った板です。下の二つは同じ帯の拡大図。黒丸は向かい合う穴の縁です。指で上の黒丸から下の黒丸までたどると、途中に何段の要素があるかを数えられます。');
  }
- window.MeshFeatureFigures={shoulder,holes};
+ // All three views show the same strip. The ends have four/either two or four
+ // element edges along their height. Cells reuse their neighbours' vertices.
+ function stripCells(xs,ys){
+  const cells=[];
+  for(let i=1;i<xs.length;i++)for(let j=1;j<ys.length;j++){
+   cells.push([[xs[i-1],ys[j-1]],[xs[i],ys[j-1]],[xs[i],ys[j]],[xs[i-1],ys[j]]]);
+  }
+  return cells;
+ }
+ const levels=[24,49,74,99,124], coarseLevels=[24,74,124];
+ const fineStrip=stripCells([29,54,79,104,129],levels);
+ function bridgeCells(){
+  const a=[129,24],b=[129,49],c=[129,74],e=[193,24],f=[193,74],p=[163,49],v=[159,74];
+  const upper=[[a,e,p,b],[e,f,v,p],[b,p,v,c]];
+  return [...upper,...upper.map(cell=>cell.map(([x,y])=>[x,148-y]).reverse())];
+ }
+ function tiles(cells,fill){
+  return cells.map(cell=>'<polygon points="'+points(cell)+'" fill="'+fill+'" stroke="'+edge+'" stroke-width="1.15" stroke-linejoin="round"/>').join('');
+ }
+ function joint(x,y){
+  return '<circle cx="'+x+'" cy="'+y+'" r="2.5" fill="'+edge+'"/>';
+ }
+ function countEdge(x,ys){
+  const left=x<29, direction=left?1:-1;
+  return '<g fill="none" stroke="'+grid+'" stroke-width="1"><path d="M'+x+' '+ys[0]+' V'+ys.at(-1)+'"/>'+
+   ys.map(y=>'<path d="M'+(x-2)+' '+y+' h4"/>').join('')+'</g>'+
+   '<text x="'+(x-8*direction)+'" y="78" text-anchor="middle" fill="'+edge+'" font-size="14" font-weight="700">'+(ys.length-1)+'</text>';
+ }
+ function stripView(label,left,right,rightEdge,extras=''){
+  return drawing(label,'0 8 323 132',left+right+extras+countEdge(19,levels)+countEdge(303,rightEdge));
+ }
+ function bridge(){
+  const middle=bridgeCells();
+  const nodes=new Map(middle.flat().map(p=>[p.join(','),p]));
+  const picture=stripView('四角形だけで左辺の4分割を右辺の2分割につなぐ。中央の六つの四角形は上下対称。',
+   tiles(fineStrip,plateFill)+tiles(middle,'#ffe6bd'),tiles(stripCells([193,243,293],coarseLevels),plateFill),coarseLevels,
+   Array.from(nodes.values(),([x,y])=>joint(x,y)).join(''));
+  return '<figure class="element-figure" data-mesh-strip="bridge">'+picture+
+   '<figcaption>左端は縦に4段、右端は2段です。中央の色の付いた6枚がつなぎ目。黒丸はその四角形の角です。上半分を見れば、左の2段を中央の3枚で右の1段につないでいます。下半分はその鏡写しです。</figcaption></figure>';
+ }
+ function spacing(){
+  const cells=stripCells([129,159,196,240,293],levels);
+  const picture=stripView('左辺も右辺も4分割。右へ進むにつれて横幅だけが増える四角形。',
+   tiles(fineStrip,plateFill),tiles(cells,plateFill),levels);
+  return '<figure class="element-figure" data-mesh-strip="spacing">'+picture+
+   '<figcaption>横線を1本、左から右へ指でたどってください。そのまま右端まで続きます。四角形を横長にしただけなので、右端を縦に数えると4段のままです。</figcaption></figure>';
+ }
+ function mismatched(moved){
+  const seam=129;
+  const cells=fineStrip.map(cell=>cell.map(([x,y])=>[moved&&x===seam&&y===49?x-14:x,y]));
+  const right=stripCells([seam,193,243,293],coarseLevels);
+  const x20=moved?seam-14:seam;
+  const marks=levels.map((y,i)=>{
+   const x=i===1?x20:seam;
+   const marker=i%2===0?joint(x,y):'<path d="M'+x+' '+(y-4)+' l4 4 -4 4 -4 -4 Z" fill="white" stroke="#973e16" stroke-width="1.8"/>';
+   const label='<text x="'+(seam+8)+'" y="'+(y-4)+'" font-size="12" fill="'+edge+'">'+(i+1)*10+'</text>';
+   return marker+label;
+  }).join('');
+  return stripView('境界の10・30・50は共有し、20と40は左側だけの節点。'+(moved?'節点20を動かすと右の辺との間にすきまが開く。':'境目は重なって見える。'),
+   tiles(cells,plateFill),tiles(right,'#f6f9fc'),coarseLevels,marks);
+ }
+ window.MeshFeatureFigures={shoulder,holes,bridge,spacing,mismatched};
 })();

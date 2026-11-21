@@ -3,6 +3,27 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 DIST = Path(__file__).resolve().parents[2] / "sites/nastran-learning/dist"
+
+def check_quad_strip(figure, right_count):
+    """Each interior edge must appear twice with opposite winding, with no hanging nodes."""
+    sides = {}
+    for raw in figure.locator("polygon").evaluate_all("(els) => els.map(el => el.getAttribute('points'))"):
+        corners = [tuple(map(float, p.split(","))) for p in raw.split()]
+        assert len(set(corners)) == len(corners) == 4
+        for i, a in enumerate(corners):
+            b, c = corners[(i+1)%4], corners[(i+2)%4]
+            assert (b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]) > 0
+            sides.setdefault(tuple(sorted((a,b))), []).append((a,b))
+    boundary=[]
+    for (a,b), uses in sides.items():
+        if len(uses)==1:
+            assert a[0]==b[0] and a[0] in (29,293) or a[1]==b[1] and a[1] in (24,124)
+            boundary.append((a,b))
+        else:
+            assert len(uses)==2 and uses[1]==uses[0][::-1]
+    for x, expected in [(29,4),(293,right_count)]:
+        assert sum(a[0]==b[0]==x for a,b in boundary)==expected
+
 with sync_playwright() as pw:
     browser = pw.chromium.launch(channel="msedge", headless=True)
     page = browser.new_page()
@@ -11,6 +32,20 @@ with sync_playwright() as pw:
     for width in (320, 390, 768):
         page.set_viewport_size({"width": width, "height": 844})
         page.goto((DIST / "theory.html").as_uri() + "#mesh")
+        assert "4分割から2分割" in page.locator("#theory-detail h1").inner_text()
+        bridge=page.locator("#theory-detail > [data-mesh-strip=bridge]")
+        check_quad_strip(bridge,2)
+        check_quad_strip(page.locator("[data-mesh-strip=spacing]"),4)
+        test=page.locator("[data-mesh-wave-lab=hanging]")
+        drawings=[]
+        for option, phrase in (("start","右の要素"),("move","すきま")):
+            test.locator("select").select_option(option)
+            assert phrase in test.locator(".theory-lab-readout").inner_text()
+            drawings.append(test.locator("svg polygon").evaluate_all("(els)=>els.map(e=>e.getAttribute('points'))"))
+        assert sum(a!=b for a,b in zip(*drawings))==2
+        page.locator("[data-topic-picker]").select_option("sizing")
+        page.wait_for_function("document.querySelector('#theory-detail').dataset.article==='sizing'")
+        assert "応用" in page.locator("#theory-detail h1").inner_text()
         intro = page.locator("#theory-detail .analysis-head p")
         assert "薄板" in intro.inner_text()
         assert page.locator("#theory-detail > figure[data-mesh-wave-lab=hole]").count() == 1
