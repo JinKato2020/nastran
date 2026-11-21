@@ -114,19 +114,19 @@
   return '<figure class="element-figure" data-mesh-strip="spacing">'+picture+
    '<figcaption>横線を1本、左から右へ指でたどってください。そのまま右端まで続きます。四角形を横長にしただけなので、右端を縦に数えると4段のままです。</figcaption></figure>';
  }
- function mismatched(moved){
-  const seam=129;
-  const cells=fineStrip.map(cell=>cell.map(([x,y])=>[moved&&x===seam&&y===49?x-14:x,y]));
-  const right=stripCells([seam,193,243,293],coarseLevels);
-  const x20=moved?seam-14:seam;
+ function edgeConnection(fineMotion,coarseMotion,label){
+  const seam=129,scale=6;
+  const shift=(cells,displacements,heights)=>cells.map(cell=>cell.map(([x,y])=>
+   [x===seam?x+scale*displacements[heights.indexOf(y)]:x,y]));
+  const left=shift(fineStrip,fineMotion,levels);
+  const right=shift(stripCells([seam,193,243,293],coarseLevels),coarseMotion,coarseLevels);
+  const original='<path d="M129 24 V124" stroke="#687a8e" stroke-width="1" stroke-dasharray="3 3" fill="none"/>';
   const marks=levels.map((y,i)=>{
-   const x=i===1?x20:seam;
+   const x=seam+scale*fineMotion[i];
    const marker=i%2===0?joint(x,y):'<path d="M'+x+' '+(y-4)+' l4 4 -4 4 -4 -4 Z" fill="white" stroke="#973e16" stroke-width="1.8"/>';
-   const label='<text x="'+(seam+8)+'" y="'+(y-4)+'" font-size="12" fill="'+edge+'">'+(i+1)*10+'</text>';
-   return marker+label;
+   return marker+'<text x="'+(x+7)+'" y="'+(y-4)+'" font-size="12" fill="'+edge+'">'+(i+1)*10+'</text>';
   }).join('');
-  return stripView('境界の10・30・50は共有し、20と40は左側だけの節点。'+(moved?'節点20を動かすと右の辺との間にすきまが開く。':'境目は重なって見える。'),
-   tiles(cells,plateFill),tiles(right,'#f6f9fc'),coarseLevels,marks);
+  return stripView(label,tiles(left,plateFill),tiles(right,'#f6f9fc'),coarseLevels,original+marks);
  }
- window.MeshFeatureFigures={shoulder,holes,bridge,spacing,mismatched};
+ window.MeshFeatureFigures={shoulder,holes,bridge,spacing,edgeConnection};
 })();

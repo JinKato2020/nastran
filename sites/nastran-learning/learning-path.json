@@ -917,7 +917,7 @@
     "meshTheory": [
       {
         "title": "接続の基本形：長方形の4分割から2分割へ",
-        "description": "長方形の板で、縦4段の網目を2段につなぐ。節点を一つ動かして接続を確かめる",
+        "description": "長方形の板で4段の網目を2段につなぐ。節点を共有する方法とMPCで辺に合わせる方法を比べる",
         "path": "theory.html",
         "hash": "#mesh/transitions",
         "kind": "メッシュ分割の理論"

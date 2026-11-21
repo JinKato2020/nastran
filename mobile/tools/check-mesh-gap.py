@@ -37,12 +37,24 @@ with sync_playwright() as pw:
         check_quad_strip(bridge,2)
         check_quad_strip(page.locator("[data-mesh-strip=spacing]"),4)
         test=page.locator("[data-mesh-wave-lab=hanging]")
-        drawings=[]
-        for option, phrase in (("start","右の要素"),("move","すきま")):
-            test.locator("select").select_option(option)
-            assert phrase in test.locator(".theory-lab-readout").inner_text()
-            drawings.append(test.locator("svg polygon").evaluate_all("(els)=>els.map(e=>e.getAttribute('points'))"))
-        assert sum(a!=b for a,b in zip(*drawings))==2
+        for motion, ends in (("gradient",(0,2,4)),("together",(2,2,2)),("rest",(0,0,0))):
+            test.locator("[data-lab-input=motion]").select_option(motion)
+            mids=((ends[0]+ends[1])/2,(ends[1]+ends[2])/2)
+            for connection, expected in (("mpc",mids),("none",(0,0)),("one",ends[:2])):
+                test.locator("[data-lab-input=connection]").select_option(connection)
+                readout=test.locator(".theory-lab-readout").inner_text()
+                assert f"節点20は {expected[0]:g} mm、節点40は {expected[1]:g} mm" in readout
+                assert f"ずれは {abs(expected[0]-mids[0]):g} mm" in readout
+                polygons=test.locator("svg polygon").evaluate_all("(els)=>els.map(e=>e.getAttribute('points'))")
+                quads=[[tuple(map(float,v.split(','))) for v in poly.split()] for poly in polygons]
+                # Read the fine edge and the matching coarse edge from the drawn geometry.
+                for i,y in enumerate((49,99)):
+                    coarse=quads[16+i]
+                    mid_x=(coarse[0][0]+coarse[3][0])/2
+                    fine_x=quads[12+2*i][2][0]
+                    assert quads[12+2*i][2][1]==y
+                    assert abs(fine_x-mid_x)==6*abs(expected[i]-mids[i])
+        assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
         page.locator("[data-topic-picker]").select_option("sizing")
         page.wait_for_function("document.querySelector('#theory-detail').dataset.article==='sizing'")
         assert "応用" in page.locator("#theory-detail h1").inner_text()

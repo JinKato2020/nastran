@@ -25,12 +25,22 @@
  }
  const labs = {
    hanging: {
-     html:()=>ui.box('hanging',ui.select('motion','節点20だけを',[['start','元の位置に置く'],['move','左へずらす']],'start'),
-       '黒丸の10・30・50は左右が共有する節点、白いひし形の20・40は左側だけの節点です。ほかの節点をその場に残して20だけをずらし、両側が一緒に動くかを見る模式図です。'),
+     html:()=>ui.box('hanging',ui.select('connection','20・40のつなぎ方',[['mpc','MPCで両端から補間'],['none','つながない'],['one','上の端だけに合わせる']],'mpc')+
+       ui.select('motion','10・30・50の右向き変位',[['gradient','順に 0・2・4 mm'],['together','すべて 2 mm'],['rest','すべて 0 mm']],'gradient'),
+       '破線は元の境目、黒丸の10・30・50は共有節点です。白いひし形の20・40が、動いた後の粗い辺に乗るかを見比べてください。動きを拡大した模式図です。「つながない」場合は、許される動きの一例として20・40を元の位置に描いています。'),
      draw(el,v){
-       const moved=v.motion==='move';
-       el.plot.innerHTML=window.MeshFeatureFigures.mismatched(moved);
-       el.readout.textContent=moved?'左の要素は20について動き、右の辺10–30は元の位置に残ります。境目に白いすきまが開きます。':'左の角20が、右の要素の辺10–30の途中に重なっています。右の要素には節点20があるでしょうか。';
+       const ends={gradient:[0,2,4],together:[2,2,2],rest:[0,0,0]}[v.motion];
+       const [u10,u30,u50]=ends;
+       const mid=[(u10+u30)/2,(u30+u50)/2];
+       const [u20,u40]={mpc:mid,none:[0,0],one:[u10,u30]}[v.connection];
+       const gap=Math.abs(u20-mid[0]);
+       const readings='節点20は '+u20+' mm、節点40は '+u40+' mm。';
+       let observation='節点20と粗い辺の中点のずれは '+gap+' mm。';
+       if(v.connection==='mpc')observation+='両方の辺が全長で重なります。';
+       else if(!gap)observation+='今は位置が合っています。「順に 0・2・4 mm」にすると違いが現れます。';
+       else observation+='動いた粗い辺と、細かい側の間にすきまが見えます。';
+       el.plot.innerHTML=window.MeshFeatureFigures.edgeConnection([u10,u20,u30,u40,u50],ends,readings+observation);
+       el.readout.textContent=readings+observation;
      }
    },
    hole: {
