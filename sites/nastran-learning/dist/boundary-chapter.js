@@ -151,6 +151,33 @@
  ['ずれに比例して力を伝える','別GRIDの間に方向と剛性を指定したばね','軸をそろえた両点の相対変位とばね力'],
  ['離れると力を伝えず、当たると押す','既知の点対にはCGAP／PGAP。接触位置が移るなら面接触を検討','初期すきま、接触の開閉、圧縮力、開いた後の荷重経路']])+
  p('接合部に重複節点があるからといって一括統合すると、意図したヒンジ・ばね・接触を消してしまいます。反対に連続材の節点が未結合だと、自由辺や部品の相対運動が現れます。<a href="elements.html#rigid-hinge">RBARヒンジの手計算</a> · <a href="elements.html#gap">GAP要素の使い方</a>。')],
+ ['soil-extent','建物・基礎・地層を一枚の断面に描く',
+ p('例は、軟らかい地層の上に建つ建物の地震応答です。知りたい量を「基礎Aの水平加速度と、建物が傾く量」と決めます。まず基礎を描き、その周囲で変形する土、揺れを増幅させる地層、その下の硬い層を描きます。ここまでは実際の断面です。次に、計算する範囲だけを線で囲みます。')+
+ '<figure data-soil-lab="soilExtent"></figure>'+
+ p('<strong>地表と地層の境目は実在します。</strong> 建物が載っていない地表には、空気からの力を無視するなら表面力ゼロを与えます。ここで波が反射するのは物理現象です。土と岩の境目では、密度や波速の違いに応じて波が反射・透過します。一方、図の左右と底の太線は計算を打ち切った位置です。実物の壁として扱うと、現地にない反射が加わります。')+
+ p('側面は、基礎の近くで土が強く変形する範囲や、検討に含める斜面・地層の段差の外に置きます。底面は、地層調査と入力地震動がどの深さを表すかから決めます。図では岩の上端で切る場合と、岩の一部も要素にする場合を比較できます。底を深くしたら、その深さに対応する物性と入力波も見直します。図の20 m・40 mは感度を調べる例です。')],
+ ['soil-side','側面には、建物の外まで続く地盤を表す',
+ '<figure data-soil-lab="soilSide"></figure>'+
+ p('<strong>建物をいったん外したら、同じ深さの土はどう揺れるか。</strong> これが自由地盤の揺れです。水平に広がる成層地盤に下から鉛直に平面波が入る例なら、同じ地層を持つ縦一列のモデルで深さごとの動きを計算できます。図のFFがその列です。地表の「自由面」は表面力に関する条件で、自由地盤は地中も含む基準の応答です。')+
+ A.table(['側面の扱い','この断面で起きること'],[
+ ['側面を固定する','側面の変位がゼロになり、そこに届いた波が反射して基礎側へ戻ります。自然に揺れる遠方地盤を表したいときの誤設定を確かめる比較用です。'],
+ ['自由地盤境界','同じ深さで本体地盤とFFを結びます。代表的な方式ではFFから伝わる力を与えたうえで、両者の速度差にダンパーが働きます。速度がともに10 cm/sならダンパー力はゼロ。本体が12、FFが10 cm/sなら差の2 cm/sに抵抗します。'],
+ ['エネルギー伝達境界','切断面の外へ同じ水平地層が続くと仮定し、外部地盤の波動解から、境界の動きに対して外側が返す力を求めます。建物から外へ進む波が運ぶエネルギーを表せます。外側に急な地層変化がある場合は、その変化を要素で含めるか、外部の仮定を見直します。']])+
+ p('底から地震を入れる場合、側面でも元の地盤は揺れます。側面の全節点を静止点へのダンパーでつなぐと、建物がなくても地盤に抵抗力が生じ得ます。自由地盤とつなぐ理由は、入ってくる地震の揺れを保ちながら、建物の影響で外へ向かう波を受け渡すことにあります。')],
+ ['soil-base','底面では、入れたい波と出ていく波を分ける',
+ '<figure data-soil-lab="soilBase"></figure>'+
+ p('図は水平に揺れるせん断波（S波）が下から来る場合です。上向きの矢印は<strong>波が進む方向</strong>、左右の両矢印は<strong>土の粒子が動く方向</strong>です。建物や地表・地層境界で生じた波の一部は下向きに戻ります。そこで、基盤より下をどう扱うかを決めます。')+
+ A.table(['底面の選択','与えるもの','下へ戻る波の扱い'],[
+ ['剛基盤を仮定','底面の運動を指定する。地盤内のその深さで想定する全波（上昇波＋下降波）と、指定する運動を整合させる','底面は指定した運動に従う。そこから下への波の逸散を直接表さず、戻り波を反射させる。硬い層を剛体と扱えるかを判断する'],
+ ['下方へ続く弾性基盤を仮定','例えば粘性底面と入射波に相当するせん断力を組み合わせる。密度・波速・負担面積と、ソルバーの入力波の定義をそろえる','上昇波を入れながら、下へ戻ってきた波を基盤の外へ逃がす。底面の運動は計算で決まる']])+
+ p('地表で観測した加速度には、表層を通ったときの増幅や反射が含まれます。その記録をそのまま底面に与え、表層をもう一度通すと、揺れを過大にも過小にも評価し得ます。記録が<strong>地表・露頭・地中のどこで得られたか</strong>、解析の入力欄が<strong>入射波・全波のどちらを要求するか</strong>を先に確かめます。地表記録の一律半分を底面へ入力する手順は使えません。')],
+ ['soil-check','建物を外す、横幅を変える、観測点で比べる',
+ A.table(['順番','変える条件','見る結果'],[
+ ['1　地盤だけで確認','建物・基礎を外し、水平成層・鉛直入射の想定で、自由地盤の一次元モデルと同じ入力・地層にする','中心と側面付近の同じ深さで水平加速度の時刻歴を重ねる。一次元応答とずれたら、入力位置・側面の拘束・底面条件を調べる'],
+ ['2　建物を戻し、幅を比較','図のAから側面までを20 mから40 mへ。建物、層厚、底面、時間刻みと基礎近傍の要素寸法はそろえる','同じAで加速度・応答スペクトル、基礎両端で鉛直変位の差を比べる。幅で新たな波の山の時刻や評価値が大きく変われば側面の影響を疑う'],
+ ['3　底面の感度を確認','側面位置を保ち、基盤の仮定または底面深さを一つずつ変える。入力を同じ基準位置の地震に換算する','地盤だけの地表応答を先に比較し、次に建物を含む応答を比較する。入力そのものを変えた差と区別できる']])+
+ p('例としてAから真横へ出たS波が同じ経路で戻るなら、往復時刻の目安は 2L/Vs です。Vs=200 m/sで、L=20 mなら0.20秒、40 mなら0.40秒。これは散乱波がAを出てからの経過時間で、層内反射やP波には別の経路・波速が効きます。人工境界を遠ざけると遅れる成分は、波形を切り分ける手掛かりになります。')+
+ p('ダンパーの係数や反射波の符号を確かめるには<a href="theory.html#boundary/viscous">波の反射と粘性境界</a>へ。扱いたい振動数に対する要素寸法は<a href="theory.html#mesh/waves">波長・せん断波速度・時間刻み</a>で確認できます。')],
  ['reflection','地盤を途中で切ったとき、何が戻ってくるか',
  p('半無限の地盤を有限の範囲で切ると、本来は遠方へ進む波がモデルの端まで到達します。人工的な端を固定すると変位・粒子速度の反射波は逆符号、自由端では同符号になります。これは同一媒質中を垂直に入射する一次元波の説明です。応力波の符号を読むときは逆の関係です。')+
  '<figure data-mesh-wave-lab="reflect"></figure>'+
@@ -180,17 +207,22 @@
  ['400 mmの単純支持梁。左から100 mmで下向き120 N。左右の反力は？','RB×400−120×100=0よりRB=30 N、RA=90 N。合力90+30−120=0、左端まわりモーメント30×400−120×100=0です。']
  ];
  questions.push(['面積2 m²の境界を等面積の4区画に分けたら各ダンパは？','速度が一様なら各係数を元の1/4にして全体の抵抗を保ちます。節点での実装では、各点が負担する面積を集計します。'],['同位置の2節点間にばねを置き、同じ方向をMPCでも等置すると？','その方向の相対変位が0になるため、ばねの伸縮を表せません。意図が弾性継手なら重複した等置を見直します。']);
+ questions.push(
+ ['側面まで20 mのモデルでAから出たS波が0.20秒後に戻った。側面を40 mにしたら？','水平に同じ経路を往復し、Vs=200 m/sなら2×40÷200=0.40秒。地表や実際の地層は移動していないので、幅を変えたときの到達時刻の差が人工境界を識別する手掛かりです。'],
+ ['本体地盤と自由地盤がともに右へ10 cm/s動く。側面のダンパーが伝える力と、側面の全力はともにゼロ？','速度差はゼロなので、相対速度に比例するダンパー力はゼロです。自由地盤の応力が切断面に及ぼす力は別に加わるので、全力がゼロとは決まりません。'],
+ ['地表の加速度記録が手元にある。粘性底面の全節点に、その加速度を指定してよい？','まず記録の位置と波の定義を確認します。この例の粘性底面は入射波に相当する力を与えて、底面の運動を解きます。底面の運動を強制する方法とは境界の仮定が異なります。']);
  sections.push(['questions','自分で確かめる',p('先に条件を図や式へ書き、答えを開いて照合します。符号と座標系も答えの一部です。')+'<div class="theory-quiz">'+questions.map(([q,a],i)=>`<details><summary>${i+1}. ${q}</summary><p>${a}</p></details>`).join('')+'</div>']);
  sections.push(['sources','参照範囲と関連教材',
  p('説明と新しい操作図は、この章の学習順序に合わせて独自に構成しました。操作図は一般理論の計算であり、Nastran本体での実行結果ではありません。公式の入力リスト・出力一覧・図は転載していません。')+
  A.table(['資料','確認範囲'],[['MSC Nastran 2025.1 線形静解析ユーザーガイド','第6章 PDF235–252：SPC、自動拘束、指定変位、MPC、非同次拘束。第9章 PDF379–381：対称条件'],['MSC Nastran 2025.1 QRG','SPC 2882–2883、SPC1 2884–2885、SPCADD 2886、SPCD 2888–2890、MPC 2363、MPCADD 2364、MPCD 2366、MPCY 2367'],['同QRG：自動拘束・自由物体','AUTOSPC (Case) 266–268、旧PARAM 858、EPZERO 880、SUPORT 2919–2920、SUPORT1 2921'],['MIT OCW, K. J. Bathe','Finite Element Procedures for Solids and Structures：変位型有限要素法と境界条件'],['A. F. Bower, Applied Mechanics of Solids §7.1','境界条件、剛体運動、結合とモデル化の一般的な整理']])+
  p(source(stat+'#page=235','MSC 線形静解析ガイド 第6章')+' · '+source(stat+'#page=379','対称条件')+' · '+source(qrg+'#page=2882','QRG：SPC／SPCD')+' · '+source(qrg+'#page=2363','QRG：MPC')+' · '+source(qrg+'#page=266','QRG：AUTOSPC'))+
  p(source('https://ocw.mit.edu/courses/res-2-002-finite-element-procedures-for-solids-and-structures-spring-2010/resources/lecture-3/','MIT OCW：変位型有限要素法')+' · '+source('https://solidmechanics.org/Text/Chapter7_1/Chapter7_1.htm','Bower：有限要素解析の境界条件と結合'))+
+ p(source('https://www.jstage.jst.go.jp/article/aijs/78/689/78_1263/_article/-char/ja/','秋田ほか：地盤・建物連成系のエネルギー伝達境界')+' · '+source('https://docs.itascacg.com/itasca920/flac3d/docproject/source/options/dynamic/considerations/considerations.html','Itasca：剛基盤・弾性基盤と入力地震動の整合'))+
  p(source('https://docs.itascacg.com/itasca900/3dec/docproject/source/options/dynamic/dynamic_boudaryconditions.html','Itasca：局所粘性境界と自由地盤境界の仮定')+' · '+source('https://www.jepoc.or.jp/upload/news/160725155459.pdf','電力中央研究所の講義資料：波長、底面・側方境界（スライド4–7）'))+
  note('一般理論はNastran共通です。カードの適用条件はMSC 2025.1を照合した範囲で記載しています。Siemens版の非線形手順・既定値まで同じと断定していません。')]);
  function html(){return '<div class="analysis-head"><span class="analysis-sol">境界条件と拘束</span><h1>境界条件と拘束の理論</h1><p>支持・指定変位・部材間の関係を分け、許す動きと伝わる力を、式・図・結果から判断します。</p></div>'+A.intro({goals:['実物が許す動きから、節点・成分・座標系を選ぶ','SPC・MPC・RBEの役割と、変位・反力の関係を理解する','拘束不足・過拘束・重複・自動拘束の問題を結果から見分ける'],prerequisites:[['coordinates.html#systems','座標'],['basics.html#node','節点と自由度'],['elements.html#scalar-overview','要素の全体像']],points:['拘束は、点の数ではなく止める運動で決める。','独立・従属は節点と成分の組で追い、地面への支持と部材間の結合を分ける。','計算の終了だけで判断せず、変形・反力・拘束式・支持への感度で確かめる。']})+p('初めて学ぶ場合は1〜6節で支持の考え方を確認します。入力の使い分けは7節から、多点拘束は10節から、診断は18節から進めます。')+A.toc(sections.map(([id,title])=>['boundary-'+id,title]))+sections.map(([id,title,body],i)=>A.section(`${i+1}. ${title}`,body,'boundary-'+id)).join('');}
  const labels={'固定':'u = 0','対象成分を止める':'SPC','対称面':'n','法線の並進を止める':'un = 0','自由面':'t = 0','面荷重ゼロの例':'σn = 0','指定変位':'d','ばね力':'F = kd'};
- function connect(root){for(const el of root.querySelectorAll('[data-boundary-legacy]')){el.innerHTML=window.TheoryTopicVisuals.boundary[+el.dataset.boundaryLegacy].replace('uA − uB = 指定値','uA − r uB = 0');for(const t of el.querySelectorAll('svg text'))if(labels[t.textContent]!==undefined)t.textContent=labels[t.textContent];}window.BoundaryLabs.connect(root);window.MeshWaveLabs.connect(root);A.bindNavigation(root);}
+ function connect(root){for(const el of root.querySelectorAll('[data-boundary-legacy]')){el.innerHTML=window.TheoryTopicVisuals.boundary[+el.dataset.boundaryLegacy].replace('uA − uB = 指定値','uA − r uB = 0');for(const t of el.querySelectorAll('svg text'))if(labels[t.textContent]!==undefined)t.textContent=labels[t.textContent];}window.BoundaryLabs.connect(root);window.MeshWaveLabs.connect(root);window.SoilBoundaryLabs.connect(root);A.bindNavigation(root);}
  const aliases={overview:'meaning',supports:'supports',spc:'sets',mpc:'mpc',connections:'rbe',verification:'autospc'};
  function focusSection(key){const t=document.getElementById('boundary-'+(aliases[key]||key));if(t)requestAnimationFrame(()=>t.scrollIntoView({block:'start'}));}
  function mount(root){root.innerHTML=html();connect(root);}

@@ -754,6 +754,13 @@
         "kind": "境界条件と拘束"
       },
       {
+        "title": "地盤の動的境界",
+        "description": "建物と地盤をどこで切るか。側面の自由地盤・エネルギー伝達境界と、底面からの地震入力を断面で学ぶ",
+        "path": "theory.html",
+        "hash": "#boundary/soil-dynamics",
+        "kind": "境界条件と拘束"
+      },
+      {
         "title": "波の反射と粘性境界",
         "description": "法線・接線の速度から抵抗力を求める・反射波を観測点の時刻と振幅で見分ける",
         "path": "theory.html",

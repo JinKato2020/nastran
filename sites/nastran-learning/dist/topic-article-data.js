@@ -300,6 +300,14 @@ window.TopicArticleData = {
         ]
       },
       {
+        "key": "soil-dynamics",
+        "title": "地盤の動的境界",
+        "sections": ["soil-extent", "soil-side", "soil-base", "soil-check"],
+        "questions": [14, 15, 16],
+        "goals": ["基礎・地表・地層を描き、要素で計算する範囲を決める", "側面と底面にどんな地盤を想定したか、波の向きで説明する"],
+        "points": ["地表や地層の境目は実在し、側面や底面は計算のために置く。", "側面では遠方の揺れと、建物から外へ広がる波を扱う。", "底面を決めるときは、入力波を定義した深さと波の種類を確認する。"]
+      },
+      {
         "key": "viscous",
         "title": "波の反射と粘性境界",
         "sections": [

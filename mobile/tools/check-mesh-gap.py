@@ -32,7 +32,29 @@ with sync_playwright() as pw:
             page.locator("[data-topic-picker]").select_option(key)
             page.wait_for_function("k=>document.querySelector('#theory-detail').dataset.article===k", arg=key)
             assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), (width,key)
-        page.goto((DIST / "theory.html").as_uri() + "#boundary/viscous")
+        page.goto((DIST / "theory.html").as_uri() + "#boundary/soil-dynamics")
+        assert page.locator("#theory-detail h1").inner_text() == "地盤の動的境界"
+        assert page.locator("[data-soil-lab] svg").count() == 3
+        extent = page.locator("[data-soil-lab=soilExtent]")
+        for reach, time in (("20","0.20 秒"),("40","0.40 秒")):
+            extent.locator("[data-lab-input=reach]").select_option(reach)
+            for floor, phrase in (("top","底面条件"),("inside","要素に含まれ")):
+                extent.locator("[data-lab-input=floor]").select_option(floor)
+                readout = extent.locator(".theory-lab-readout").inner_text()
+                assert time in readout and phrase in readout
+        for name,control,choices in [
+            ("soilSide","side",[("ff","補助列"),("transmit","成層地盤"),("fixed","反射")]),
+            ("soilBase","baseType",[("compliant","下降波"),("rigid","反射")])]:
+            fig = page.locator("[data-soil-lab="+name+"]")
+            drawings = set()
+            for key,expected in choices:
+                fig.locator("[data-lab-input="+control+"]").select_option(key)
+                assert expected in fig.locator(".theory-lab-readout").inner_text()
+                drawings.add(fig.locator("svg").inner_html())
+            assert len(drawings) == len(choices)
+        assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
+        assert page.locator("#theory-detail .theory-quiz details").count()==3
+        page.locator("[data-topic-picker]").select_option("viscous")
         for key, expected in (("free","100 %"),("half","11.111 %"),("match","0 %"),("fixed","100 %")):
             page.locator("[data-lab-input=end]").select_option(key)
             assert expected in page.locator("#theory-detail .theory-lab-readout").inner_text()
