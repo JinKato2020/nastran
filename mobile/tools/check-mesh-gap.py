@@ -48,6 +48,11 @@ with sync_playwright() as pw:
                 points=view.locator("polyline").get_attribute("points").split()
                 assert [tuple(map(float, p.split(","))) for p in points]==[(129,24),(expected_x,49),(169,74)]
             assert ("仮定" if profile=="local" else "両方式とも1 mm") in midpoint.locator(".theory-lab-readout").inner_text()
+        gap=page.locator("[data-mesh-strip=midpoint-gap]")
+        for panel, expected_gap in zip(gap.locator("svg").all(), (20,0), strict=True):
+            polygons=panel.locator("polygon").evaluate_all("(els)=>els.map(e=>e.getAttribute('points'))")
+            fine,_,coarse=[[tuple(map(float,p.split(","))) for p in row.split()] for row in polygons]
+            assert fine[2][1]==49 and (coarse[0][0]+coarse[3][0])/2-fine[2][0]==expected_gap
         test=page.locator("[data-mesh-wave-lab=hanging]")
         test.locator("..").locator("summary").click()
         for motion, ends in (("gradient",(0,2,4)),("together",(2,2,2)),("rest",(0,0,0))):

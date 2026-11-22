@@ -128,30 +128,39 @@
   }).join('');
   return stripView(label,tiles(left,plateFill),tiles(right,'#f6f9fc'),coarseLevels,original+marks);
  }
- function compareMidpoint(sharedU20){
+ function midpointPanel(mode,sharedU20){
   // Close-up of the same top half as bridge(). Both panels have u10=0 and u30=2 mm.
   const seam=129, top=24, mid=49, bottom=74, scale=20;
   const linearU=y=>2*(y-top)/(bottom-top);
-  function panel(shared){
-   const u20=shared?sharedU20:linearU(mid);
+   const shared=mode==='shared', free=mode==='free';
+   const u20=free?0:shared?sharedU20:linearU(mid);
    const deform=cell=>cell.map(([x,y])=>[
-    x+scale*(x===seam&&y===mid?u20:linearU(y)),y
+    x+scale*((x===seam||(free&&x<seam))&&y===mid?u20:linearU(y)),y
    ]);
    const left=tiles(stripCells([104,seam],[top,mid,bottom]).map(deform),plateFill);
    const adjacent=shared?bridgeCells().slice(0,3):stripCells([seam,193],[top,bottom]);
    const patch=tiles(adjacent.map(deform),shared?'#ffe6bd':'#f6f9fc');
    const [a,b,c]=deform([[seam,top],[seam,mid],[seam,bottom]]);
+   const coarseMid=[(a[0]+c[0])/2,mid];
+   const opening=free?'<path d="M'+a.join(' ')+' L'+b.join(' ')+' L'+c.join(' ')+' Z" fill="#ffe6bd"/>'+
+    '<path d="M'+b.join(' ')+' H'+coarseMid[0]+'" stroke="#934016" stroke-width="1.6"/>'+
+    '<circle cx="'+coarseMid[0]+'" cy="'+mid+'" r="2.2" fill="white" stroke="#934016"/>':'';
    const trace='<polyline points="'+points([a,b,c])+'" fill="none" stroke="#156747" stroke-width="2.2"/>';
    const chord='<path d="M'+a.join(' ')+' L'+c.join(' ')+'" fill="none" stroke="#283f59" stroke-width="1" stroke-dasharray="2 2"/>';
    const mark=shared?joint(...b):'<path d="M'+b[0]+' '+(b[1]-3.5)+' l3.5 3.5 -3.5 3.5 -3.5 -3.5 Z" fill="white" stroke="#973e16" stroke-width="1.5"/>';
-   const ids=[a,b,c].map(([x,y],i)=>'<text x="'+(x+4)+'" y="'+(y+(i===2?11:-4))+'" fill="'+edge+'" font-size="12">'+(i+1)*10+'</text>').join('');
-   const title=shared?'四角形で節点を共有':'MPCで中点を補間';
+   const ids=[a,b,c].map(([x,y],i)=>'<text x="'+(x+(free&&i===1?-17:4))+'" y="'+(y+(i===2?11:-4))+'" fill="'+edge+'" font-size="12">'+(i+1)*10+'</text>').join('');
+   const title=free?'MPCなし':shared?'四角形で節点を共有':'MPCで中点を補間';
    return '<div><span dir="auto">'+title+'</span>'+
     drawing(title+'。節点20の右向き変位 '+u20+' mm','99 8 138 81',
-     left+patch+trace+chord+joint(...a)+mark+joint(...c)+ids)+
+     left+patch+opening+trace+chord+joint(...a)+mark+joint(...c)+ids)+
     '<span dir="ltr">u₂₀ = '+u20+' mm</span></div>';
-  }
-  return '<div class="mesh-feature-pair">'+panel(true)+panel(false)+'</div>';
  }
- window.MeshFeatureFigures={shoulder,holes,bridge,spacing,edgeConnection,compareMidpoint};
+ function compareMidpoint(sharedU20){
+  return '<div class="mesh-feature-pair">'+midpointPanel('shared',sharedU20)+midpointPanel('mpc')+'</div>';
+ }
+ function midpointGap(){
+  return '<figure class="element-figure" data-mesh-strip="midpoint-gap"><div class="mesh-feature-pair">'+midpointPanel('free')+midpointPanel('mpc')+'</div>'+
+   '<figcaption>どちらも節点10の変位は0 mm、節点30は右へ2 mm。左では白いひし形が節点20、白い小丸が粗い辺の中点です。二つの印を結ぶ横線が1 mmのずれ、三角形の空間が開いた隙間です。右では二つの位置が重なります。変形は拡大しています。</figcaption></figure>';
+ }
+ window.MeshFeatureFigures={shoulder,holes,bridge,spacing,edgeConnection,compareMidpoint,midpointGap};
 })();
