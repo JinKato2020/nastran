@@ -118,29 +118,11 @@ with sync_playwright() as pw:
                 section=page.locator("#mesh-shape")
                 for heading, opening in zip(section.locator("h3").all_inner_texts(), ("幅だけ","上辺を","一つの角"), strict=True):
                     assert heading.startswith(opening)
-                combined=page.locator("#mesh-jacobian details").filter(has=page.locator("[data-mesh-wave-lab=shape]"))
-                combined.locator("summary").click()
-                shape=combined.locator("figure[data-mesh-wave-lab=shape]")
+                practical=page.locator("#mesh-jacobian")
+                assert practical.get_by_role("heading",name="実務では、どこの det J を見るか").is_visible()
+                assert "1点ガウス積分" in practical.inner_text()
                 def slide(lab,key,value):
                     lab.locator(f'input[type=range][data-lab-input={key}]').fill(str(value))
-                def check_det(values):
-                    assert "左下 %s ／ 中央 %s ／ 右上 %s" % values in shape.locator(".theory-lab-readout").inner_text()
-                check_det((100,100,100))
-                original=shape.locator("svg").inner_html()
-                slide(shape,"size",10)
-                check_det((25,25,25))
-                slide(shape,"aspect",2)
-                check_det((50,50,50))
-                before=shape.locator("svg").inner_html()
-                slide(shape,"skew",-10)
-                check_det((50,50,50))
-                assert shape.locator("svg").inner_html()!=before
-                for depth,values in ((45,(50,27.5,5)),(50,(50,25,0)),(65,(50,17.5,-15))):
-                    slide(shape,"pinch",depth)
-                    check_det(values)
-                shape.get_by_role("button",name="正方形に戻す").click()
-                check_det((100,100,100))
-                assert shape.locator("svg").inner_html()==original
                 aspect=section.locator("[data-mesh-wave-lab=aspectMetric]")
                 slide(aspect,"ratio",3)
                 assert "60 mm ÷ 短い辺 20 mm ＝ 3" in aspect.inner_text()

@@ -159,38 +159,6 @@
        el.readout.textContent='点ごとの det J（mm²）　● 中央（測定点） '+fmt(center)+' ／ ○ 右上（節点） '+det+'。'+note;
      }
    },
-   shape: {
-     html:()=>ui.box('shape',
-       ui.slider('size','基準寸法',10,25,1,20)+ui.slider('aspect','幅／高さ',0.5,2,0.1,1)+
-       ui.slider('skew','上辺の横ずれ',-10,10,1,0)+ui.slider('pinch','右上角の押し込み',0,65,1,0)+
-       '<button type="button" data-lab-action="reset:shape">正方形に戻す</button>',
-       '破線は最初の20 mm角、実線は現在の要素です。左下の黒丸、中央の十字、右上の白丸で、それぞれ同じ場所の方眼の広がりを読みます。'),
-     action(el){for(const input of Object.values(el.inputs))input.value=input.defaultValue;},
-     draw(el,v){
-       const h=Number(v.size), b=h*Number(v.aspect), shift=Number(v.skew), p=Number(v.pinch)/100;
-       el.out.size.textContent=h+' mm'; el.out.aspect.textContent=fmt(b/h);
-       el.out.skew.textContent=shift+' mm'; el.out.pinch.textContent=v.pinch+' %';
-       // First pull the corner towards the origin, then apply an area-preserving shear.
-       const point=(u,w)=>{
-         const uw=p*u*w, x=b*(u-uw)+shift*(w-uw), y=h*(w-uw);
-         return [69+4.5*x,144-4.5*y];
-       };
-       let grid=line([[69,144],[159,144],[159,54],[69,54],[69,144]],'b2-ghost');
-       for(let i=0;i<=6;i++){
-         const t=i/6;
-         grid+=line([point(t,0),point(t,1)],'b2-sec')+line([point(0,t),point(1,t)],'b2-sec');
-       }
-       const [ax,ay]=point(0,0),[mx,my]=point(.5,.5),[cx,cy]=point(1,1);
-       grid+='<circle cx="'+ax+'" cy="'+ay+'" r="3.2" fill="currentColor"/>'+
-         '<path d="M'+(mx-4)+' '+my+' h8 M'+mx+' '+(my-4)+' v8" stroke="currentColor" stroke-width="2"/>'+
-         '<circle cx="'+cx+'" cy="'+cy+'" r="3.5" fill="white" stroke="currentColor" stroke-width="1.8"/>';
-       el.plot.innerHTML=svg('4節点の平面要素。実線の方眼と三つの測定位置。',grid);
-       const det0=b*h/4;
-       const values=[det0,det0*(1-p),det0*(1-2*p)].map(fmt);
-       const note=p>.5?'右上の近くで方眼が折り返しています。':p===.5?'右上で升目の面積倍率がゼロになりました。':p>0?'右上へ近づくほど升目が狭くなっています。':shift?'角度が変わっても、高さと底辺が同じなら升目の面積は変わりません。':'どの位置でも升目の面積は同じです。';
-       el.readout.textContent='det J（mm²）　左下 '+values[0]+' ／ 中央 '+values[1]+' ／ 右上 '+values[2]+'。'+note;
-     }
-   },
    warp: {
      html:()=>ui.box('warp',ui.slider('angle','反り角',0,40,1,0),
        '20 mm角の板を斜めから見た図です。測定用に対角線を一本引き、その両側の三角形に薄く色を付けています。白丸が持ち上がる節点です。'),

@@ -68,7 +68,6 @@
 .mesh-quality-lab .theory-lab-controls{display:grid;gap:5px}
 .mesh-quality-lab .theory-lab-controls label{display:grid;grid-template-columns:minmax(6em,auto) minmax(48px,1fr) 5em;font-size:14px;min-height:32px}
 .mesh-quality-lab input[type=range]{width:100%;min-width:0;margin:0}
-[data-mesh-wave-lab=shape] [data-lab-action]{justify-self:start}
 .beam-lab-presets{display:flex;flex-wrap:wrap;gap:6px}
 .beam-lab-presets button{min-height:40px;padding:4px 10px;border:1px solid #9cb2cb;border-radius:999px;background:#fff;color:#243e60;font-size:15px}
 .beam-lab .theory-lab-readout b{color:#173f72}
