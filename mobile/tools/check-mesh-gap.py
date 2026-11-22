@@ -138,9 +138,15 @@ with sync_playwright() as pw:
                         if mode=="3" and n in (2,8):
                             assert ("0回" if n==2 else "2回") in modes.locator(".theory-lab-readout").inner_text()
                 assert page.locator("#mesh-compare-results tbody tr").count()==3
-                assert page.locator("[data-mesh-feature=stress-survey] svg").count()==2
-                trend=page.locator("[data-mesh-feature=stress-trend]")
-                assert trend.locator("polyline").count()==2 and "390" in trend.inner_text()
+                peak=page.locator("[data-mesh-wave-lab=peakStress]")
+                for h,corner,away in ((4,210,116),(2,285,121),(1,390,122)):
+                    peak.locator("select").select_option(str(h))
+                    assert peak.locator("[data-stress-grid]").get_attribute("d").count("M")==64//h-2
+                    assert peak.locator("[data-fixed-probe]").get_attribute("d").startswith("M98 103")
+                    assert peak.locator("strong").all_inner_texts()==[f"{corner} MPa",f"{away} MPa"]
+                point=page.locator("#mesh-compare-results details").filter(has=page.locator("[data-mesh-feature=point-load]"))
+                point.locator("summary").click()
+                assert point.locator("svg").is_visible()
                 distance=page.locator("[data-mesh-feature=stress-distance]")
                 assert distance.locator("[data-second-mid]").evaluate_all("a=>a.map(p=>p.getAttribute('cx'))")==["102","66"]
                 fixed=distance.locator("[data-fixed-distance]").evaluate_all("a=>a.map(p=>p.getAttribute('d').split(' ')[0])")

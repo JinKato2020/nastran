@@ -162,34 +162,15 @@
   return '<figure class="element-figure" data-mesh-strip="midpoint-gap"><div class="mesh-feature-pair">'+midpointPanel('free')+midpointPanel('mpc')+'</div>'+
    '<figcaption>左図で水色の要素の間に開いた白い三角形が隙間です。節点10を動かさず、30を右へ2 mm動かすと、粗い辺の中点（小丸）は右へ1 mm動きます。20（ひし形）が元の位置に残ると、二つの印の間が水平方向に1 mm開きます。右図ではMPCで20も中点と一緒に動き、辺がぴったり重なります。変形は拡大しています。</figcaption></figure>';
  }
- // The global plate and the two mesh strips share the left-to-right measuring direction.
- function stressSurvey(){
-  const outline='<rect x="40" y="30" width="240" height="80" fill="'+plateFill+'" stroke="'+edge+'" stroke-width="2"/>';
-  let support='';
-  for(let y=32;y<=110;y+=8) support+='<path d="M40 '+y+'l-8 6" stroke="'+edge+'"/>';
-  const anchors='<circle cx="40" cy="110" r="3.5" fill="'+edge+'"/><text x="28" y="130">A</text>'+
-   '<circle cx="160" cy="90" r="3.5" fill="'+edge+'"/><text x="167" y="88">P</text>';
-  const trace='<path d="M40 110h90" fill="none" stroke="#aa5015" stroke-width="3" stroke-dasharray="5 3"/>';
-  const arrow=(x,y)=>'<path d="M'+x+' '+y+'v-19 m-4 6 4 -6 4 6" fill="none" stroke="#186c53" stroke-width="2.4"/>';
-  const panel=(what,marks)=>drawing(what,'12 5 300 132','<g font-size="13" fill="'+edge+'">'+outline+support+marks+'</g>');
-  return '<figure class="element-figure" data-mesh-feature="stress-survey"><div class="mesh-feature-pair"><div><span>固定端の角を調べる</span>'+
-   panel('左辺を固定し、右辺に分布荷重。Aから板の下辺に沿って応力を読む。',anchors+trace+[48,76,104].map(y=>arrow(280,y)).join(''))+
-   '</div><div><span>一つの節点に荷重を加えた場合</span>'+
-   panel('右辺中央のBに上向きの集中荷重。Bから板の内側へ応力を読む。',arrow(280,70)+'<circle cx="280" cy="70" r="3.5" fill="'+edge+'"/><text x="289" y="76">B</text><path d="M280 70h-88" stroke="#aa5015" stroke-width="3" stroke-dasharray="5 3"/>')+
-   '</div></div><figcaption>斜線は固定した左辺、矢印は力、破線は応力を読み取る線です。Aは固定辺と自由辺の境目、Bは力を一つの節点に集めた別条件の例です。Pは板本体の観測点です。</figcaption></figure>';
- }
- function stressTrend(){
-  let body='<path d="M44 16v110h265" fill="none" stroke="'+edge+'"/><text x="45" y="15">σₓ (MPa)</text>';
-  const y=v=>124-v*0.25;
-  for(const v of [0,200,400]) body+='<text x="38" y="'+(y(v)+4)+'" text-anchor="end">'+v+'</text>';
-  for(const [id,values] of [['A',[210,285,390]],['P',[143,155,158]]]){
-   const coords=values.map((v,i)=>[76+99*i,y(v)]);
-   body+='<polyline points="'+points(coords)+'" fill="none" stroke="'+edge+'" '+(id==='P'?'stroke-dasharray="4 3"':'')+'/>';
-   for(const [i,[x,cy]] of coords.entries()) body+='<circle cx="'+x+'" cy="'+cy+'" r="3" fill="'+(id==='P'?'white':edge)+'" stroke="'+edge+'"/><text x="'+x+'" y="'+(id==='P'?cy+17:cy-7)+'" text-anchor="middle">'+values[i]+'</text>';
-   body+='<text x="299" y="'+(coords[2][1]+4)+'">'+id+'</text>';
-  }
-  for(const [i,s] of ['h','h/2','h/4'].entries()) body+='<text x="'+(76+99*i)+'" y="145" text-anchor="middle">'+s+'</text>';
-  return '<figure class="element-figure" data-mesh-feature="stress-trend">'+drawing('分割寸法を半分にするとAは210、285、390 MPa、Pは143、155、158 MPa。','0 0 330 154','<g font-size="13" fill="'+edge+'">'+body+'</g>')+'<figcaption>横軸は分割寸法。右へ進むほど細かくなります。●実線は角A、○破線は同じ板の点Pです。</figcaption></figure>';
+ function pointLoadSurvey(){
+  let marks='<rect x="36" y="22" width="240" height="80" fill="'+plateFill+'" stroke="'+edge+'" stroke-width="2"/>';
+  for(let y=22;y<=102;y+=10) marks+='<path d="M36 '+y+'l-8 6" stroke="'+edge+'"/>';
+  marks+='<path d="M276 62h44m-8 -5 8 5 -8 5" fill="none" stroke="#176a50" stroke-width="2.6"/>'+
+   '<path d="M216 62h60" stroke="'+edge+'" stroke-dasharray="3 3"/>'+
+   '<path d="M216 56l6 6 -6 6 -6 -6z" stroke="'+edge+'" stroke-width="2" fill="white"/>'+
+   '<path d="M276 56l6 11h-12z" fill="#934910"/><text x="270" y="48">B</text>'+
+   '<text x="246" y="86" text-anchor="middle">12 mm</text><text x="302" y="49">F</text>';
+  return '<figure class="element-figure" data-mesh-feature="point-load">'+drawing('右辺の荷重点Bから板内へ12 mm離れた点を白いひし形で示す。','15 10 315 103','<g font-size="14" fill="'+edge+'">'+marks+'</g>')+'</figure>';
  }
  function stressDistance(){
   const scale=12, origin=30, length=24;
@@ -210,5 +191,5 @@
   return '<figure class="element-figure" data-mesh-feature="stress-distance">'+drawing('Aを原点とする同じ下辺。2番目の辺の中点は6 mmから3 mmへ移り、12 mmの測定位置は同じ。','0 0 350 170','<g font-size="13" fill="'+edge+'">'+body+'</g>')+
    '<figcaption>上と下はAから右へ同じ24 mmを拡大した図です。色付きの2要素目を選び続けると、下辺の中点（●）はAに近づきます。同じ実距離を指定した白いひし形（◇）は、上下で縦にそろいます。</figcaption></figure>';
  }
- window.MeshFeatureFigures={shoulder,holes,bridge,spacing,edgeConnection,compareMidpoint,midpointGap,stressSurvey,stressTrend,stressDistance};
+ window.MeshFeatureFigures={shoulder,holes,bridge,spacing,edgeConnection,compareMidpoint,midpointGap,pointLoadSurvey,stressDistance};
 })();

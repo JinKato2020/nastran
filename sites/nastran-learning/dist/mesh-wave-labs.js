@@ -58,6 +58,29 @@
    return amplitude(b*x)/amplitude(b);
  }
  const labs = {
+   peakStress: {
+     html:()=>ui.box('peakStress',ui.select('size','要素の辺長 h',[['4','粗　4 mm'],['2','中　2 mm'],['1','細　1 mm']],'4'),
+       '数値は変化の読み方を示す例示値です。▲と◇の位置、固定辺、荷重はすべての分割で共通です。'),
+     draw(el,v){
+       const h=Number(v.size);
+       const [corner,away]={4:[210,116],2:[285,121],1:[390,122]}[h];
+       const step=5*h; // 5 SVG units per millimetre.
+       let grid='';
+       for(let x=38+step;x<278;x+=step) grid+='M'+x+' 30v80 ';
+       for(let y=30+step;y<110;y+=step) grid+='M38 '+y+'h240 ';
+       let marks='<rect x="38" y="30" width="240" height="80" fill="#edf3f7" stroke="#344f65" stroke-width="2"/>'+
+         '<path data-stress-grid d="'+grid+'" fill="none" stroke="#899faa" stroke-width=".7"/>';
+       for(let y=30;y<=110;y+=10) marks+='<path d="M38 '+y+'l-8 6" stroke="#344f65"/>';
+       for(const y of [47,73,99]) marks+='<path d="M280 '+y+'v-17m-4 5 4 -5 4 5" fill="none" stroke="#176a50" stroke-width="2.2"/>';
+       marks+='<path d="M38 110h60" stroke="#914a18" stroke-width="2.2"/>'+
+         '<path data-corner d="M38 103l7 12H31z" fill="#934910"/>'+
+         '<path data-fixed-probe d="M98 103l7 7 -7 7 -7 -7z" stroke="#24394b" stroke-width="2" fill="white"/>'+
+         '<text x="20" y="132">A</text><path d="M38 121v16m60 -16v16m-60 -5h60" stroke="#455c70" fill="none"/>'+
+         '<text x="68" y="151" text-anchor="middle">12 mm</text>';
+       el.plot.innerHTML=svg('左辺を固定した板。右辺に上向きの分布荷重を加え、下辺の角Aと12 mm離れた白いひし形で応力を読む。',marks);
+       el.readout.innerHTML='長手方向の応力 σₓ<br>▲ 固定端の角A　<strong>'+corner+' MPa</strong><br>◇ Aから12 mm　<strong>'+away+' MPa</strong>';
+     }
+   },
    refinePlate: {
      html:()=>ui.box('refinePlate',ui.select('rows','板の分割',[['4','粗'],['8','中'],['16','細']],'4'),
        '左の斜線が固定辺、右の矢印が辺全体に加える上向き荷重です。●Pで長手方向の応力、○Qで上向き変位を読みます。'),
