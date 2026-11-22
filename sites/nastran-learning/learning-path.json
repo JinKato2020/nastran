@@ -923,13 +923,6 @@
         "kind": "メッシュ分割の理論"
       },
       {
-        "title": "応用：穴のある板を、どこで細かく分けるか",
-        "description": "板を引く例で、穴の輪郭と、穴のそばに並ぶ四角形の幅を見比べる",
-        "path": "theory.html",
-        "hash": "#mesh/sizing",
-        "kind": "メッシュ分割の理論"
-      },
-      {
         "title": "要素形状とヤコビアン",
         "description": "四角形の角を動かして、全体を小さくする場合と片隅がつぶれる場合を比べる",
         "path": "theory.html",
@@ -948,6 +941,13 @@
         "description": "対象周波数から空間刻みを試算する・積分刻みと結果の保存間隔を選ぶ",
         "path": "theory.html",
         "hash": "#mesh/waves",
+        "kind": "メッシュ分割の理論"
+      },
+      {
+        "title": "付録　円孔板のメッシュ分割",
+        "description": "円孔・段付き板・近接孔で、細分化する向き、粗く戻す位置、応力の照合を練習する",
+        "path": "theory.html",
+        "hash": "#mesh/sizing",
         "kind": "メッシュ分割の理論"
       }
     ]

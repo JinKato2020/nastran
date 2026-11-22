@@ -73,9 +73,14 @@ with sync_playwright() as pw:
                     assert quads[12+2*i][2][1]==y
                     assert abs(fine_x-mid_x)==6*abs(expected[i]-mids[i])
         assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1")
-        page.locator("[data-topic-picker]").select_option("sizing")
-        page.wait_for_function("document.querySelector('#theory-detail').dataset.article==='sizing'")
-        assert "応用" in page.locator("#theory-detail h1").inner_text()
+        order=["transitions","quality","convergence","waves","sizing"]
+        picker=page.locator("[data-topic-picker]")
+        assert picker.locator("option").evaluate_all("opts=>opts.map(o=>o.value)")==order+["sources"]
+        assert page.evaluate("NASTRAN_LEARNING.navigation.meshTheory.map(item=>item.hash.split('/')[1])")==order
+        for key in order[1:]:
+            page.locator(f'nav[aria-label="章の続き"] a[href="theory.html#mesh/{key}"]').click()
+            page.wait_for_function("k=>document.querySelector('#theory-detail').dataset.article===k",arg=key)
+        assert "付録" in page.locator("#theory-detail h1").inner_text()
         intro = page.locator("#theory-detail .analysis-head p")
         assert "薄板" in intro.inner_text()
         assert page.locator("#theory-detail > figure[data-mesh-wave-lab=hole]").count() == 1
