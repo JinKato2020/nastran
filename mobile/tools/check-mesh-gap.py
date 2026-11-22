@@ -158,6 +158,15 @@ with sync_playwright() as pw:
                     assert f"中央（測定点） {mid} ／ ○ 右上（節点） {det}" in jac.inner_text()
                     plate=jac.locator("svg").last
                     assert float(plate.locator("circle").last.get_attribute("cx"))==14+100*(1+det/100)/2
+                    outline=plate.locator("polygon").first.get_attribute("points")
+                    for progress in (0,50,100):
+                        slide(jac,"probe",progress)
+                        expected=mid+(det-mid)*progress/100
+                        assert jac.locator("[data-probe-value]").all_inner_texts()==["det J = 100 mm²",f"det J = {expected:g} mm²"]
+                        u=(1+progress/100)/2
+                        x=14+100*(u-(1-det/100)*u*u/2)
+                        assert abs(float(plate.locator("[data-probe]").get_attribute("x"))+5-x)<1e-7
+                        assert plate.locator("polygon").first.get_attribute("points")==outline
                     rows=jac.locator("tbody tr")
                     if det<0:
                         assert rows.count()==0

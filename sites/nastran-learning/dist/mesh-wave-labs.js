@@ -24,9 +24,11 @@
    return rings;
  }
  // Both patches start as 4 mm squares in the same 20 mm element.
- function jacobianPlate(det,title){
-   const pinch=(1-det/100)/2;
-   const point=(u,w)=>[14+100*(u-pinch*u*w),116-100*(w-pinch*u*w)];
+ function jacobianPlate(det,title,position){
+   const tip=10*(1+det/100);
+   // Corner coordinates in mm: (0,0), (20,0), (tip,tip), (0,20).
+   const delta=tip-20;
+   const point=(u,w)=>[14+5*(20*u+delta*u*w),116-5*(20*w+delta*u*w)];
    const square=(lo,hi)=>[[lo,lo],[hi,lo],[hi,hi],[lo,hi]].map(([u,w])=>point(u,w));
    const polygon=(lo,hi,style)=>'<polygon points="'+square(lo,hi).map(p=>p.join(',')).join(' ')+'" '+style+'/>';
    let marks=polygon(0,1,'fill="#edf3f7" stroke="#344f6e" stroke-width="1.8"');
@@ -39,7 +41,14 @@
    const [mx,my]=point(.5,.5),[cx,cy]=point(1,1);
    marks+='<circle cx="'+mx+'" cy="'+my+'" r="2.5" fill="#21354b"/>'+
      '<circle cx="'+cx+'" cy="'+cy+'" r="3.2" fill="white" stroke="#21354b" stroke-width="1.5"/>';
-   return '<div><span dir="auto">'+title+'</span><svg dir="ltr" viewBox="0 0 130 130" role="img" aria-label="'+title+'、中央の黒丸と右上の白丸を含む二つの印">'+marks+'</svg></div>';
+   const u=(1+position/100)/2, w=u;
+   const [px,py]=point(u,w);
+   // det(d(x,y)/d(xi,eta)); u=(1+xi)/2 and w=(1+eta)/2.
+   const measured=((20+delta*w)*(20+delta*u)-(delta*u)*(delta*w))/4;
+   marks+='<path d="M'+mx+' '+my+' L'+cx+' '+cy+'" fill="none" stroke="#314d78" stroke-dasharray="2 2"/>'+
+     '<rect data-probe x="'+(px-5)+'" y="'+(py-5)+'" width="10" height="10" fill="none" stroke="#143f91" stroke-width="2"/>';
+   return '<div><span dir="auto">'+title+'</span><svg dir="ltr" viewBox="0 0 130 130" role="img" aria-label="'+title+'、四角い枠が選択中の測定点">'+marks+'</svg>'+
+     '<span dir="ltr" data-probe-value>det J = '+fmt(measured)+' mm²</span></div>';
  }
  const labs = {
    midpoint: {
@@ -128,10 +137,14 @@
      }
    },
    jacMetric: {
-     html:()=>ui.box('jacMetric',ui.slider('det','右上の det J',-30,100,5,0),
-       '●は元の方眼の中央に付けた測定用の印、○は右上の節点です。この要素の節点は四隅の4点です。'),
+     html:()=>ui.box('jacMetric',ui.slider('det','右上の det J',-30,100,5,0)+ui.slider('probe','調べる場所',0,100,5,0),
+       '□がいま値を読む位置です。●は元の方眼の中央、○は右上の節点。左右の図で同じ方眼上の位置を測ります。'),
      draw(el,v){
        const det=Number(v.det), center=(100+det)/2;
+       const position=Number(v.probe);
+       const probeLabel=position===0?'中央':position===100?'右上':position+' %';
+       el.out.probe.textContent=probeLabel;
+       el.inputs.probe.setAttribute('aria-valuetext',probeLabel);
        el.out.det.textContent=det+' mm²';
        let comparison='';
        if(det>=0){
@@ -141,7 +154,7 @@
          comparison=window.LessonArticle.table(['面積（mm²）','元の板','今の板'],[
            ['板全体','400',fmt(4*center)],['●を囲む印','16',fmt(16*center/100)],['○に接する印','16',fmt(cornerPatch)]],{narrow:true});
        }
-       el.plot.innerHTML='<div class="mesh-feature-pair">'+jacobianPlate(100,'元の板')+jacobianPlate(det,'今の板')+'</div>'+comparison;
+       el.plot.innerHTML='<div class="mesh-feature-pair">'+jacobianPlate(100,'元の板',position)+jacobianPlate(det,'今の板',position)+'</div>'+comparison;
        const note=det<0?'白丸をさらに押すと方眼が折り返します。':det===0?'白丸から隣の二節点へたどると、両方とも同じ直線の上にあります。':det===100?'まだ押し込んでいないので、左右の図は同じです。':'白丸に近い印のほうが細くなります。';
        el.readout.textContent='点ごとの det J（mm²）　● 中央（測定点） '+fmt(center)+' ／ ○ 右上（節点） '+det+'。'+note;
      }
