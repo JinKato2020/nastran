@@ -23,6 +23,24 @@
    }
    return rings;
  }
+ // Both patches start as 4 mm squares in the same 20 mm element.
+ function jacobianPlate(det,title){
+   const pinch=(1-det/100)/2;
+   const point=(u,w)=>[14+100*(u-pinch*u*w),116-100*(w-pinch*u*w)];
+   const square=(lo,hi)=>[[lo,lo],[hi,lo],[hi,hi],[lo,hi]].map(([u,w])=>point(u,w));
+   const polygon=(lo,hi,style)=>'<polygon points="'+square(lo,hi).map(p=>p.join(',')).join(' ')+'" '+style+'/>';
+   let marks=polygon(0,1,'fill="#edf3f7" stroke="#344f6e" stroke-width="1.8"');
+   for(let i=1;i<5;i++){
+     const t=i/5;
+     marks+=line([point(0,t),point(1,t)],'b2-guide')+line([point(t,0),point(t,1)],'b2-guide');
+   }
+   marks+=polygon(.4,.6,'data-patch="center" fill="#98d5ba" stroke="#226448" stroke-width="1.6"')+
+     polygon(.8,1,'data-patch="corner" fill="#ffd7a2" stroke="#8c490c" stroke-width="1.6"');
+   const [mx,my]=point(.5,.5),[cx,cy]=point(1,1);
+   marks+='<circle cx="'+mx+'" cy="'+my+'" r="2.5" fill="#21354b"/>'+
+     '<circle cx="'+cx+'" cy="'+cy+'" r="3.2" fill="white" stroke="#21354b" stroke-width="1.5"/>';
+   return '<div><span dir="auto">'+title+'</span><svg dir="ltr" viewBox="0 0 130 130" role="img" aria-label="'+title+'、中央の黒丸と右上の白丸を含む二つの印">'+marks+'</svg></div>';
+ }
  const labs = {
    midpoint: {
      html:()=>ui.box('midpoint',ui.select('profile','比べる変形',[
@@ -110,20 +128,22 @@
      }
    },
    jacMetric: {
-     html:()=>ui.box('jacMetric',ui.slider('det','右上の det J',-30,100,5,100),'黒丸は左下、白丸は右上です。白丸を通る方眼がどこでつぶれるかを見ます。'),
+     html:()=>ui.box('jacMetric',ui.slider('det','右上の det J',-30,100,5,0),
+       '●は元の方眼の中央に付けた測定用の印、○は右上の節点です。この要素の節点は四隅の4点です。'),
      draw(el,v){
-       const det=Number(v.det), pinch=(1-det/100)/2;
+       const det=Number(v.det), center=(100+det)/2;
        el.out.det.textContent=det+' mm²';
-       const point=(u,w)=>[105+110*(u-pinch*u*w),143-110*(w-pinch*u*w)];
-       let grid=line([[105,143],[215,143],[215,33],[105,33],[105,143]],'b2-ghost');
-       for(let i=0;i<=6;i++){
-         const t=i/6;
-         grid+=line([point(0,t),point(1,t)],'b2-sec')+line([point(t,0),point(t,1)],'b2-sec');
+       let comparison='';
+       if(det>=0){
+         // det J is affine across this bilinear element. Its mean on each
+         // rectangular reference patch equals its value at that patch's midpoint.
+         const cornerPatch=16*(.1+.9*det/100);
+         comparison=window.LessonArticle.table(['面積（mm²）','元の板','今の板'],[
+           ['板全体','400',fmt(4*center)],['●を囲む印','16',fmt(16*center/100)],['○に接する印','16',fmt(cornerPatch)]],{narrow:true});
        }
-       const [x,y]=point(1,1);
-       el.plot.innerHTML=svg('右上の面積倍率に対応する方眼の変化',grid+'<circle cx="105" cy="143" r="3" fill="currentColor"/><circle cx="'+x+'" cy="'+y+'" r="3.5" fill="white" stroke="currentColor" stroke-width="2"/>');
-       const note=det<0?'右上の近くで方眼が折り返しました。':det===0?'右上で方眼の二方向が一直線に重なります。':det===100?'どこでも同じ広がりです。':'右上ほど方眼が狭くなります。';
-       el.readout.textContent='det J（mm²）　左下 100 ／ 中央 '+fmt((100+det)/2)+' ／ 右上 '+det+'。'+note;
+       el.plot.innerHTML='<div class="mesh-feature-pair">'+jacobianPlate(100,'元の板')+jacobianPlate(det,'今の板')+'</div>'+comparison;
+       const note=det<0?'白丸をさらに押すと方眼が折り返します。':det===0?'白丸から隣の二節点へたどると、両方とも同じ直線の上にあります。':det===100?'まだ押し込んでいないので、左右の図は同じです。':'白丸に近い印のほうが細くなります。';
+       el.readout.textContent='点ごとの det J（mm²）　● 中央（測定点） '+fmt(center)+' ／ ○ 右上（節点） '+det+'。'+note;
      }
    },
    shape: {

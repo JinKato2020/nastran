@@ -155,8 +155,18 @@ with sync_playwright() as pw:
                 jac=page.locator("[data-mesh-wave-lab=jacMetric]")
                 for det, mid in ((100,100),(50,75),(0,50),(-30,35)):
                     slide(jac,"det",det)
-                    assert f"左下 100 ／ 中央 {mid} ／ 右上 {det}" in jac.inner_text()
-                    assert float(jac.locator("svg circle").last.get_attribute("cx"))==105+110*(1+det/100)/2
+                    assert f"中央（測定点） {mid} ／ ○ 右上（節点） {det}" in jac.inner_text()
+                    plate=jac.locator("svg").last
+                    assert float(plate.locator("circle").last.get_attribute("cx"))==14+100*(1+det/100)/2
+                    rows=jac.locator("tbody tr")
+                    if det<0:
+                        assert rows.count()==0
+                        continue
+                    for row,poly in zip(rows.all(),plate.locator("polygon").all(),strict=True):
+                        corners=[tuple(map(float,p.split(","))) for p in poly.get_attribute("points").split()]
+                        twice_area=sum(x*corners[(i+1)%4][1]-y*corners[(i+1)%4][0] for i,(x,y) in enumerate(corners))
+                        # The same scale throughout both panels: 100 drawing units = 20 mm.
+                        assert abs(abs(twice_area)/50-float(row.locator("td").last.inner_text()))<1e-7
             assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), (width,key)
         page.goto((DIST / "theory.html").as_uri() + "#modes")
         assert "定規" in page.locator("#theory-detail .analysis-head p").first.inner_text()
