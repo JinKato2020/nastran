@@ -135,7 +135,10 @@ with sync_playwright() as pw:
                         values=[91-float(p.split(",")[1]) for p in points[1:]]
                         assert sum(a*b<0 for a,b in zip(values,values[1:]))==(0 if mode=="1" else 2)
                 assert page.locator("#mesh-compare-results tbody tr").count()==3
-                assert page.locator("#mesh-questions details").count()==2
+                decision=page.locator("#mesh-compare-results details").filter(has_text="必要なのは板本体か")
+                decision.locator("summary").click()
+                assert decision.get_by_text("取付部の局部強度を評価する場合。",exact=True).is_visible()
+                assert page.locator("#mesh-questions details").count()==3
             if key=="quality":
                 section=page.locator("#mesh-shape")
                 for heading, opening in zip(section.locator("h3").all_inner_texts(), ("幅だけ","上辺を","一つの角"), strict=True):

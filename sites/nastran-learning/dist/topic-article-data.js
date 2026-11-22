@@ -930,7 +930,7 @@ window.TopicArticleData = {
           "compare-results",
           "modes"
         ],
-        "questions": [7, 3],
+        "questions": [7, 8, 3],
         "questionsTitle": "確認問題　分割を増やすか判断する",
         "goals": [
           "同じ位置・成分でメッシュ差を測る",
