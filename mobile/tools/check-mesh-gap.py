@@ -118,9 +118,9 @@ with sync_playwright() as pw:
                 section=page.locator("#mesh-shape")
                 for heading, opening in zip(section.locator("h3").all_inner_texts(), ("幅だけ","上辺を","一つの角"), strict=True):
                     assert heading.startswith(opening)
-                page.locator('#mesh-jacobian [data-jump="mesh-quality-plane"]').click()
-                shape=section.locator("figure[data-mesh-wave-lab=shape]")
-                assert shape.evaluate("e=>e===document.activeElement")
+                combined=page.locator("#mesh-jacobian details").filter(has=page.locator("[data-mesh-wave-lab=shape]"))
+                combined.locator("summary").click()
+                shape=combined.locator("figure[data-mesh-wave-lab=shape]")
                 def slide(lab,key,value):
                     lab.locator(f'input[type=range][data-lab-input={key}]').fill(str(value))
                 def check_det(values):
@@ -141,11 +141,22 @@ with sync_playwright() as pw:
                 shape.get_by_role("button",name="正方形に戻す").click()
                 check_det((100,100,100))
                 assert shape.locator("svg").inner_html()==original
-                warp=page.locator("[data-mesh-wave-lab=warp]")
+                aspect=section.locator("[data-mesh-wave-lab=aspectMetric]")
+                slide(aspect,"ratio",3)
+                assert "60 mm ÷ 短い辺 20 mm ＝ 3" in aspect.inner_text()
+                skew=section.locator("[data-mesh-wave-lab=skewMetric]")
+                slide(skew,"angle",45)
+                assert "90° − 45° ＝ 45°" in skew.inner_text() and "20 mm" in skew.inner_text()
+                warp=section.locator("[data-mesh-wave-lab=warp]")
                 before=warp.locator("svg circle").get_attribute("cy")
-                slide(warp,"lift",12)
+                slide(warp,"angle",30)
                 assert float(warp.locator("svg circle").get_attribute("cy"))<float(before)
-                assert "12 mm" in warp.locator(".theory-lab-readout").inner_text()
+                assert "8.165 mm" in warp.inner_text()
+                jac=page.locator("[data-mesh-wave-lab=jacMetric]")
+                for det, mid in ((100,100),(50,75),(0,50),(-30,35)):
+                    slide(jac,"det",det)
+                    assert f"左下 100 ／ 中央 {mid} ／ 右上 {det}" in jac.inner_text()
+                    assert float(jac.locator("svg circle").last.get_attribute("cx"))==105+110*(1+det/100)/2
             assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), (width,key)
         page.goto((DIST / "theory.html").as_uri() + "#modes")
         assert "定規" in page.locator("#theory-detail .analysis-head p").first.inner_text()

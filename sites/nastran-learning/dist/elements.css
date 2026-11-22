@@ -65,9 +65,9 @@
 .element-table tr[aria-current=true]{background:#edf8f5}
 /* 梁の記事の動く図（beam-labs.js） */
 .beam-lab .theory-lab-controls output{min-width:3.6em;font-variant-numeric:tabular-nums;color:#1f4f9a;font-weight:600}
-[data-mesh-wave-lab=shape] .theory-lab-controls,[data-mesh-wave-lab=warp] .theory-lab-controls{display:grid;gap:5px}
-[data-mesh-wave-lab=shape] .theory-lab-controls label,[data-mesh-wave-lab=warp] .theory-lab-controls label{display:grid;grid-template-columns:minmax(6em,auto) minmax(48px,1fr) 3.8em;font-size:14px;min-height:32px}
-[data-mesh-wave-lab=shape] input[type=range],[data-mesh-wave-lab=warp] input[type=range]{width:100%;min-width:0;margin:0}
+.mesh-quality-lab .theory-lab-controls{display:grid;gap:5px}
+.mesh-quality-lab .theory-lab-controls label{display:grid;grid-template-columns:minmax(6em,auto) minmax(48px,1fr) 5em;font-size:14px;min-height:32px}
+.mesh-quality-lab input[type=range]{width:100%;min-width:0;margin:0}
 [data-mesh-wave-lab=shape] [data-lab-action]{justify-self:start}
 .beam-lab-presets{display:flex;flex-wrap:wrap;gap:6px}
 .beam-lab-presets button{min-height:40px;padding:4px 10px;border:1px solid #9cb2cb;border-radius:999px;background:#fff;color:#243e60;font-size:15px}
