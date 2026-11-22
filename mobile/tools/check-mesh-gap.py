@@ -115,7 +115,12 @@ with sync_playwright() as pw:
             page.locator("[data-topic-picker]").select_option(key)
             page.wait_for_function("k=>document.querySelector('#theory-detail').dataset.article===k", arg=key)
             if key=="quality":
-                shape=page.locator("#theory-detail > figure[data-mesh-wave-lab=shape]")
+                section=page.locator("#mesh-shape")
+                for heading, opening in zip(section.locator("h3").all_inner_texts(), ("幅だけ","上辺を","一つの角"), strict=True):
+                    assert heading.startswith(opening)
+                page.locator('#mesh-jacobian [data-jump="mesh-quality-plane"]').click()
+                shape=section.locator("figure[data-mesh-wave-lab=shape]")
+                assert shape.evaluate("e=>e===document.activeElement")
                 def slide(lab,key,value):
                     lab.locator(f'input[type=range][data-lab-input={key}]').fill(str(value))
                 def check_det(values):
