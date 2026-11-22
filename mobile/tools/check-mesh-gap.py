@@ -123,7 +123,7 @@ with sync_playwright() as pw:
                         "nodes=>nodes.map(n=>[n.getAttribute('cx'),n.getAttribute('cy')])")==[["160","103"],["280","83"]]
                     assert str(3*rows**2)+" 要素" in plate.inner_text()
                 modes=page.locator("[data-mesh-wave-lab=sampleMode]")
-                for mode in ("1","3"):
+                for mode in ("1","2","3"):
                     modes.locator("[data-lab-input=mode]").select_option(mode)
                     for n in (2,4,8):
                         modes.locator("[data-lab-input=parts]").select_option(str(n))
@@ -133,11 +133,18 @@ with sync_playwright() as pw:
                         assert abs(float(nodes.last.get_attribute("cy"))-36)<1e-6
                         points=modes.locator("polyline").last.get_attribute("points").split()
                         values=[91-float(p.split(",")[1]) for p in points[1:]]
-                        assert sum(a*b<0 for a,b in zip(values,values[1:]))==(0 if mode=="1" else 2)
+                        assert sum(a*b<0 for a,b in zip(values,values[1:]))==int(mode)-1
+                        assert modes.locator("[data-mode-node]").count()==int(mode)-1
+                        if mode=="3" and n in (2,8):
+                            assert ("0回" if n==2 else "2回") in modes.locator(".theory-lab-readout").inner_text()
                 assert page.locator("#mesh-compare-results tbody tr").count()==3
-                decision=page.locator("#mesh-compare-results details").filter(has_text="必要なのは板本体か")
-                decision.locator("summary").click()
-                assert decision.get_by_text("取付部の局部強度を評価する場合。",exact=True).is_visible()
+                assert page.locator("[data-mesh-feature=stress-survey] svg").count()==2
+                trend=page.locator("[data-mesh-feature=stress-trend]")
+                assert trend.locator("polyline").count()==2 and "390" in trend.inner_text()
+                distance=page.locator("[data-mesh-feature=stress-distance]")
+                assert distance.locator("[data-second-mid]").evaluate_all("a=>a.map(p=>p.getAttribute('cx'))")==["102","66"]
+                fixed=distance.locator("[data-fixed-distance]").evaluate_all("a=>a.map(p=>p.getAttribute('d').split(' ')[0])")
+                assert fixed==["M174","M174"]
                 assert page.locator("#mesh-questions details").count()==3
             if key=="quality":
                 section=page.locator("#mesh-shape")

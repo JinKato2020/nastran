@@ -52,7 +52,7 @@
  }
  // Euler–Bernoulli cantilever eigenfunction, normalized to unit tip deflection.
  function bendingShape(x,mode){
-   const b=mode===1?1.875104068712:7.854757438238;
+   const b=[1.875104068712,4.694091132974,7.854757438238][mode-1];
    const ratio=(Math.cosh(b)+Math.cos(b))/(Math.sinh(b)+Math.sin(b));
    const amplitude=t=>Math.cosh(t)-Math.cos(t)-ratio*(Math.sinh(t)-Math.sin(t));
    return amplitude(b*x)/amplitude(b);
@@ -78,9 +78,9 @@
      }
    },
    sampleMode: {
-     html:()=>ui.box('sampleMode',ui.select('mode','比べる曲げモード',[['1','曲げ1次'],['3','曲げ3次']],'3')+
+     html:()=>ui.box('sampleMode',ui.select('mode','比べる曲げモード',[['1','曲げ1次'],['2','曲げ2次'],['3','曲げ3次']],'3')+
        ui.select('parts','長さ方向の分割',[['2','2分割'],['4','4分割'],['8','8分割']],'2'),
-       '破線は片持ち梁の理論形、実線は黒丸の値を直線で結んだ形です。横の点線は変位ゼロ。右端の振幅を1にそろえています。'),
+       '破線は片持ち梁の理論形、実線は黒丸の値を直線で結んだ形です。白い◇は理論形が横のゼロ線を横切る内部の節です。右端の振幅を1にそろえています。'),
      draw(el,v){
        const mode=Number(v.mode), n=Number(v.parts);
        const point=x=>[35+285*x,91-55*bendingShape(x,mode)];
@@ -91,8 +91,18 @@
          line(samples,'b2-move')+
          '<polyline points="'+curve.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="#a55423" stroke-width="2" stroke-dasharray="5 4"/>';
        for(const [x,y] of samples) drawing+='<circle cx="'+x+'" cy="'+y+'" r="3" fill="#22394e"/>';
+       let internalNodes=0;
+       for(let i=2;i<curve.length;i++){
+         const [x1,y1]=curve[i-1],[x2,y2]=curve[i];
+         if((y1-91)*(y2-91)>=0) continue;
+         const x=x1+(x2-x1)*(91-y1)/(y2-y1);
+         drawing+='<path data-mode-node d="M'+x+' 86l5 5 -5 5 -5 -5z" fill="white" stroke="#125849" stroke-width="1.8"/>';
+         internalNodes++;
+       }
+       const sides=samples.slice(1).map(([,y])=>Math.sign(91-y)).filter(Boolean);
+       const observed=sides.slice(1).filter((sign,i)=>sign!==sides[i]).length;
        el.plot.innerHTML=svg('固定端から自由端までの曲げモード形と、等間隔に読んだ変位',drawing);
-       el.readout.textContent='曲げ'+mode+'次を'+(n+1)+'点で観察。'+(mode===1?'固定端から先端まで、変位は同じ側にあります。':'固定端を除くと、破線が変位ゼロを横切る位置は2か所です。');
+       el.readout.textContent='● モデルの節点 '+(n+1)+'個 ／ ◇ 理論形の内部の節 '+internalNodes+'個。黒丸を結んだ実線が途中でゼロを横切る回数は'+observed+'回です。';
      }
    },
    midpoint: {
