@@ -123,6 +123,7 @@ with sync_playwright() as pw:
                         "nodes=>nodes.map(n=>[n.getAttribute('cx'),n.getAttribute('cy')])")==[["160","103"],["280","83"]]
                     assert str(3*rows**2)+" 要素" in plate.inner_text()
                 modes=page.locator("[data-mesh-wave-lab=sampleMode]")
+                assert modes.locator("[data-lab-input=parts]").input_value()=="4"
                 for mode in ("1","2","3"):
                     modes.locator("[data-lab-input=mode]").select_option(mode)
                     for n in (2,4,8):
@@ -134,9 +135,11 @@ with sync_playwright() as pw:
                         points=modes.locator("polyline").last.get_attribute("points").split()
                         values=[91-float(p.split(",")[1]) for p in points[1:]]
                         assert sum(a*b<0 for a,b in zip(values,values[1:]))==int(mode)-1
-                        assert modes.locator("[data-mode-node]").count()==int(mode)-1
-                        if mode=="3" and n in (2,8):
-                            assert ("0回" if n==2 else "2回") in modes.locator(".theory-lab-readout").inner_text()
+                        assert modes.locator("[data-mode-gap]").count()==1
+                        if mode=="3":
+                            result=modes.locator(".theory-lab-readout").inner_text()
+                            expected={2:("見落としあり","109.7 %","超過"),4:("捉えている","28.0 %","超過"),8:("捉えている","8.9 %","範囲内")}
+                            assert all(label in result for label in expected[n])
                 assert page.locator("#mesh-compare-results tbody tr").count()==3
                 peak=page.locator("[data-mesh-wave-lab=peakStress]")
                 for h,corner,away in ((4,210,116),(2,285,121),(1,390,122)):

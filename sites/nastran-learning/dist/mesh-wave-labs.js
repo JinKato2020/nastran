@@ -102,8 +102,8 @@
    },
    sampleMode: {
      html:()=>ui.box('sampleMode',ui.select('mode','比べる曲げモード',[['1','曲げ1次'],['2','曲げ2次'],['3','曲げ3次']],'3')+
-       ui.select('parts','長さ方向の分割',[['2','2分割'],['4','4分割'],['8','8分割']],'2'),
-       '破線は片持ち梁の理論形、実線は黒丸の値を直線で結んだ形です。白い◇は理論形が横のゼロ線を横切る内部の節です。右端の振幅を1にそろえています。'),
+       ui.select('parts','長さ方向の分割',[['2','2分割'],['4','4分割'],['8','8分割']],'4'),
+       '破線＝理論形　実線＝分割点を結んだ形　縦の印＝最大のずれ'),
      draw(el,v){
        const mode=Number(v.mode), n=Number(v.parts);
        const point=x=>[35+285*x,91-55*bendingShape(x,mode)];
@@ -113,19 +113,23 @@
          '<path d="M35 73v36 m0-30 -7 6 m7 2 -7 6 m7 2 -7 6" stroke="#405063" fill="none"/>'+
          line(samples,'b2-move')+
          '<polyline points="'+curve.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="#a55423" stroke-width="2" stroke-dasharray="5 4"/>';
-       for(const [x,y] of samples) drawing+='<circle cx="'+x+'" cy="'+y+'" r="3" fill="#22394e"/>';
-       let internalNodes=0;
-       for(let i=2;i<curve.length;i++){
-         const [x1,y1]=curve[i-1],[x2,y2]=curve[i];
-         if((y1-91)*(y2-91)>=0) continue;
-         const x=x1+(x2-x1)*(91-y1)/(y2-y1);
-         drawing+='<path data-mode-node d="M'+x+' 86l5 5 -5 5 -5 -5z" fill="white" stroke="#125849" stroke-width="1.8"/>';
-         internalNodes++;
+       // Compare amplitudes at matching positions, with tip deflection normalized to one.
+       const intervals=2000;
+       let maxGap=0, gapX=0, gapY=0, sampleY=0;
+       for(let i=1;i<intervals;i++){
+         const x=i/intervals, segment=Math.floor(x*n), fraction=x*n-segment;
+         const approx=samples[segment][1]+fraction*(samples[segment+1][1]-samples[segment][1]);
+         const [px,actual]=point(x), gap=Math.abs(approx-actual);
+         if(gap>maxGap){maxGap=gap;gapX=px;gapY=actual;sampleY=approx;}
        }
+       const gapPct=maxGap/55*100;
+       drawing+='<path data-mode-gap d="M'+gapX+' '+gapY+'V'+sampleY+' M'+(gapX-3)+' '+gapY+'h6 M'+(gapX-3)+' '+sampleY+'h6" stroke="#7e306c" stroke-width="2.2" fill="none"/>';
+       for(const [x,y] of samples) drawing+='<circle cx="'+x+'" cy="'+y+'" r="3" fill="#22394e"/>';
        const sides=samples.slice(1).map(([,y])=>Math.sign(91-y)).filter(Boolean);
        const observed=sides.slice(1).filter((sign,i)=>sign!==sides[i]).length;
        el.plot.innerHTML=svg('固定端から自由端までの曲げモード形と、等間隔に読んだ変位',drawing);
-       el.readout.textContent='● モデルの節点 '+(n+1)+'個 ／ ◇ 理論形の内部の節 '+internalNodes+'個。黒丸を結んだ実線が途中でゼロを横切る回数は'+observed+'回です。';
+       const matches=observed===mode-1;
+       el.readout.innerHTML='山と谷の並び　<strong>'+(matches?'捉えている':'見落としあり')+'</strong><br>先端振幅に対する最大のずれ　<strong>'+gapPct.toFixed(1)+' %</strong><br>今回の目安（10 %以内）　'+(gapPct<=10?'範囲内':'超過');
      }
    },
    midpoint: {
