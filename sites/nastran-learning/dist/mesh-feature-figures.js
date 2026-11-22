@@ -139,10 +139,10 @@
    ]);
    const left=tiles(stripCells([104,seam],[top,mid,bottom]).map(deform),plateFill);
    const adjacent=shared?bridgeCells().slice(0,3):stripCells([seam,193],[top,bottom]);
-   const patch=tiles(adjacent.map(deform),shared?'#ffe6bd':'#f6f9fc');
+   const patch=tiles(adjacent.map(deform),shared?'#ffe6bd':'#d8e5f1');
    const [a,b,c]=deform([[seam,top],[seam,mid],[seam,bottom]]);
    const coarseMid=[(a[0]+c[0])/2,mid];
-   const opening=free?'<path d="M'+a.join(' ')+' L'+b.join(' ')+' L'+c.join(' ')+' Z" fill="#ffe6bd"/>'+
+   const opening=free?'<path d="M'+a.join(' ')+' L'+b.join(' ')+' L'+c.join(' ')+' Z" fill="white"/>'+
     '<path d="M'+b.join(' ')+' H'+coarseMid[0]+'" stroke="#934016" stroke-width="1.6"/>'+
     '<circle cx="'+coarseMid[0]+'" cy="'+mid+'" r="2.2" fill="white" stroke="#934016"/>':'';
    const trace='<polyline points="'+points([a,b,c])+'" fill="none" stroke="#156747" stroke-width="2.2"/>';
@@ -160,7 +160,7 @@
  }
  function midpointGap(){
   return '<figure class="element-figure" data-mesh-strip="midpoint-gap"><div class="mesh-feature-pair">'+midpointPanel('free')+midpointPanel('mpc')+'</div>'+
-   '<figcaption>どちらも節点10の変位は0 mm、節点30は右へ2 mm。左では白いひし形が節点20、白い小丸が粗い辺の中点です。二つの印を結ぶ横線が1 mmのずれ、三角形の空間が開いた隙間です。右では二つの位置が重なります。変形は拡大しています。</figcaption></figure>';
+   '<figcaption>左図で水色の要素の間に開いた白い三角形が隙間です。節点10を動かさず、30を右へ2 mm動かすと、粗い辺の中点（小丸）は右へ1 mm動きます。20（ひし形）が元の位置に残ると、二つの印の間が水平方向に1 mm開きます。右図ではMPCで20も中点と一緒に動き、辺がぴったり重なります。変形は拡大しています。</figcaption></figure>';
  }
  window.MeshFeatureFigures={shoulder,holes,bridge,spacing,edgeConnection,compareMidpoint,midpointGap};
 })();
