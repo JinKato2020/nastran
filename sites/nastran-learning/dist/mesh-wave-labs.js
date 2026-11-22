@@ -50,7 +50,51 @@
    return '<div><span dir="auto">'+title+'</span><svg dir="ltr" viewBox="0 0 130 130" role="img" aria-label="'+title+'、四角い枠が選択中の測定点">'+marks+'</svg>'+
      '<span dir="ltr" data-probe-value>det J = '+fmt(measured)+' mm²</span></div>';
  }
+ // Euler–Bernoulli cantilever eigenfunction, normalized to unit tip deflection.
+ function bendingShape(x,mode){
+   const b=mode===1?1.875104068712:7.854757438238;
+   const ratio=(Math.cosh(b)+Math.cos(b))/(Math.sinh(b)+Math.sin(b));
+   const amplitude=t=>Math.cosh(t)-Math.cos(t)-ratio*(Math.sinh(t)-Math.sin(t));
+   return amplitude(b*x)/amplitude(b);
+ }
  const labs = {
+   refinePlate: {
+     html:()=>ui.box('refinePlate',ui.select('rows','板の分割',[['4','粗'],['8','中'],['16','細']],'4'),
+       '左の斜線が固定辺、右の矢印が辺全体に加える上向き荷重です。●Pで長手方向の応力、○Qで上向き変位を読みます。'),
+     draw(el,v){
+       const rows=Number(v.rows), cols=3*rows;
+       let drawing='<rect x="40" y="43" width="240" height="80" fill="#edf3f7" stroke="#334b63" stroke-width="2"/>';
+       let grid='';
+       for(let i=1;i<cols;i++) grid+='M'+(40+240*i/cols)+' 43v80 ';
+       for(let j=1;j<rows;j++) grid+='M40 '+(43+80*j/rows)+'h240 ';
+       drawing+='<path data-grid d="'+grid+'" fill="none" stroke="#67849c" stroke-width="0.75"/>';
+       for(let y=43;y<=123;y+=10) drawing+=line([[40,y],[31,y+7]],'b2-sec');
+       for(const y of [57,82,107]) drawing+='<path d="M288 '+(y+7)+'v-16 m-3 5 l3 -5 3 5" fill="none" stroke="#a35315" stroke-width="2"/>';
+       drawing+='<circle data-observation="P" cx="160" cy="103" r="4" fill="#192d45" stroke="white"/>'+
+         '<circle data-observation="Q" cx="280" cy="83" r="4" fill="white" stroke="#192d45" stroke-width="2"/>'+
+         line([[160,108],[160,135]],'b2-sec')+text(156,151,'P')+text(298,86,'Q');
+       el.plot.innerHTML=svg('同じ長方形の板と、固定した二つの観測位置',drawing);
+       el.readout.textContent='長さ方向 '+cols+' × 高さ方向 '+rows+' ＝ '+cols*rows+' 要素。PとQの位置、固定辺、荷重を加える辺は共通です。';
+     }
+   },
+   sampleMode: {
+     html:()=>ui.box('sampleMode',ui.select('mode','比べる曲げモード',[['1','曲げ1次'],['3','曲げ3次']],'3')+
+       ui.select('parts','長さ方向の分割',[['2','2分割'],['4','4分割'],['8','8分割']],'2'),
+       '破線は片持ち梁の理論形、実線は黒丸の値を直線で結んだ形です。横の点線は変位ゼロ。右端の振幅を1にそろえています。'),
+     draw(el,v){
+       const mode=Number(v.mode), n=Number(v.parts);
+       const point=x=>[35+285*x,91-55*bendingShape(x,mode)];
+       const curve=Array.from({length:151},(_,i)=>point(i/150));
+       const samples=Array.from({length:n+1},(_,i)=>point(i/n));
+       let drawing='<path d="M30 91H329" stroke="#657381" stroke-dasharray="1 3"/>'+
+         '<path d="M35 73v36 m0-30 -7 6 m7 2 -7 6 m7 2 -7 6" stroke="#405063" fill="none"/>'+
+         line(samples,'b2-move')+
+         '<polyline points="'+curve.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="#a55423" stroke-width="2" stroke-dasharray="5 4"/>';
+       for(const [x,y] of samples) drawing+='<circle cx="'+x+'" cy="'+y+'" r="3" fill="#22394e"/>';
+       el.plot.innerHTML=svg('固定端から自由端までの曲げモード形と、等間隔に読んだ変位',drawing);
+       el.readout.textContent='曲げ'+mode+'次を'+(n+1)+'点で観察。'+(mode===1?'固定端から先端まで、変位は同じ側にあります。':'固定端を除くと、破線が変位ゼロを横切る位置は2か所です。');
+     }
+   },
    midpoint: {
      html:()=>ui.box('midpoint',ui.select('profile','比べる変形',[
        ['local','途中で変位の増え方が変わる'],['linear','変位が直線的に増える']

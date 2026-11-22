@@ -32,7 +32,7 @@ with sync_playwright() as pw:
     for width in (320, 390, 768):
         page.set_viewport_size({"width": width, "height": 844})
         page.goto((DIST / "theory.html").as_uri() + "#mesh")
-        assert "4分割から2分割" in page.locator("#theory-detail h1").inner_text()
+        assert page.locator("#theory-detail h1").inner_text()=="細かいメッシュと粗いメッシュをどうつなぐか"
         bridge=page.locator("#theory-detail > [data-mesh-strip=bridge]")
         check_quad_strip(bridge,2)
         check_quad_strip(page.locator("[data-mesh-strip=spacing]"),4)
@@ -114,6 +114,28 @@ with sync_playwright() as pw:
         for key in ("transitions","quality","convergence","waves","sources"):
             page.locator("[data-topic-picker]").select_option(key)
             page.wait_for_function("k=>document.querySelector('#theory-detail').dataset.article===k", arg=key)
+            if key=="convergence":
+                plate=page.locator("[data-mesh-wave-lab=refinePlate]")
+                for rows in (4,8,16):
+                    plate.locator("select").select_option(str(rows))
+                    assert plate.locator("[data-grid]").get_attribute("d").count("M")==4*rows-2
+                    assert plate.locator("[data-observation]").evaluate_all(
+                        "nodes=>nodes.map(n=>[n.getAttribute('cx'),n.getAttribute('cy')])")==[["160","103"],["280","83"]]
+                    assert str(3*rows**2)+" 要素" in plate.inner_text()
+                modes=page.locator("[data-mesh-wave-lab=sampleMode]")
+                for mode in ("1","3"):
+                    modes.locator("[data-lab-input=mode]").select_option(mode)
+                    for n in (2,4,8):
+                        modes.locator("[data-lab-input=parts]").select_option(str(n))
+                        nodes=modes.locator("circle")
+                        assert nodes.count()==n+1
+                        assert abs(float(nodes.first.get_attribute("cy"))-91)<1e-6
+                        assert abs(float(nodes.last.get_attribute("cy"))-36)<1e-6
+                        points=modes.locator("polyline").last.get_attribute("points").split()
+                        values=[91-float(p.split(",")[1]) for p in points[1:]]
+                        assert sum(a*b<0 for a,b in zip(values,values[1:]))==(0 if mode=="1" else 2)
+                assert page.locator("#mesh-compare-results tbody tr").count()==3
+                assert page.locator("#mesh-questions details").count()==2
             if key=="quality":
                 section=page.locator("#mesh-shape")
                 for heading, opening in zip(section.locator("h3").all_inner_texts(), ("幅だけ","上辺を","一つの角"), strict=True):
