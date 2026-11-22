@@ -174,7 +174,7 @@ with sync_playwright() as pw:
                 quiz=page.locator("#mesh-questions")
                 assert "形を見て、修正の要否を判断する" in quiz.locator("h2").inner_text()
                 items=quiz.locator("details")
-                for item, prompt, answer in zip(items.all(), ("平らな板","中央は＋35","孔の縁"), ("反り","四隅すべて","同じ応力成分"), strict=True):
+                for item, prompt, answer in zip(items.all(), ("平らな板","平面4節点要素のヤコビアンの行列式 det J は、中央で＋35 mm²、右上の節点で−30 mm²","孔の縁"), ("反り","四隅すべて","同じ応力成分"), strict=True):
                     summary=item.locator("summary")
                     assert summary.inner_text().startswith(prompt)
                     summary.click()
