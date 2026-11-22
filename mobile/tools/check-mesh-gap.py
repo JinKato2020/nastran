@@ -116,9 +116,31 @@ with sync_playwright() as pw:
             page.wait_for_function("k=>document.querySelector('#theory-detail').dataset.article===k", arg=key)
             if key=="quality":
                 shape=page.locator("#theory-detail > figure[data-mesh-wave-lab=shape]")
-                for preset,values in (("square","100、100"),("small","25、25"),("pinch","100、10"),("fold","100、-20")):
-                    shape.locator("[data-lab-input=corner]").select_option(preset)
-                    assert values in shape.locator(".theory-lab-readout").inner_text()
+                def slide(lab,key,value):
+                    lab.locator(f'input[type=range][data-lab-input={key}]').fill(str(value))
+                def check_det(values):
+                    assert "左下 %s ／ 中央 %s ／ 右上 %s" % values in shape.locator(".theory-lab-readout").inner_text()
+                check_det((100,100,100))
+                original=shape.locator("svg").inner_html()
+                slide(shape,"size",10)
+                check_det((25,25,25))
+                slide(shape,"aspect",2)
+                check_det((50,50,50))
+                before=shape.locator("svg").inner_html()
+                slide(shape,"skew",-10)
+                check_det((50,50,50))
+                assert shape.locator("svg").inner_html()!=before
+                for depth,values in ((45,(50,27.5,5)),(50,(50,25,0)),(65,(50,17.5,-15))):
+                    slide(shape,"pinch",depth)
+                    check_det(values)
+                shape.get_by_role("button",name="正方形に戻す").click()
+                check_det((100,100,100))
+                assert shape.locator("svg").inner_html()==original
+                warp=page.locator("[data-mesh-wave-lab=warp]")
+                before=warp.locator("svg circle").get_attribute("cy")
+                slide(warp,"lift",12)
+                assert float(warp.locator("svg circle").get_attribute("cy"))<float(before)
+                assert "12 mm" in warp.locator(".theory-lab-readout").inner_text()
             assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), (width,key)
         page.goto((DIST / "theory.html").as_uri() + "#modes")
         assert "定規" in page.locator("#theory-detail .analysis-head p").first.inner_text()

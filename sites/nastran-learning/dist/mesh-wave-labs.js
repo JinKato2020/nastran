@@ -87,22 +87,53 @@
      }
    },
    shape: {
-     html:()=>ui.box('shape',ui.select('corner','四角形の形',[['square','20 mmの正方形'],['small','全体を半分に縮小'],['pinch','右上の角を中心近くへ'],['fold','角を中心より内側へ']],'square'),
-       '破線は元の外形、実線は形を変えた後の方眼です。右上の角と、その周りの升目を見てください。'),
+     html:()=>ui.box('shape',
+       ui.slider('size','基準寸法',10,25,1,20)+ui.slider('aspect','幅／高さ',0.5,2,0.1,1)+
+       ui.slider('skew','上辺の横ずれ',-10,10,1,0)+ui.slider('pinch','右上角の押し込み',0,65,1,0)+
+       '<button type="button" data-lab-action="reset:shape">正方形に戻す</button>',
+       '破線は最初の20 mm角、実線は現在の要素です。左下の黒丸、中央の十字、右上の白丸で、それぞれ同じ場所の方眼の広がりを読みます。'),
+     action(el){for(const input of Object.values(el.inputs))input.value=input.defaultValue;},
      draw(el,v){
-       const [side,corner]={square:[20,20],small:[10,10],pinch:[20,11],fold:[20,8]}[v.corner];
-       // Bilinear four-node map of the unit square. Display det J on [-1,1]².
-       const point=(u,w)=>[119+5.5*(side*u+(corner-side)*u*w),143-5.5*(side*w+(corner-side)*u*w)];
-       let grid=line([[119,143],[229,143],[229,33],[119,33],[119,143]],'b2-ghost');
-       for(let i=0;i<=4;i++){
-         const t=i/4;
+       const h=Number(v.size), b=h*Number(v.aspect), shift=Number(v.skew), p=Number(v.pinch)/100;
+       el.out.size.textContent=h+' mm'; el.out.aspect.textContent=fmt(b/h);
+       el.out.skew.textContent=shift+' mm'; el.out.pinch.textContent=v.pinch+' %';
+       // First pull the corner towards the origin, then apply an area-preserving shear.
+       const point=(u,w)=>{
+         const uw=p*u*w, x=b*(u-uw)+shift*(w-uw), y=h*(w-uw);
+         return [69+4.5*x,144-4.5*y];
+       };
+       let grid=line([[69,144],[159,144],[159,54],[69,54],[69,144]],'b2-ghost');
+       for(let i=0;i<=6;i++){
+         const t=i/6;
+         grid+=line([point(t,0),point(t,1)],'b2-sec')+line([point(0,t),point(1,t)],'b2-sec');
+       }
+       const [ax,ay]=point(0,0),[mx,my]=point(.5,.5),[cx,cy]=point(1,1);
+       grid+='<circle cx="'+ax+'" cy="'+ay+'" r="3.2" fill="currentColor"/>'+
+         '<path d="M'+(mx-4)+' '+my+' h8 M'+mx+' '+(my-4)+' v8" stroke="currentColor" stroke-width="2"/>'+
+         '<circle cx="'+cx+'" cy="'+cy+'" r="3.5" fill="white" stroke="currentColor" stroke-width="1.8"/>';
+       el.plot.innerHTML=svg('4節点の平面要素。実線の方眼と三つの測定位置。',grid);
+       const det0=b*h/4;
+       const values=[det0,det0*(1-p),det0*(1-2*p)].map(fmt);
+       const note=p>.5?'右上の近くで方眼が折り返しています。':p===.5?'右上で升目の面積倍率がゼロになりました。':p>0?'右上へ近づくほど升目が狭くなっています。':shift?'角度が変わっても、高さと底辺が同じなら升目の面積は変わりません。':'どの位置でも升目の面積は同じです。';
+       el.readout.textContent='det J（mm²）　左下 '+values[0]+' ／ 中央 '+values[1]+' ／ 右上 '+values[2]+'。'+note;
+     }
+   },
+   warp: {
+     html:()=>ui.box('warp',ui.slider('lift','右上角の持ち上げ',0,12,1,0),
+       '20 mm角の板を斜めから見ています。破線は元の平面、白丸は持ち上げる節点です。'),
+     draw(el,v){
+       const lift=Number(v.lift);
+       el.out.lift.textContent=lift+' mm';
+       const point=(u,w)=>[68+146*u+72*w,138-25*u-49*w-4.4*lift*u*w];
+       let grid=line([[68,138],[214,113],[286,64],[140,89],[68,138]],'b2-ghost');
+       for(let i=0;i<=5;i++){
+         const t=i/5;
          grid+=line([point(t,0),point(t,1)],'b2-sec')+line([point(0,t),point(1,t)],'b2-sec');
        }
        const [x,y]=point(1,1);
-       grid+='<circle cx="'+x+'" cy="'+y+'" r="3.4" fill="white" stroke="currentColor" stroke-width="1.8"/>';
-       el.plot.innerHTML=svg('正方形の縮小と、右上の角の移動による方眼のつぶれ',grid);
-       const observation={square:'升目はどこも同じ広さです。',small:'全体が相似に縮み、升目の形は保たれます。',pinch:'角の近くだけ升目が細くなります。',fold:'角の近くで内側の線が外形からはみ出し、写像が折り返します。'}[v.corner];
-       el.readout.textContent=observation+' 左下と白丸の面積倍率（det J）は順に '+fmt(side*side/4)+'、'+fmt(side*(2*corner-side)/4)+' mm²。';
+       grid+=line([[286,64],[x,y]],'b2-ghost')+'<circle cx="'+x+'" cy="'+y+'" r="3.5" fill="white" stroke="currentColor" stroke-width="1.8"/>';
+       el.plot.innerHTML=svg('三つの角を同一平面に置き、四つ目だけを持ち上げた要素',grid);
+       el.readout.textContent=lift?'上から見た輪郭は同じ20 mm角です。白丸は残りの3点が作る平面から '+lift+' mm 離れ、要素の面がねじれます。':'4点とも同じ平面にあります。';
      }
    },
    reflect: {
