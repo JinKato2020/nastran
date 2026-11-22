@@ -36,7 +36,20 @@ with sync_playwright() as pw:
         bridge=page.locator("#theory-detail > [data-mesh-strip=bridge]")
         check_quad_strip(bridge,2)
         check_quad_strip(page.locator("[data-mesh-strip=spacing]"),4)
+        midpoint=page.locator("[data-mesh-wave-lab=midpoint]")
+        for profile, shared_x in (("local",159),("linear",149)):
+            midpoint.locator("[data-lab-input=profile]").select_option(profile)
+            views=midpoint.locator(".mesh-feature-pair svg")
+            assert views.count()==2 and views.first.get_attribute("viewBox")==views.last.get_attribute("viewBox")
+            for index, expected_x in enumerate((shared_x,149)):
+                view=views.nth(index)
+                assert view.bounding_box()["width"]>=95
+                assert view.locator("polygon").count()==(5 if index==0 else 3)
+                points=view.locator("polyline").get_attribute("points").split()
+                assert [tuple(map(float, p.split(","))) for p in points]==[(129,24),(expected_x,49),(169,74)]
+            assert ("仮定" if profile=="local" else "両方式とも1 mm") in midpoint.locator(".theory-lab-readout").inner_text()
         test=page.locator("[data-mesh-wave-lab=hanging]")
+        test.locator("..").locator("summary").click()
         for motion, ends in (("gradient",(0,2,4)),("together",(2,2,2)),("rest",(0,0,0))):
             test.locator("[data-lab-input=motion]").select_option(motion)
             mids=((ends[0]+ends[1])/2,(ends[1]+ends[2])/2)

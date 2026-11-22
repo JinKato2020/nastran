@@ -25,6 +25,7 @@
 .mesh-feature-pair>div{text-align:center;padding:7px 3px 0}
 .mesh-feature-pair>div+div{border-left:1px solid #dbe4ed}
 .mesh-feature-pair svg{max-width:165px}
+.theory-lab-plot .mesh-feature-pair svg{display:block;width:100%;height:auto;margin:2px auto}
 .mesh-feature-pair span{display:block;color:#29466b;font-size:13px;font-weight:600}
 .element-formula{margin:12px 0;padding:12px 14px;background:#fff;border:1px solid #d4e0ef;border-left:4px solid #4675c0;border-radius:8px;font-family:"Cambria Math","Times New Roman",serif;font-size:16px;line-height:1.9;color:#243e60;white-space:pre-wrap}
 .elements-main .theory-section a[href^="bulk.html"]{font-family:ui-monospace,Consolas,monospace;font-size:.95em}

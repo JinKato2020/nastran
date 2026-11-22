@@ -24,6 +24,18 @@
    return rings;
  }
  const labs = {
+   midpoint: {
+     html:()=>ui.box('midpoint',ui.select('profile','比べる変形',[
+       ['local','途中で変位の増え方が変わる'],['linear','変位が直線的に増える']
+     ],'local'),
+       '両図とも10は動かず、30は右に2 mm動きます。破線は変形後の10と30を結ぶ直線、緑の実線は板の境目です。左の黒丸と右の白いひし形が節点20です。'),
+     draw(el,v){
+       const linear=v.profile==='linear';
+       el.plot.innerHTML=window.MeshFeatureFigures.compareMidpoint(linear?1:1.5);
+       el.readout.textContent=linear?'両端が0・2 mmで、途中の変位が直線的に増えれば、中点は両方式とも1 mmです。':
+        '左図の1.5 mmは、共有節点で表せる変形の一例として仮定した値です。右図では、同じ両端変位を与えると、20は拘束式により必ず1 mm動きます。';
+     }
+   },
    hanging: {
      html:()=>ui.box('hanging',ui.select('connection','20・40のつなぎ方',[['mpc','MPCで両端から補間'],['none','つながない'],['one','上の端だけに合わせる']],'mpc')+
        ui.select('motion','10・30・50の右向き変位',[['gradient','順に 0・2・4 mm'],['together','すべて 2 mm'],['rest','すべて 0 mm']],'gradient'),
