@@ -41,7 +41,7 @@
      figure.replaceWith(back);
      part[2]=body.innerHTML;
     }
-    if(selectedQuestions.length)local.push([cfg.prefix+'-questions','自分で確かめる','<div class="theory-quiz">'+selectedQuestions.join('')+'</div>']);
+    if(selectedQuestions.length)local.push([cfg.prefix+'-questions',group.questionsTitle||'自分で確かめる','<div class="theory-quiz">'+selectedQuestions.join('')+'</div>']);
     const i=cfg.articles.indexOf(group);
     root.innerHTML='<div class="analysis-head"><span class="analysis-sol">'+esc(cfg.title)+'</span><h1>'+esc(title)+'</h1>'+(reference?'':'<p>'+esc(group.opening)+'</p>')+'</div>'+preview+
      '<label class="analysis-selector">この章の記事<select aria-label="この章の記事" data-topic-picker>'+cfg.articles.map(g=>'<option value="'+esc(g.key)+'"'+(!reference&&g===group?' selected':'')+'>'+esc(g.title)+'</option>').join('')+'<option value="sources"'+(reference?' selected':'')+'>参照資料</option></select></label>'+

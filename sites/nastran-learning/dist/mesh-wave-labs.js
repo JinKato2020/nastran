@@ -146,16 +146,8 @@
        el.out.probe.textContent=probeLabel;
        el.inputs.probe.setAttribute('aria-valuetext',probeLabel);
        el.out.det.textContent=det+' mm²';
-       let comparison='';
-       if(det>=0){
-         // det J is affine across this bilinear element. Its mean on each
-         // rectangular reference patch equals its value at that patch's midpoint.
-         const cornerPatch=16*(.1+.9*det/100);
-         comparison=window.LessonArticle.table(['面積（mm²）','元の板','今の板'],[
-           ['板全体','400',fmt(4*center)],['●を囲む印','16',fmt(16*center/100)],['○に接する印','16',fmt(cornerPatch)]],{narrow:true});
-       }
-       el.plot.innerHTML='<div class="mesh-feature-pair">'+jacobianPlate(100,'元の板',position)+jacobianPlate(det,'今の板',position)+'</div>'+comparison;
-       const note=det<0?'白丸をさらに押すと方眼が折り返します。':det===0?'白丸から隣の二節点へたどると、両方とも同じ直線の上にあります。':det===100?'まだ押し込んでいないので、左右の図は同じです。':'白丸に近い印のほうが細くなります。';
+       el.plot.innerHTML='<div class="mesh-feature-pair">'+jacobianPlate(100,'元の板',position)+jacobianPlate(det,'今の板',position)+'</div>';
+       const note=det<0?'白丸の近くで方眼が折り返しています。':det===0?'白丸から隣の二節点へたどると、両方とも同じ直線の上にあります。':det===100?'まだ押し込んでいないので、左右の図は同じです。':'白丸に近い印のほうが細くなります。';
        el.readout.textContent='点ごとの det J（mm²）　● 中央（測定点） '+fmt(center)+' ／ ○ 右上（節点） '+det+'。'+note;
      }
    },

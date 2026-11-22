@@ -119,7 +119,7 @@ with sync_playwright() as pw:
                 for heading, opening in zip(section.locator("h3").all_inner_texts(), ("幅だけ","上辺を","一つの角"), strict=True):
                     assert heading.startswith(opening)
                 practical=page.locator("#mesh-jacobian")
-                assert practical.get_by_role("heading",name="実務では、どこの det J を見るか").is_visible()
+                assert practical.get_by_role("heading",name="図のどこでつぶれを判定するか").is_visible()
                 assert "1点ガウス積分" in practical.inner_text()
                 def slide(lab,key,value):
                     lab.locator(f'input[type=range][data-lab-input={key}]').fill(str(value))
@@ -149,15 +149,14 @@ with sync_playwright() as pw:
                         x=14+100*(u-(1-det/100)*u*u/2)
                         assert abs(float(plate.locator("[data-probe]").get_attribute("x"))+5-x)<1e-7
                         assert plate.locator("polygon").first.get_attribute("points")==outline
-                    rows=jac.locator("tbody tr")
-                    if det<0:
-                        assert rows.count()==0
-                        continue
-                    for row,poly in zip(rows.all(),plate.locator("polygon").all(),strict=True):
-                        corners=[tuple(map(float,p.split(","))) for p in poly.get_attribute("points").split()]
-                        twice_area=sum(x*corners[(i+1)%4][1]-y*corners[(i+1)%4][0] for i,(x,y) in enumerate(corners))
-                        # The same scale throughout both panels: 100 drawing units = 20 mm.
-                        assert abs(abs(twice_area)/50-float(row.locator("td").last.inner_text()))<1e-7
+                quiz=page.locator("#mesh-questions")
+                assert "形を見て、修正の要否を判断する" in quiz.locator("h2").inner_text()
+                items=quiz.locator("details")
+                for item, prompt, answer in zip(items.all(), ("平らな板","中央は＋35","孔の縁"), ("反り","四隅すべて","同じ応力成分"), strict=True):
+                    summary=item.locator("summary")
+                    assert summary.inner_text().startswith(prompt)
+                    summary.click()
+                    assert answer in item.locator("p").inner_text()
             assert page.evaluate("document.documentElement.scrollWidth<=innerWidth+1"), (width,key)
         page.goto((DIST / "theory.html").as_uri() + "#modes")
         assert "定規" in page.locator("#theory-detail .analysis-head p").first.inner_text()
