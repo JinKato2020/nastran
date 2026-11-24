@@ -118,6 +118,7 @@ with sync_playwright() as pw:
                 spatial=page.locator("[data-mesh-wave-lab=waveSpacing]")
                 readout=spatial.locator(".theory-lab-readout")
                 assert "波長 10 m。1波長あたり 2 要素" in readout.inner_text()
+                assert "両端を含め 3 節点" in readout.inner_text()
                 assert spatial.locator("svg circle").count()==5
                 assert all(abs(float(y)-88)<1e-6 for y in spatial.locator("svg circle").evaluate_all("dots=>dots.map(d=>d.getAttribute('cy'))"))
                 spatial.locator("input").fill("12.5")
@@ -126,6 +127,11 @@ with sync_playwright() as pw:
                 spatial.locator("[data-lab-input=speed]").select_option("100")
                 spatial.locator("[data-lab-input=h]").select_option("0.5")
                 assert "波長 5 m。1波長あたり 10 要素" in readout.inner_text()
+                assert "両端を含め 11 節点" in readout.inner_text()
+                travel=page.locator("[data-mesh-wave-lab=waveTravel]")
+                for periods,reading in [("1","6要素 9.55 m（遅れ 0.45 m）、10要素 9.84 m"),("5","6要素 47.75 m（遅れ 2.25 m）、10要素 49.18 m")]:
+                    travel.locator("select").select_option(periods)
+                    assert reading in travel.locator(".theory-lab-readout").inner_text()
                 record=page.locator("[data-mesh-wave-lab=waveRecording]")
                 for every,count,extent in [("10",3,0),("5",5,70),("1",21,70)]:
                     record.locator("select").select_option(every)
@@ -140,6 +146,9 @@ with sync_playwright() as pw:
                     assert plate.locator("[data-observation]").evaluate_all(
                         "nodes=>nodes.map(n=>[n.getAttribute('cx'),n.getAttribute('cy')])")==[["160","103"],["280","83"]]
                     assert str(3*rows**2)+" 要素" in plate.inner_text()
+                pair=page.locator("[data-mesh-wave-lab=modeSpacing]")
+                assert pair.locator("svg circle").count()==5+9
+                assert "8.9 %" in pair.locator(".theory-lab-readout").inner_text()
                 modes=page.locator("[data-mesh-wave-lab=sampleMode]")
                 assert modes.locator("[data-lab-input=parts]").input_value()=="4"
                 for mode in ("1","2","3"):
@@ -148,6 +157,7 @@ with sync_playwright() as pw:
                         modes.locator("[data-lab-input=parts]").select_option(str(n))
                         nodes=modes.locator("circle")
                         assert nodes.count()==n+1
+                        assert f"{n} 要素・{n+1} 節点" in modes.locator(".theory-lab-readout").inner_text()
                         assert abs(float(nodes.first.get_attribute("cy"))-91)<1e-6
                         assert abs(float(nodes.last.get_attribute("cy"))-36)<1e-6
                         points=modes.locator("polyline").last.get_attribute("points").split()

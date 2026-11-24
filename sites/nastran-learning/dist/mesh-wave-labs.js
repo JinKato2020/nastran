@@ -86,7 +86,45 @@
            const a=x(firstPeak), b=x(firstPeak+length);
            return line([[a,46],[a,36],[b,36],[b,46]],'b2-sec')+text((a+b)/2-18,29,'λ = '+length+' m');
          }));
-       el.readout.textContent='波長 '+length+' m。1波長あたり '+fmt(length/h)+' 要素。最初の山が進んだ距離 '+fmt(travel)+' m。';
+       el.readout.textContent='波長 '+length+' m。1波長あたり '+fmt(length/h)+' 要素（x=0 から1波長先まで、両端を含め '+fmt(length/h+1)+' 節点）。最初の山が進んだ距離 '+fmt(travel)+' m。';
+     }
+   },
+   waveTravel: {
+     html:()=>ui.box('waveTravel',ui.select('periods','山を追う時間',[[1,'1周期後（0.05 s）'],[5,'5周期後（0.25 s）']],1),
+       '横軸は同じ山が進んだ距離。到達位置の周辺を拡大しています。縦の破線が連続体の理論位置、上の◇が1波長6要素、下の●が10要素です。横の線の長さがそれぞれの遅れです。'),
+     draw(el,v){
+       const exact=10*Number(v.periods);
+       const x=distance=>60+82*(distance-exact+3);
+       const at=n=>exact*Math.sin(Math.PI/n)/(Math.PI/n);
+       const a=x(at(6)), b=x(at(10)), ref=x(exact);
+       let drawing=line([[ref,32],[ref,126]],'b2-ghost')+line([[60,126],[333,126]],'b2-guide');
+       for(let i=0;i<=3;i++){
+         const value=exact-3+i;
+         drawing+=line([[x(value),123],[x(value),131]],'b2-sec')+text(x(value)-6,147,fmt(value));
+       }
+       drawing+=text(8,65,'N = 6')+text(8,105,'N = 10')+text(167,162,'x (m)')+
+         line([[a,62],[ref,62]],'b2-move')+line([[b,102],[ref,102]],'b2-move')+
+         '<path d="M'+a+' 57 l5 5 -5 5 -5 -5 Z" stroke="currentColor" fill="white"/>'+
+         '<circle cx="'+b+'" cy="102" r="4" fill="currentColor"/>';
+       el.plot.innerHTML=svg('最短波長を6要素と10要素で分けた場合の山の到達位置',drawing);
+       el.readout.textContent='理論 '+exact+' m。6要素 '+at(6).toFixed(2)+' m（遅れ '+(exact-at(6)).toFixed(2)+' m）、10要素 '+at(10).toFixed(2)+' m（遅れ '+(exact-at(10)).toFixed(2)+' m）。';
+     }
+   },
+   modeSpacing: {
+     html:()=>ui.box('modeSpacing','','同じ全長・同じ縦倍率で、上に全長4分割、下に全長8分割を並べています。破線は曲げ3次の理論形、●と実線は節点位置で読んだ値と折れ線です。寸法線は全長 L に対する代表波長です。'),
+     draw(el){
+       const start=55, width=278;
+       let drawing=line([[start,29],[start,19],[start+0.8*width,19],[start+0.8*width,29]],'b2-sec')+
+         text(122,14,'λ ≈ 0.80 L');
+       for(const [n,y] of [[4,70],[8,135]]){
+         const point=t=>[start+width*t,y-25*bendingShape(t,3)];
+         const nodes=Array.from({length:n+1},(_,i)=>point(i/n));
+         drawing+=text(5,y-1,'L/h = '+n)+line([[start,y],[start+width,y]],'b2-guide')+
+           line(nodes,'b2-move')+line(Array.from({length:161},(_,i)=>point(i/160)),'b2-ghost')+
+           nodes.map(([x,cy])=>'<circle cx="'+x+'" cy="'+cy+'" r="2.8" fill="currentColor"/>').join('');
+       }
+       el.plot.innerHTML=svg('片持ち梁の全長4要素と8要素を同じ尺度で比較',drawing);
+       el.readout.textContent='全長4要素（5節点）では最大のずれ28.0 %。全長8要素（9節点）では8.9 %。いずれも先端振幅を基準にした折れ線の読み取り誤差です。';
      }
    },
    waveRecording: {
@@ -170,7 +208,7 @@
        const observed=sides.slice(1).filter((sign,i)=>sign!==sides[i]).length;
        el.plot.innerHTML=svg('固定端から自由端までの曲げモード形と、等間隔に読んだ変位',drawing);
        const matches=observed===mode-1;
-       el.readout.innerHTML='山と谷の並び　<strong>'+(matches?'捉えている':'見落としあり')+'</strong><br>先端振幅に対する最大のずれ　<strong>'+gapPct.toFixed(1)+' %</strong><br>今回の目安（10 %以内）　'+(gapPct<=10?'範囲内':'超過');
+       el.readout.innerHTML='梁の全長　'+n+' 要素・'+(n+1)+' 節点<br>山と谷の並び　<strong>'+(matches?'捉えている':'見落としあり')+'</strong><br>先端振幅に対する最大のずれ　<strong>'+gapPct.toFixed(1)+' %</strong><br>今回の目安（10 %以内）　'+(gapPct<=10?'範囲内':'超過');
      }
    },
    midpoint: {
