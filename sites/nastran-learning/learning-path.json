@@ -308,7 +308,6 @@
         "description": "釣合い・線形性・変位から応力へ",
         "path": "theory.html",
         "hash": "#static",
-        "kind": "解析の理論",
         "group": "構造・静解析"
       },
       {
@@ -316,7 +315,6 @@
         "description": "薄肉式を用いず、半径方向で変化する応力を釣合いと変形の適合から求めます。軸方向の条件が変わると、同じ内圧でも軸応力と変位が変わります。",
         "path": "theory.html",
         "hash": "#thick-cylinder",
-        "kind": "解析の理論",
         "group": "構造・静解析"
       },
       {
@@ -324,7 +322,6 @@
         "description": "分岐・固有値・初期不整",
         "path": "theory.html",
         "hash": "#buckling",
-        "kind": "解析の理論",
         "group": "構造・静解析"
       },
       {
@@ -332,7 +329,6 @@
         "description": "固有振動数・モード形・規格化",
         "path": "theory.html",
         "hash": "#modes",
-        "kind": "解析の理論",
         "group": "振動・動解析"
       },
       {
@@ -340,7 +336,6 @@
         "description": "固有値は材料剛性と質量だけでなく、振動前に存在する応力状態にも依存する。",
         "path": "theory.html",
         "hash": "#prestressed-modes",
-        "kind": "解析の理論",
         "group": "振動・動解析"
       },
       {
@@ -348,7 +343,6 @@
         "description": "実固有値との違い・複素平面と波形・モードの位相差",
         "path": "theory.html",
         "hash": "#complex-modes",
-        "kind": "解析の理論",
         "group": "振動・動解析"
       },
       {
@@ -356,7 +350,6 @@
         "description": "複素振幅・位相・動剛性",
         "path": "theory.html",
         "hash": "#direct-frequency",
-        "kind": "解析の理論",
         "group": "振動・動解析"
       },
       {
@@ -364,7 +357,6 @@
         "description": "モード重ね合わせ・打切り・共振",
         "path": "theory.html",
         "hash": "#modal-frequency",
-        "kind": "解析の理論",
         "group": "振動・動解析"
       },
       {
@@ -372,7 +364,6 @@
         "description": "初期条件・時間積分・時間刻み",
         "path": "theory.html",
         "hash": "#transient",
-        "kind": "解析の理論",
         "group": "振動・動解析"
       },
       {
@@ -380,7 +371,6 @@
         "description": "熱収支・伝導・対流・断熱",
         "path": "theory.html",
         "hash": "#heat",
-        "kind": "解析の理論",
         "group": "熱解析"
       },
       {
@@ -388,7 +378,6 @@
         "description": "温度変化が生む自由ひずみと、連続する構造が実際に許す変形との差が弾性応力になります。線形の剛性が同じなら機械荷重と温度荷重の応答を重ね合わせられます。",
         "path": "theory.html",
         "hash": "#thermal-stress",
-        "kind": "解析の理論",
         "group": "熱解析"
       },
       {
@@ -396,7 +385,6 @@
         "description": "材料が弾性のままでも、変形後の形状が力の伝わり方を変えると剛性は一定ではなくなります。限界点を越えた経路を追うには、荷重だけを未知変位の原因とする見方を広げ、荷重係数も解く必要があります。",
         "path": "theory.html",
         "hash": "#large-deformation",
-        "kind": "解析の理論",
         "group": "非線形・破壊"
       },
       {
@@ -404,7 +392,6 @@
         "description": "降伏は変形の全てが永久に残る瞬間ではありません。全ひずみを弾性成分と塑性成分に分けると、載荷中の非線形性と除荷後の残留を整理できます。梁では材料の降伏と断面の全塑性化も区別します。",
         "path": "theory.html",
         "hash": "#plasticity",
-        "kind": "解析の理論",
         "group": "非線形・破壊"
       },
       {
@@ -412,7 +399,6 @@
         "description": "特異性・KとG・四分点要素",
         "path": "theory.html",
         "hash": "#fracture",
-        "kind": "解析の理論",
         "group": "非線形・破壊"
       }
     ],
@@ -421,57 +407,49 @@
         "title": "ばね要素（CELAS・CBUSH）",
         "description": "節点成分・ばね定数・剛体運動の検算",
         "path": "elements.html",
-        "hash": "#scalar",
-        "kind": "要素理論"
+        "hash": "#scalar"
       },
       {
         "title": "梁要素（CROD・CBAR・CBEAM）",
         "description": "断面方向・局所軸・荷重と曲げ面",
         "path": "elements.html",
-        "hash": "#beam",
-        "kind": "要素理論"
+        "hash": "#beam"
       },
       {
         "title": "シェル要素（CQUAD4・CTRIA3ほか）",
         "description": "法線・表裏・単位幅の力と応力",
         "path": "elements.html",
-        "hash": "#shell",
-        "kind": "要素理論"
+        "hash": "#shell"
       },
       {
         "title": "ソリッド要素（CHEXA・CTETRAほか）",
         "description": "節点順・端面の力・厚さ方向の応力",
         "path": "elements.html",
-        "hash": "#solid",
-        "kind": "要素理論"
+        "hash": "#solid"
       },
       {
         "title": "剛体要素（RBE2・RBE3・RBAR）",
         "description": "独立・従属自由度、RBE2とRBE3の違いを数値で比較",
         "path": "elements.html",
-        "hash": "#rigid",
-        "kind": "要素理論"
+        "hash": "#rigid"
       },
       {
         "title": "結合要素（CWELD・CFAST・CSEAM）",
         "description": "点溶接・締結具・シーム溶接の剛性化、凝着要素",
         "path": "elements.html",
-        "hash": "#connector",
-        "kind": "要素理論"
+        "hash": "#connector"
       },
       {
         "title": "GAP要素（CGAP・PGAP）",
         "description": "ストッパー・浮き上がり支持の開閉と圧縮力を検算",
         "path": "elements.html",
-        "hash": "#gap",
-        "kind": "要素理論"
+        "hash": "#gap"
       },
       {
         "title": "一般要素（GENEL）",
         "description": "剛性行列・柔性行列を直接与える要素の仕組み",
         "path": "elements.html",
-        "hash": "#genel",
-        "kind": "要素理論"
+        "hash": "#genel"
       }
     ],
     "analyses": [
@@ -655,8 +633,7 @@
         "title": "リスタートの考え方",
         "description": "前回の計算を再利用する条件とデータベースの管理",
         "path": "theory.html",
-        "hash": "#restart",
-        "kind": "共通理論"
+        "hash": "#restart"
       },
       {
         "title": "似たカードの使い分け",
@@ -671,43 +648,37 @@
         "title": "材料の基本・等方弾性",
         "description": "材料と形状の役割を区別する・応力・ひずみと横収縮を式から確かめる",
         "path": "theory.html",
-        "hash": "#materials",
-        "kind": "材料理論"
+        "hash": "#materials"
       },
       {
         "title": "異方性・材料方向",
         "description": "材料方向による連成を読み取る・MAT2・3・8・9を使い分ける",
         "path": "theory.html",
-        "hash": "#materials/anisotropy",
-        "kind": "材料理論"
+        "hash": "#materials/anisotropy"
       },
       {
         "title": "複合材料・積層板",
         "description": "積層順からA・B・Dを組み立てる・層別応力と面材・コアの役割を読む",
         "path": "theory.html",
-        "hash": "#materials/composites",
-        "kind": "材料理論"
+        "hash": "#materials/composites"
       },
       {
         "title": "熱膨張・密度・減衰",
         "description": "熱ひずみと拘束応力を区別する・材料欄の単位と作用を確認する",
         "path": "theory.html",
-        "hash": "#materials/thermal",
-        "kind": "材料理論"
+        "hash": "#materials/thermal"
       },
       {
         "title": "塑性・試験データ",
         "description": "降伏・除荷・硬化を図と式で追う・試験曲線の量と入力条件を合わせる",
         "path": "theory.html",
-        "hash": "#materials/plasticity",
-        "kind": "材料理論"
+        "hash": "#materials/plasticity"
       },
       {
         "title": "材料の検証",
         "description": "症状から材料設定の誤りを切り分ける",
         "path": "theory.html",
-        "hash": "#materials/diagnosis",
-        "kind": "材料理論"
+        "hash": "#materials/diagnosis"
       }
     ],
     "boundaryTheory": [
@@ -715,57 +686,49 @@
         "title": "境界条件・自由度・支持",
         "description": "既知の変位と未知の反力を区別する・実物が許す運動から支持を選ぶ",
         "path": "theory.html",
-        "hash": "#boundary",
-        "kind": "境界条件と拘束"
+        "hash": "#boundary"
       },
       {
         "title": "剛体運動・座標・対称",
         "description": "止めるべき剛体運動を見分ける・斜めの支持と対称条件を指定する",
         "path": "theory.html",
-        "hash": "#boundary/geometry",
-        "kind": "境界条件と拘束"
+        "hash": "#boundary/geometry"
       },
       {
         "title": "SPC・指定変位",
         "description": "拘束セットと指定変位を使い分ける・行列の分割から反力を導く",
         "path": "theory.html",
-        "hash": "#boundary/spc",
-        "kind": "境界条件と拘束"
+        "hash": "#boundary/spc"
       },
       {
         "title": "MPC・独立と従属",
         "description": "節点と成分を明示して拘束式を読む・変位関係から力の関係を導く",
         "path": "theory.html",
-        "hash": "#boundary/mpc",
-        "kind": "境界条件と拘束"
+        "hash": "#boundary/mpc"
       },
       {
         "title": "結合と支持の選択",
         "description": "SPC・MPC・RBEと弾性結合を使い分ける・異種要素の力とモーメントの受渡しを確認する",
         "path": "theory.html",
-        "hash": "#boundary/connections",
-        "kind": "境界条件と拘束"
+        "hash": "#boundary/connections"
       },
       {
         "title": "自動拘束と結果の検証",
         "description": "拘束不足・過拘束を結果から診断する・合力とモーメントで支持反力を検算する",
         "path": "theory.html",
-        "hash": "#boundary/verification",
-        "kind": "境界条件と拘束"
+        "hash": "#boundary/verification"
       },
       {
         "title": "地盤の動的境界",
         "description": "建物と地盤をどこで切るか。側面の自由地盤・エネルギー伝達境界と、底面からの地震入力を断面で学ぶ",
         "path": "theory.html",
-        "hash": "#boundary/soil-dynamics",
-        "kind": "境界条件と拘束"
+        "hash": "#boundary/soil-dynamics"
       },
       {
         "title": "波の反射と粘性境界",
         "description": "法線・接線の速度から抵抗力を求める・反射波を観測点の時刻と振幅で見分ける",
         "path": "theory.html",
-        "hash": "#boundary/viscous",
-        "kind": "境界条件と拘束"
+        "hash": "#boundary/viscous"
       }
     ],
     "loadTheory": [
@@ -773,50 +736,43 @@
         "title": "荷重の基本・集中荷重",
         "description": "荷重の大きさ・方向・位置・単位をそろえる・力の移動に伴うモーメントを計算する",
         "path": "theory.html",
-        "hash": "#common-loads",
-        "kind": "荷重の理論"
+        "hash": "#common-loads"
       },
       {
         "title": "分布荷重と等価節点荷重",
         "description": "分布から合力と作用点を求める・仮想仕事から等価節点荷重を導く",
         "path": "theory.html",
-        "hash": "#common-loads/distributed",
-        "kind": "荷重の理論"
+        "hash": "#common-loads/distributed"
       },
       {
         "title": "自重・加速度・回転",
         "description": "密度と単位から慣性荷重を求める",
         "path": "theory.html",
-        "hash": "#common-loads/inertia",
-        "kind": "荷重の理論"
+        "hash": "#common-loads/inertia"
       },
       {
         "title": "初期ひずみ・温度荷重",
         "description": "自由伸びと指定変位を区別する・温度分布からひずみと拘束応力へつなぐ",
         "path": "theory.html",
-        "hash": "#common-loads/initial",
-        "kind": "荷重の理論"
+        "hash": "#common-loads/initial"
       },
       {
         "title": "ケースと結果の組合せ",
         "description": "荷重IDの定義・選択・合成を追う・線形結果の重ね合わせを正しく行う",
         "path": "theory.html",
-        "hash": "#common-loads/cases",
-        "kind": "荷重の理論"
+        "hash": "#common-loads/cases"
       },
       {
         "title": "部分モデル・予荷重・動荷重",
         "description": "荷重の受渡しと履歴が結果に与える影響を読む",
         "path": "theory.html",
-        "hash": "#common-loads/applications",
-        "kind": "荷重の理論"
+        "hash": "#common-loads/applications"
       },
       {
         "title": "荷重の検証",
         "description": "倍率・向き・収支から誤りを見分ける",
         "path": "theory.html",
-        "hash": "#common-loads/verification",
-        "kind": "荷重の理論"
+        "hash": "#common-loads/verification"
       }
     ],
     "contactTheory": [
@@ -824,50 +780,43 @@
         "title": "接触の基本・開閉",
         "description": "支持と接触の違いを式と図で理解する・すき間・反力・貫通を確認する",
         "path": "theory.html",
-        "hash": "#contact",
-        "kind": "接触・摩擦・締結"
+        "hash": "#contact"
       },
       {
         "title": "摩擦・固着・滑り",
         "description": "固着から滑りへの移行と履歴を追う",
         "path": "theory.html",
-        "hash": "#contact/friction",
-        "kind": "接触・摩擦・締結"
+        "hash": "#contact/friction"
       },
       {
         "title": "接触面のモデル化",
         "description": "面・メッシュ・接触則を評価目的から選ぶ",
         "path": "theory.html",
-        "hash": "#contact/surfaces",
-        "kind": "接触・摩擦・締結"
+        "hash": "#contact/surfaces"
       },
       {
         "title": "製品・SOL別の接触設定",
         "description": "SOLと接触方式の適用範囲を区別する",
         "path": "theory.html",
-        "hash": "#contact/products",
-        "kind": "接触・摩擦・締結"
+        "hash": "#contact/products"
       },
       {
         "title": "締付け・保持・外力",
         "description": "締結の荷重分担と開離を式から求める・締付け後に保持する量を区別する",
         "path": "theory.html",
-        "hash": "#contact/bolts",
-        "kind": "接触・摩擦・締結"
+        "hash": "#contact/bolts"
       },
       {
         "title": "トルク・予荷重の変化・詳細化",
         "description": "締付け軸力の変動とモデルの詳細度を判断する",
         "path": "theory.html",
-        "hash": "#contact/management",
-        "kind": "接触・摩擦・締結"
+        "hash": "#contact/management"
       },
       {
         "title": "収束と結果の検証",
         "description": "接触状態・収支・感度から妥当性を確認する",
         "path": "theory.html",
-        "hash": "#contact/verification",
-        "kind": "接触・摩擦・締結"
+        "hash": "#contact/verification"
       }
     ],
     "dampingTheory": [
@@ -875,43 +824,37 @@
         "title": "減衰の意味・式・単位",
         "description": "減衰力の仕事と係数の単位を理解する",
         "path": "theory.html",
-        "hash": "#damping",
-        "kind": "減衰の理論"
+        "hash": "#damping"
       },
       {
         "title": "自由振動・共振・構造減衰",
         "description": "自由振動と共振応答への減衰の効果を比べる",
         "path": "theory.html",
-        "hash": "#damping/response",
-        "kind": "減衰の理論"
+        "hash": "#damping/response"
       },
       {
         "title": "実測からの同定",
         "description": "対数減衰率と半値幅から減衰比を求める",
         "path": "theory.html",
-        "hash": "#damping/identify",
-        "kind": "減衰の理論"
+        "hash": "#damping/identify"
       },
       {
         "title": "モード・局所・Rayleigh",
         "description": "損失を構造へ配る方法を選ぶ・局所運動とモード連成を見分ける",
         "path": "theory.html",
-        "hash": "#damping/distribution",
-        "kind": "減衰の理論"
+        "hash": "#damping/distribution"
       },
       {
         "title": "過渡・材料・入力の対応",
         "description": "SOL・減衰モデル・入力を対応させる",
         "path": "theory.html",
-        "hash": "#damping/implementation",
-        "kind": "減衰の理論"
+        "hash": "#damping/implementation"
       },
       {
         "title": "複素固有値・非線形・検証",
         "description": "安定性と数値精度から減衰設定を検証する",
         "path": "theory.html",
-        "hash": "#damping/verification",
-        "kind": "減衰の理論"
+        "hash": "#damping/verification"
       }
     ],
     "meshTheory": [
@@ -919,36 +862,31 @@
         "title": "細かいメッシュと粗いメッシュをどうつなぐか",
         "description": "長方形の板で4段の網目を2段につなぐ。節点を共有する方法とMPCで辺に合わせる方法を比べる",
         "path": "theory.html",
-        "hash": "#mesh/transitions",
-        "kind": "メッシュ分割の理論"
+        "hash": "#mesh/transitions"
       },
       {
         "title": "要素形状とヤコビアン",
         "description": "四角形の細長さ・傾き・反りを見分け、四隅のヤコビアンでつぶれを調べる",
         "path": "theory.html",
-        "hash": "#mesh/quality",
-        "kind": "メッシュ分割の理論"
+        "hash": "#mesh/quality"
       },
       {
         "title": "メッシュはどこまで細かくするか",
         "description": "同じ板の粗・中・細でたわみと応力を比べ、振動では同じモード形を追う",
         "path": "theory.html",
-        "hash": "#mesh/convergence",
-        "kind": "メッシュ分割の理論"
+        "hash": "#mesh/convergence"
       },
       {
         "title": "波長・せん断波速度・時間刻み",
         "description": "対象周波数から空間刻みを試算する・積分刻みと結果の保存間隔を選ぶ",
         "path": "theory.html",
-        "hash": "#mesh/waves",
-        "kind": "メッシュ分割の理論"
+        "hash": "#mesh/waves"
       },
       {
         "title": "付録　円孔板のメッシュ分割",
         "description": "円孔・段付き板・近接孔で、細分化する向き、粗く戻す位置、応力の照合を練習する",
         "path": "theory.html",
-        "hash": "#mesh/sizing",
-        "kind": "メッシュ分割の理論"
+        "hash": "#mesh/sizing"
       }
     ]
   }
