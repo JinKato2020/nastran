@@ -75,6 +75,18 @@
    '<figure><strong>MID2 = 1 ／ MID3 = 1</strong>'+shellSectionSketch(true)+
    '<figcaption>同じ材料で横せん断変形も考慮します。厚さ方向の線が破線から角度 γ だけ傾き、その分だけ先端がさらに下がります。</figcaption></figure>'+
    '<p>例えば、曲げで2.0 mm、横せん断で0.2 mm下がるなら、先端のたわみは合計2.2 mmです。数値は説明用で、材料IDだけでは決まりません。</p>'+
+   '<section class="pshell-thickness"><h4>定規の厚さだけを2倍にすると？</h4>'+
+   '<p>同じ材質・幅・長さの長方形断面の定規を、同じ長さだけ突き出して固定し、先端を同じ力で厚さ方向に押します。均質な板を小さくたわませる片持ち梁の理論で、先ほどの例を比べます。</p>'+
+   '<table><thead><tr><th scope="col">先端で比べる量</th><th scope="col">元の厚さ</th><th scope="col">厚さ2倍</th></tr></thead><tbody>'+
+   '<tr><th scope="row">曲げたわみ</th><td>2.00 mm</td><td>0.25 mm</td></tr>'+
+   '<tr><th scope="row">横せん断たわみ</th><td>0.20 mm</td><td>0.10 mm</td></tr>'+
+   '<tr><th scope="row">合計たわみ</th><td>2.20 mm</td><td>0.35 mm</td></tr>'+
+   '<tr><th scope="row">横せん断 ÷ 曲げ</th><td>10 %</td><td>40 %</td></tr></tbody></table>'+
+   '<p>厚くすると、曲げたわみは1/8、横せん断たわみは1/2になります。横せん断による変位自体は小さくなっても、曲げたわみに対する比は10 %から40 %へ、4倍に増えます。厚い板でMID3の影響を確認したい理由です。</p>'+
+   '<details><summary>曲げが1/8、横せん断が1/2になる理由</summary>'+
+   '<p>長さを L、幅を b、厚さを T、先端荷重を F とします。曲げたわみは FL³/(3EI) で、長方形の断面二次モーメントは I = bT³/12。厚さが2倍なら I は8倍になり、たわみは1/8です。</p>'+
+   '<p>横せん断たわみは FL/(κGA) で、断面積は A = bT。厚さが2倍なら A は2倍になり、たわみは1/2です。E はヤング率、G はせん断弾性係数、κ はせん断補正係数で、ここではいずれも一定です。</p>'+
+   '<p>PSHELLでこの違いを考えるときは、材料ID・12I/T³・TS/Tを同じにして板厚Tを変えます。要素側で板厚を上書きしていない場合を想定しています。</p></details></section>'+
    '<a class="source-note" href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=154" target="_blank" rel="noopener">MSC 2025.1 線形静解析ガイド・PDF 154頁</a></details>';
  }
  function renderDetail(c){

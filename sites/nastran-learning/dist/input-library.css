@@ -38,3 +38,10 @@
 .pshell-cut .thickness{stroke:#17675e;stroke-width:5}
 .pshell-cut .normal{stroke:#253445;stroke-width:1.5;stroke-dasharray:4 3}
 .pshell-cut text{fill:#253445;font:14px sans-serif}
+
+.pshell-thickness{margin:1rem}
+.pshell-thickness h4,.pshell-thickness p{margin:.5rem 0}
+.pshell-thickness table{width:100%;border-collapse:collapse;font-size:.9em;font-variant-numeric:tabular-nums}
+.pshell-thickness th,.pshell-thickness td{padding:.35em .25em;border-bottom:1px solid var(--line);text-align:right}
+.pshell-thickness th:first-child{text-align:left}
+.pshell-thickness td{white-space:nowrap}
