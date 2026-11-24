@@ -10,7 +10,8 @@ bundle = json.loads((root / 'src/generated/lessons.json').read_text(encoding='ut
 base = json.loads((root / 'src/generated/page-hashes.json').read_text(encoding='utf-8'))
 course = bundle['course']
 nav = course['navigation']
-item = dict(nav['elements'][0], title='OTA card')
+spring = next(row for row in nav['elements'] if row['hash'] == '#scalar')
+item = dict(spring, title='OTA card')
 course['home']['sections'] = [
     dict(key='quick', title='OTA shortcuts', style='cards', items=[item]),
     dict(key='reading', title='OTA reading list', style='list', items=[dict(item, title='OTA list item')])]
@@ -19,7 +20,7 @@ for theme in course['home']['layouts']:
 course['home']['hero']['blueprintTitle'] = 'OTA cover'
 pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+y6C8AAAAASUVORK5CYII='
 course['home']['hero']['image'] = 'fixture.png'
-nav['newTheory'] = [dict(nav['elements'][0], title='OTA lesson')]
+nav['newTheory'] = [dict(spring, title='OTA lesson')]
 course['materialChapters'] = [dict(key='added', title='OTA chapter', description='New', sources=['newTheory'])]
 nav['analyses'] = [dict(nav['analyses'][0], title='OTA analysis')]
 course['analysisHeadings'][nav['analyses'][0]['group']]['title'] = 'OTA analysis group'

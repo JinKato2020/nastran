@@ -3,8 +3,32 @@
 <header class="topbar"><a class="brand" href="index.html#home">FEM Guide</a><nav><a href="theory.html#static">解析の理論</a></nav></header>
 <main class="analysis-main theory-main elements-main"><label class="analysis-selector" for="element-picker">要素の種類<select id="element-picker" aria-label="要素の種類"></select></label>
 
+<article id="element-families" data-element="element-families" data-title="要素ファミリーの全体像">
+<div class="analysis-head"><span class="analysis-sol">各要素理論 · はじめに</span><h1>要素ファミリーの全体像</h1>
+<p>薄い棚板を壁に取り付け、先端に重りを置きます。先端が何 mm 下がるか、板のどちらの面が引っ張られるか、取付ボルトの座面で何が起きるか。同じ棚でも、知りたい結果によってモデルに残す形が変わります。</p></div>
+<div class="element-key"><strong>この記事で分かること</strong><ul><li>欲しい結果から、部材を線・面・立体のどれで表すか選ぶ。</li><li>接続部で許したい動きから、ばね・結合・剛体・GAPを選ぶ。</li></ul>
+<strong>前提として読む記事</strong>：節点の動きの表し方は<a href="coordinates.html#points">節点と自由度</a>で確認できます。<ol><li>梁は断面全体の働きを線に集める。</li><li>シェルは面内の広がりと板厚を、ソリッドは厚さ方向の形も表す。</li><li>接続部には、伝えたい力と許したい相対運動を指定する。</li></ol></div>
+<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#scalar-overview" data-jump="scalar-overview">部材の形をどこまで残すか</a></li><li><a href="#family-connections" data-jump="family-connections">つなぎ目に何を伝えるか</a></li></ol></nav>
+<section class="theory-section" id="scalar-overview"><h2>1. 部材の形をどこまで残すか</h2>
+<div class="element-table-wrap"><table class="element-table"><thead><tr><th>知りたいこと</th><th>モデルに残すもの</th><th>読む記事</th></tr></thead><tbody>
+<tr><td>細長い棚受けの先端たわみ</td><td>中心線と断面。曲げを伝えるCBAR・CBEAMを選べます。CRODは軸力とねじりを扱い、横荷重による曲げ剛性を持ちません。</td><td><a href="elements.html#beam">棒・梁</a></td></tr>
+<tr><td>棚板の幅方向の荷重の広がり、表と裏の応力</td><td>面に板厚を与えるCQUAD4・CTRIA3など。板を厚さ方向に積み重ねずに膜と曲げを表せます。</td><td><a href="elements.html#shell">シェル</a></td></tr>
+<tr><td>座金の下で板厚方向にどう押しつぶされるか</td><td>厚さを持つ体積をCHEXA・CTETRAなどで分割します。座金との接触面や荷重が伝わる範囲も表します。</td><td><a href="elements.html#solid">ソリッド</a></td></tr>
+</tbody></table></div></section>
+<section class="theory-section" id="family-connections"><h2>2. つなぎ目に何を伝えるか</h2>
+<p>棚板の形を決めたら、次は取付部です。次の各行は、同じ接合部に重ねて入れる指定ではなく、実物の動きに合わせて選ぶ候補です。</p>
+<div class="element-table-wrap"><table class="element-table"><thead><tr><th>表したい動き</th><th>選び方</th></tr></thead><tbody>
+<tr><td>防振ゴムが縮み、その分だけ力が増える</td><td><a href="elements.html#scalar">ばね要素</a>。1組の自由度をつなぐCELAS、局所軸の方向別に剛さを指定するCBUSH。</td></tr>
+<tr><td>取付面を一体で動かす、または荷重だけを周囲へ配る</td><td><a href="elements.html#rigid">剛体要素と荷重分配</a>。RBE2で選択成分を剛体運動に従わせる場合と、RBE3で周辺の変形を許しながら荷重を分配する場合を比較します。</td></tr>
+<tr><td>別々の板を溶接点・締結具・接着層でつなぐ</td><td><a href="elements.html#connector">結合要素</a>。力を渡す範囲と結合の剛さを表します。接着層の開口やすべりは<a href="elements.html#connector-cohesive">凝着界面</a>へ。</td></tr>
+<tr><td>すきまが閉じた時だけストッパーが押し返す</td><td><a href="elements.html#gap">GAP要素</a>。開いた状態と当たった状態で力の伝わり方が変わります。</td></tr>
+<tr><td>横に押すと回るなど、複数方向の連成が測ってある</td><td><a href="elements.html#genel">一般要素 GENEL</a>。取付部の剛性行列や柔性行列を自由度の順に対応させます。</td></tr>
+</tbody></table></div>
+<p>例えばゴム支持をばねに置き換えると、その縮みと伝達力は調べられます。ゴム内部のどこに応力が集中するかを調べるには、その形状・材料・接触条件までモデルに残す必要があります。</p>
+<p><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide.pdf#page=73" target="_blank" rel="noopener">線形静解析ユーザーガイド2024.1 第4章（PDF 73–202ページ） ↗</a></p></section></article>
+
 <article id="scalar" data-element="scalar" data-title="ばね要素（CELAS・CBUSH）">
-<div class="analysis-head"><span class="analysis-sol">各要素理論 · 0次元要素</span><h1>ばね要素（CELAS・CBUSH）</h1>
+<div class="analysis-head"><span class="analysis-sol">各要素理論 · ばね</span><h1>ばね要素（CELAS・CBUSH）</h1>
 <p>2台の台車をばねでつなぎます。2台とも右へ1 mm動けば、ばねの長さは変わりません。片方だけが動くとばねに力が生じます。CELASとCBUSHで、この相対変位をどの向きに測るかを比べます。剛性の値が同じでも、接続位置と成分が違うと結果は変わります。すきまが閉じた後だけ力を伝える継手は<a href="elements.html#gap">GAP要素</a>へ。</p></div>
 
 
@@ -20,37 +44,9 @@
 <li>自由度、座標系、力の作用線をセットで確認する。</li>
 <li>変位・力のつり合い・エネルギーを手計算で確かめる。</li>
 </ol></div>
-<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#scalar-overview" data-jump="scalar-overview">要素ファミリーの全体像</a></li><li><a href="#scalar-concept" data-jump="scalar-concept">形を持たない要素</a></li><li><a href="#scalar-celas" data-jump="scalar-celas">CELAS1〜4</a></li><li><a href="#scalar-spring1" data-jump="scalar-spring1">検算：直列ばねの変位と力</a></li><li><a href="#scalar-dof" data-jump="scalar-dof">自由度と内部拘束</a></li><li><a href="#scalar-cbush" data-jump="scalar-cbush">CBUSH</a></li><li><a href="#scalar-pbush" data-jump="scalar-pbush">PBUSH</a></li><li><a href="#scalar-bushweld" data-jump="scalar-bushweld">検算：離れた節点をつなぐ</a></li><li><a href="#scalar-choose" data-jump="scalar-choose">選び方と注意点</a></li><li><a href="#scalar-quiz" data-jump="scalar-quiz">自分で確かめる</a></li><li><a href="#scalar-sources" data-jump="scalar-sources">仕様を調べる</a></li></ol></nav>
+<nav class="element-contents" aria-label="この解説の目次"><h2 class="element-toc-title">目次</h2><ol class="element-toc"><li><a href="#scalar-concept" data-jump="scalar-concept">形を持たない要素</a></li><li><a href="#scalar-celas" data-jump="scalar-celas">CELAS1〜4</a></li><li><a href="#scalar-spring1" data-jump="scalar-spring1">検算：直列ばねの変位と力</a></li><li><a href="#scalar-dof" data-jump="scalar-dof">自由度と内部拘束</a></li><li><a href="#scalar-cbush" data-jump="scalar-cbush">CBUSH</a></li><li><a href="#scalar-pbush" data-jump="scalar-pbush">PBUSH</a></li><li><a href="#scalar-bushweld" data-jump="scalar-bushweld">検算：離れた節点をつなぐ</a></li><li><a href="#scalar-choose" data-jump="scalar-choose">選び方と注意点</a></li><li><a href="#scalar-quiz" data-jump="scalar-quiz">自分で確かめる</a></li><li><a href="#scalar-sources" data-jump="scalar-sources">仕様を調べる</a></li></ol></nav>
 
-<section class="theory-section" id="scalar-overview"><h2>1. MSC Nastran の要素ファミリーの全体像</h2>
-<p>要素は形をどこまでモデルに残すかで選びます。スカラーは自由度の関係、梁は線と断面、シェルは面と厚さ、ソリッドは体積を表します。</p>
-
-<div class="element-table-wrap"><table class="element-table">
-<thead><tr><th>ファミリー</th><th>代表的な要素</th><th>性質の決まり方</th><th>典型的な用途</th><th>解説記事</th></tr></thead>
-<tbody>
-<tr><td>スカラー（0次元）</td><td><a href="bulk.html#CELAS1">CELAS1</a>〜<a href="bulk.html#CELAS4">CELAS4</a>、<a href="bulk.html#CBUSH">CBUSH</a>、<a href="bulk.html#CMASS1">CMASS1</a>〜<a href="bulk.html#CMASS4">CMASS4</a></td><td>ばね定数や質量を直接入力</td><td>緩衝器、リンクの継ぎ目の剛さ、防振パッド、1方向の集中質量</td><td>この記事</td></tr>
-<tr><td>1次元</td><td><a href="bulk.html#CROD">CROD</a>、<a href="bulk.html#CBAR">CBAR</a>、<a href="bulk.html#CBEAM">CBEAM</a>、CBEND、CBEAM3</td><td>線に沿った断面の値（面積・断面二次モーメント）と材料から計算</td><td>トラス、梁、補強材</td><td><a href="elements.html#beam">梁要素</a></td></tr>
-<tr><td>2次元</td><td><a href="bulk.html#CQUAD4">CQUAD4</a>、<a href="bulk.html#CTRIA3">CTRIA3</a>、<a href="bulk.html#CQUAD8">CQUAD8</a>、<a href="bulk.html#CQUADR">CQUADR</a>、<a href="bulk.html#CSHEAR">CSHEAR</a>、<a href="bulk.html#CRAC2D">CRAC2D</a></td><td>板厚と材料から計算。標準は平面応力</td><td>厚さが他の2寸法より十分小さい薄肉構造</td><td><a href="elements.html#shell">シェル要素</a></td></tr>
-<tr><td>3次元</td><td><a href="bulk.html#CHEXA">CHEXA</a>、<a href="bulk.html#CPENTA">CPENTA</a>、<a href="bulk.html#CPYRAM">CPYRAM</a>、<a href="bulk.html#CTETRA">CTETRA</a>、<a href="bulk.html#CTRIAX6">CTRIAX6</a>、CRAC3D</td><td>立体の形と材料から計算</td><td>エンジンブロック、ブラケット、歯車など梁にも板にも見なせない部品</td><td><a href="elements.html#solid">ソリッド要素</a></td></tr>
-<tr><td>一般要素</td><td>GENEL</td><td>剛性行列または柔性行列を直接入力</td><td>試験データや別モデルから得た部分構造</td><td><a href="elements.html#genel">一般要素（GENEL）</a></td></tr>
-<tr><td>コネクタ</td><td>CWELD、CFAST、CSEAM、CINTC</td><td>結合する面や点の情報から自動で作る</td><td>スポット溶接、ボルト、シーム溶接、メッシュの異なる領域のつなぎ</td><td><a href="elements.html#connector">結合要素</a></td></tr>
-</tbody></table></div>
-<p>表の「性質の決まり方」の列が、この記事全体を貫くポイントです。CROD なら、Nastran が断面積（<a href="bulk.html#PROD">PROD</a>）、縦弾性係数（<a href="bulk.html#MAT1">MAT1</a>）、両端の節点の位置から軸の剛さ EA/L を<strong>自分で計算</strong>します。スカラーのばねでは、この計算をユーザーが済ませておき、結果のばね定数だけを入れます。GENEL はそれをさらに押し進めて、行列ごと入れる要素です。つまり、形の情報が少ない要素ほど、Nastran が自動で守ってくれること（座標の向き、剛体として動いたときに力が出ないこと）をユーザーが自分で守る必要があります。</p>
-
-<p class="element-key">要点：要素を選ぶ最初の問いは「その部品の形を、点・線・面・立体のどれで表せば十分か」です。形の情報を減らすほどモデルは軽くなりますが、向きや釣合いの管理がユーザー側の責任になります。</p>
-<div class="theory-quiz"><details><summary>第4章の各テーマから読み進める</summary><div>
-<ul>
-<li><a href="#scalar-concept">スカラー要素</a>：CELASとCBUSH。つないだ成分が動いたとき、どこへ力が伝わるかを確認する。</li>
-<li><a href="elements.html#beam">棒・梁</a>：CROD・CBAR・CBEAMの使い分けから、任意断面・複合材・曲がり梁へ進む。</li>
-<li><a href="elements.html#shell">シェル</a>：板厚・法線・材料軸と表裏の応力を学ぶ。せん断パネルと二次元き裂先端要素もこの章に含む。</li>
-<li><a href="elements.html#solid">ソリッド</a>：六面体・四面体などの節点順と応力の位置を学ぶ。軸対称と三次元き裂先端要素まで扱う。</li>
-<li><a href="elements.html#genel">GENEL</a>：離れた節点の変位と力の関係を、剛性または柔性行列で与える。</li>
-<li><a href="elements.html#connector">コネクタ</a>と<a href="elements.html#connector-cohesive">凝着界面</a>：点・線・面で結合する違いと、開口・すべりで界面力がどう変わるかを学ぶ。</li>
-</ul><p><a href="https://documentation-be.hexagon.com/bundle/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2024.1_Linear_Static_Analysis_User_Guide.pdf#page=73" target="_blank" rel="noopener">線形静解析ユーザーガイド2024.1 第4章（PDF 73–202ページ） ↗</a></p>
-</div></details></div>
-</section>
-
-<section class="theory-section" id="scalar-concept"><h2>2. スカラー要素 — 形を持たない要素</h2>
+<section class="theory-section" id="scalar-concept"><h2>1. スカラー要素 — 形を持たない要素</h2>
 <p>同じばねの試験で分かっているのが「1 mm縮むと何N押し返すか」だけなら、その情報だけでも両端へ返る力を計算できます。</p>
 <figure data-element-lab="relative"></figure>
 <p>スカラー要素は、モデルの中の<strong>2つの自由度</strong>、または<strong>1つの自由度と地面</strong>をつなぐ要素です。つなげる自由度は、節点（GRID）の6成分（3つの並進と3つの回転）のどれか、またはスカラー点（<a href="bulk.html#SPOINT">SPOINT</a>）の1成分です。ばね（CELAS）、質量（CMASS）、粘性ダンパー（CDAMP）があり、静解析で主に使うのはばねです。ダンパーは静解析では使いません。</p>
@@ -77,7 +73,7 @@
 <p class="element-key">要点：スカラー要素は「どの自由度とどの自由度を、どれだけの剛さでつなぐか」だけを持つ要素です。形がない分、向き・位置の整合はユーザーが責任を持ちます。</p>
 </section>
 
-<section class="theory-section" id="scalar-celas"><h2>3. CELAS1〜CELAS4 の違いと入力</h2>
+<section class="theory-section" id="scalar-celas"><h2>2. CELAS1〜CELAS4 の違いと入力</h2>
 <p>ばね要素は4種類あります。違いは「ばね定数をどこに書くか」と「何をつなげるか」の2点だけで、ばねとしての働きは同じです。</p>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>カード</th><th>つなげるもの</th><th>ばね定数を書く場所</th><th>主な欄</th></tr></thead>
@@ -114,7 +110,7 @@
 <p>同じ「1から4」の番号の付け方で、集中質量 <a href="bulk.html#CMASS1">CMASS1</a>〜<a href="bulk.html#CMASS4">CMASS4</a>（物性は <a href="bulk.html#PMASS">PMASS</a>）と、粘性ダンパー <a href="bulk.html#CDAMP1">CDAMP1</a>、<a href="bulk.html#CDAMP2">CDAMP2</a> などがあります。CMASS は1方向だけの集中質量を置きたい時に便利です（6方向すべてに質量と慣性を持たせるなら <a href="bulk.html#CONM2">CONM2</a> が普通です）。</p>
 </section>
 
-<section class="theory-section" id="scalar-spring1"><h2>4. 検算：直列ばねの変位と力</h2>
+<section class="theory-section" id="scalar-spring1"><h2>3. 検算：直列ばねの変位と力</h2>
 <p><a href="#scalar-spring-points" data-jump="scalar-spring-points">GRID・SPOINT・接地の図</a>と同じ接続で、GRID 10 側のばねを K₁ = 120 N/mm、地面側を K₂ = 80 N/mm とします。GRID 10 に ＋X 方向へ 48 N を加えます。中間の SPOINT 20 に外力はかからないので、2本のばねは同じ大きさの力を伝えます。</p>
 <p class="element-formula">ばね1 の変形量：u₁ − q = 48/120 = 0.40 mm<br>ばね2 の変形量：q − 0 = 48/80 = 0.60 mm<br>SPOINT 20 の変位：q = ＋0.60 mm<br>GRID 10 の変位：u₁ = q + 0.40 = ＋1.00 mm<br>支持反力：−48 N</p>
 <p><strong>GRID 10 と SPOINT 20 の変位の差 0.40 mm は、2点の間にあるばね1の変形量です。</strong>一般に、中間点で力がつり合うと K₁(u₁ − q) = K₂q です。展開すると K₁u₁ − K₁q = K₂q、q の項をまとめると K₁u₁ = (K₁ + K₂)q なので、q = K₁u₁/(K₁ + K₂) になります。</p>
@@ -123,7 +119,7 @@
 <p>この例のように中間への荷重や分岐がなく、静解析で GRID 10 の変位と支持反力だけが必要なら、合成剛性 K = 48/1.00 = 48 N/mm の接地ばね1本で同じ端の応答が得られます。</p>
 </section>
 
-<section class="theory-section" id="scalar-dof"><h2>5. 自由度の指定と「内部拘束」</h2>
+<section class="theory-section" id="scalar-dof"><h2>4. 自由度の指定と「内部拘束」</h2>
 <p>ばねの両端を正面から見ると一直線でも、横から見ると段差がある場合があります。どの向きの動きを拾い、どこへ逆向きの力を返すかを追います。</p>
 <figure data-element-lab="gap"></figure>
 <h3>成分番号は節点の変位座標系で決まる</h3>
@@ -143,7 +139,7 @@
 <p><a href="#scalar-bushweld" data-jump="scalar-bushweld">数字で確認する →</a>　<a href="#scalar-cbush" data-jump="scalar-cbush">CBUSH のしくみへ →</a></p>
 </section>
 
-<section class="theory-section" id="scalar-cbush"><h2>6. CBUSH — 要素座標を持つばね・ダンパー</h2>
+<section class="theory-section" id="scalar-cbush"><h2>5. CBUSH — 要素座標を持つばね・ダンパー</h2>
 <p>ゴム支持は、上下に押すと硬く、横にずらすと柔らかいことがあります。支持を90度回せば、モデルでも硬い方向が一緒に回る必要があります。</p>
 <figure data-element-lab="direction"></figure>
 <p><a href="bulk.html#CBUSH">CBUSH</a> は、ばねとダンパーをまとめた一般化した要素です。CELAS と違い、これを「構造的なスカラー要素」と位置づけています。2つの節点の位置を知っていて、<strong>要素座標系</strong>を持ち、剛体として動いた時に力が出ない（剛体の釣合いを満たす）ように作られています。CELAS の機能をすべて持ちながら、前節の内部拘束の問題を避けられる要素です。</p>
@@ -183,7 +179,7 @@
 <p>力の符号は、要素座標系の決め方によって意味が変わります。GO・Xi の方法（GA→GB が x 軸）では、2点が離れる向きの伸びが引張り（正）、縮みが圧縮（負）です。一方 CID を指定した場合は、要素の力は常に Ke·(UB − UA) で計算されます。座標系の x 軸が GA→GB と同じ向きとは限らないので、UA が UB より大きければ、実際に伸びていても圧縮（負）と出ることがあります。CID を使った時は「B の変位 − A の変位」の符号だと読みます。CELAS の K·(U1 − U2) とは引き算の順番が逆である点にも注意してください。</p>
 </section>
 
-<section class="theory-section" id="scalar-pbush"><h2>7. PBUSH — ブッシュの剛さ・減衰・質量</h2>
+<section class="theory-section" id="scalar-pbush"><h2>6. PBUSH — ブッシュの剛さ・減衰・質量</h2>
 <p><a href="bulk.html#PBUSH">PBUSH</a> は、キーワード（"K"、"B" など）の後ろに値を並べる形式のカードです。必要な行だけを書けばよく、書かない値は 0（応力・ひずみ係数は 1.0）になります。</p>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>キーワード</th><th>続く値</th><th>意味と結果への表れ方</th></tr></thead>
@@ -202,13 +198,13 @@
 <h3>速度が変わると、粘性力は何倍になるか</h3><p>変位u = U sin(ωt)を微分すると速度はu̇ = ωU cos(ωt)。並列のばね・粘性ダンパの力はF = Ku + cu̇です。ばね力は変位と同じ位相、粘性力は変位より90°進みます。1周期の仕事∮F duでは、ばねの分は戻り、粘性の分πcωU²が失われます。</p><figure data-element-lab="kelvin"></figure><p>PBUSHのKはN/mm、BはN·s/mm（回転ならN·mm/radとN·mm·s/rad）。GEは無次元の構造減衰です。振動数を固定した1成分で比べるとcωとGE·Kを対応させられますが、全周波数で同じ値にはなりません。<a href="theory.html#damping">減衰の理論へ</a>。</p>
 </section>
 
-<section class="theory-section" id="scalar-bushweld"><h2>8. 検算：離れた節点をつなぐ</h2>
+<section class="theory-section" id="scalar-bushweld"><h2>7. 検算：離れた節点をつなぐ</h2>
 <p><a href="#scalar-offset" data-jump="scalar-offset">上下にずれた2点の図</a>と同じ条件で、A と B の間隔を d = 30 mm、X 方向の剛性を K = 120 N/mm とします。A のまわりに反時計回りに 0.01 rad 回したときの力を、微小回転の近似で求めます。</p>
 <p class="element-formula">A の X 変位：0 mm<br>B の X 変位：−dθ ≈ −30 × 0.01 = −0.30 mm<br>X 変位差の大きさ：0.30 mm<br>ばね力の大きさ：120 × 0.30 = 36 N<br>回転に抵抗するモーメントの大きさ：36 × 30 = 1,080 N·mm</p>
 <p>この例では2点間の距離は変わりません。生じた36 Nは、CELAS が X 方向の変位差をばねの変形として扱った結果です。</p>
 </section>
 
-<section class="theory-section" id="scalar-choose"><h2>9. 選び方と、よくある間違い</h2>
+<section class="theory-section" id="scalar-choose"><h2>8. 選び方と、よくある間違い</h2>
 <div class="element-table-wrap"><table class="element-table">
 <thead><tr><th>やりたいこと</th><th>選ぶ要素</th><th>理由</th></tr></thead>
 <tbody>
@@ -221,7 +217,7 @@
 </tbody></table></div>
 <h3>よくある間違い</h3>
 <ul>
-<li><strong>離した2点で、ばね力の作用線を確認し忘れる。</strong>成分が同じ物理方向を向く並進ばねなら、逆向きの2力の作用線間の垂直距離を d として偶力の大きさは Fd です。2点が力の向きにだけ離れていれば d=0。第5節のように横にずれたとき、意図しない偶力や剛体回転への抵抗が生じます。</li>
+<li><strong>離した2点で、ばね力の作用線を確認し忘れる。</strong>成分が同じ物理方向を向く並進ばねなら、逆向きの2力の作用線間の垂直距離を d として偶力の大きさは Fd です。2点が力の向きにだけ離れていれば d=0。<a href="#scalar-offset">第4節の例</a>のように横にずれたとき、意図しない偶力や剛体回転への抵抗が生じます。</li>
 <li><strong>2節点の変位座標系が違うのに CELAS でつなぐ。</strong>「成分1どうし」が空間で違う方向を指していても、警告なしにつながります。</li>
 <li><strong>CELAS の力の符号を引張り・圧縮と読む。</strong>符号は点の順番で決まる約束で、伸び縮みの判定ではありません。</li>
 <li><strong>スカラー点の変位の表の T1〜T3 を X・Y・Z と読む。</strong>行の先頭から順にスカラー点が並んでいるだけです。</li>
