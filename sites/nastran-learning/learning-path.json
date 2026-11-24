@@ -32,7 +32,7 @@
     {"key":"loadTheory","title":"荷重の理論","description":"集中・分布・慣性・温度荷重から、組合せと検算へ","sources":["loadTheory"]},
     {"key":"contactTheory","title":"接触・摩擦・締結","description":"開閉・摩擦・締付けから荷重分担と検証へ","sources":["contactTheory"]},
     {"key":"dampingTheory","title":"減衰の理論","description":"損失の意味・測定・モデル化から入力と検証へ","sources":["dampingTheory"]},
-    {"key":"theory","title":"各解析技術理論","description":"共通の解析技術から、解析ごとの理論へ","sources":["common","materials"]}
+    {"key":"theory","title":"各解析技術理論","description":"荷重を受ける形、揺れ方、熱の流れを比べ、各解析で分かることを学ぶ","sources":["common","materials"]}
   ],
   "steps": [
     {
@@ -675,7 +675,7 @@
       },
       {
         "title": "似たカードの使い分け",
-        "description": "棒・梁、支持・拘束などを、目的と結果への影響で比較",
+        "description": "Inputタブと共通の比較表。知りたい変形・伝えたい力からカードを選ぶ",
         "path": "comparisons.html",
         "hash": "#beam",
         "kind": "カード比較"

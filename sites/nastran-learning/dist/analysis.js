@@ -124,6 +124,9 @@
     ['V1だけあり','下限以上の根を対象にし、NDなしは最小根、NDありは低い方からND個。'],
     ['V2だけあり','上限以下の根を対象にし、NDなしは全根、NDありは低い方からND個。'],
     ['上下限なし','NDなしは最小根、NDありは低い方からND個。基準荷重と逆向きの根も候補になり得ます。']
+   ]))+sub('探索方式と局所的な除外',list([
+    'MSC SOL 105ではEIGRLのLanczos、EIGBのINV・SINVなどで根を探索します。抽出範囲と必要根数を確認し、INVで根を取りこぼしていないかに注意します。',
+    'PARAM,EXCLUDEはSET1の節点に対応する差分剛性の扱いを変えます。正のIDは指定側を除外、負は指定側を残し、0は除外なしです。全体の限界を報告する際は除外なしの結果と比較します。'
    ]))+cardLinks([['EXEC_SOL_105','SOL 105'],['CASE_STATSUB','STATSUB'],['CASE_METHOD','METHOD'],['EIGRL','EIGRL'],['EIGB','EIGB'],['PARAM_EXCLUDE','PARAM,EXCLUDE'],['PARAM_K6ROT','PARAM,K6ROT']]);
  }
  function showScenario(entry,scenario,modelKey,tabKey){
@@ -212,7 +215,13 @@
   const head=heading(entry,'',scope.nonlinear[entry.key]?solverLinks(entry.key):'')+selector;
   const modelBody=`<p>${esc(entry.summary)}</p><p class="solver-scope">${esc(note)}</p>`+conditions(model.inputs||entry.inputs);
   const mapBody=window.renderAnalysisRelations(entry.key,model.id);
-  const resultBody=list(model.outputs||entry.outputs)+`<h3>確認する条件</h3>`+list(model.checks||entry.checks)+links(entry.resultLinks||[]);
+  const resultBody=list(model.outputs||entry.outputs)+`<h3>確認する条件</h3>`+list(model.checks||entry.checks)+links(entry.resultLinks||[])+
+   (entry.key==='fracture'?'<details><summary>MSCの別方式でCRAC2Dを使ったときの出力欄</summary><p>このページの四分点要素とVCCTを使う例とは区別します。CRAC2Dのダミー応力出力の欄は次の順です。</p>'+conditions([
+    ['S1、S2','応力の評価位置の要素座標 x、y。'],
+    ['S3、S4、S5','その位置の軸応力σx、σyとせん断応力τxy。先端そのものの応力ではありません。'],
+    ['S6、S7','モードI、IIの応力拡大係数。N・mm系ならMPa√mmです。'],
+    ['S8、S9','0。追加の主応力ではありません。']
+   ])+'<p>全形では内部の三角形4・5から応力、1・8からKを求めます。対称半形では応力は4、モードIのKは1を使います。全形と半形を同じ平均処理として読まないようにします。</p></details>':'');
   if(guide){
    const state={current:tabOf(tabKey)};
    detail.innerHTML=head+diagram+tabbed(state.current,{
