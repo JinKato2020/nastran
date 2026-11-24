@@ -17,14 +17,32 @@ window.AnalysisReferenceHTML = `
 <ol class="analysis-steps">
 <li>目的のSUBCASEで<a href="bulk.html#CASE_SPC">SPC (Case)</a>が選ぶSIDを確認し、GRIDのCDで拘束方向を読みます。強制変位には対象成分の拘束と、<a href="bulk.html#SPCD">SPCD</a>の値を選ぶLOADを照合します。</li>
 <li><a href="bulk.html#MPCY">MPCY</a>と<a href="bulk.html#MPCD">MPCD</a>では、MPCで選んだ式のGM・CMの組と、LOADで直接選ぶ右辺値を照合します。解析結果の変位を式に代入して確認します。</li>
-<li>F06のGrid Point Singularity Tableで<a href="bulk.html#PARAM_AUTOSPC">AUTOSPC</a>が扱った成分を確認し、意図した支持位置の<a href="bulk.html#CASE_SPCFORCES">SPCFORCES</a>で釣合いを点検します。</li>
-</ol><div class="analysis-links"><a href="theory.html#boundary">境界条件と自由度の考え方 →</a><a href="comparisons.html#rigid-interpolation">SPC・RBE2・RBE3・MPCの使い分け →</a></div></section>
+<li>F06の Grid Point Singularity Table で節点・成分・剛性比・処理前後の自由度集合を確認します。表に載った項目と実際に拘束された項目を区別し、その節点に接続する要素と端部解放を調べます。表示と拘束のしきい値は<a href="bulk.html#CASE_AUTOSPC">AUTOSPC (Case)</a>にまとめています。</li>
+</ol>
+<h3>MPCとSPC1で同じ成分が重なったとき</h3>
+<p>Inputの<a href="bulk.html#MPC">MPCの例</a>では、成分1について u151 = (u152 + u153)/2 です。通常のMSCの指定で、消去する151の成分1をSPC1でも固定すると、同じ自由度を二通りに決めようとします。次の順に実物の意図を確認します。</p>
+<ol class="analysis-steps">
+<li><strong>どの指定が有効か。</strong> 該当SUBCASEのSPC・MPCから、SPCADD・MPCADDがまとめるセット、GRIDのPS、剛体要素まで追います。「節点151の成分1」の組で照合します。違う成分まで一括で外すと、本来の支えも失います。</li>
+<li><strong>151は周囲に追従するだけか。</strong> 固定する理由がなければ151の成分1だけをSPC1の対象から外し、MPCを保ちます。151が実物の支点ならその支持は維持します。例えば同じ式を u152 = 2u151 − u153 と書けるので、152の成分1が他で指定・従属になっておらず、拘束に循環も生じない場合には、152を従属に選べます。152と153を両方固定すると平均がゼロという一条件より強くなります。</li>
+<li><strong>継手は変形してよいか。</strong> <a href="bulk.html#CBUSH">CBUSH</a>は実物に有限の剛性があるときに使います。MPCで等置した方向にばねを並べても、相対変位はゼロのままです。競合解消だけを目的に置き換えると力の伝わり方が変わります。</li>
+<li><strong>修正後に確かめる。</strong> 3点の変位を同じ物理方向で読み、u151 − (u152 + u153)/2 が丸めの範囲でゼロか確認します。次に<a href="bulk.html#CASE_SPCFORCES">SPCFORCES</a>で実際の支持が反力を負担したかを調べます。SPOINTで二点の開きを測る場合も、測定用の従属成分にSPCを重ねません。</li>
+</ol>
+<details><summary>地盤モデルの人工境界から戻る波を切り分ける</summary><p>水平成層・鉛直入射を想定した例では、まず建物を外し、同じ入力・地層の一次元自由地盤と、同じ深さで加速度を比較します。次に建物を戻し、観測点と基礎近傍の要素寸法・時間刻み・底面を保って側面だけを遠ざけます。遅れて現れる山が移動するかを確認します。底面の感度は別に試し、入力波を同じ基準位置に換算して比較します。<a href="theory.html#boundary/soil-dynamics">地盤の動的境界を図で学ぶ →</a></p></details>
+<div class="analysis-links"><a href="theory.html#boundary/verification">支持が伝えられる力を学ぶ →</a><a href="comparisons.html#rigid-interpolation">SPC・RBE2・RBE3・MPCの使い分け →</a></div></section>
 <section class="analysis-section" id="analysis-common-load-check"><h2>荷重の設定と確認</h2><p>静荷重は各SUBCASEで選択し、作用位置・方向・大きさを確認します。動荷重はこれらに加え、周波数または時間に対する変化も確認します。</p>
 <ol class="analysis-steps">
 <li><a href="bulk.html#CASE_LOAD">LOAD (Case)</a>から荷重SIDを追います。機械荷重を複数組み合わせるなら<a href="bulk.html#LOAD">LOAD (Bulk)</a>の全体倍率と個別倍率を確認します。温度は<a href="bulk.html#CASE_TEMPERATURE">TEMPERATURE (Case)</a>、初期伸びは<a href="bulk.html#CASE_DEFORM">DEFORM (Case)</a>の経路を確認します。</li>
 <li>点荷重では作用点、線荷重ではA端と作用区間、面荷重では対象面と法線、加速度荷重では単位と質量を確認します。<a href="bulk.html#PLOAD1">PLOAD1</a>、<a href="bulk.html#PLOAD4">PLOAD4</a>、<a href="bulk.html#ACCEL1">ACCEL1</a>は適用範囲の指定方法が異なります。</li>
-<li><a href="bulk.html#CASE_OLOAD">OLOAD</a>の合力とモーメントを、同じ座標・基準点で手計算と照合します。支持反力との釣合いを見て、荷重の選択漏れ・符号・二重計上を確認します。</li>
-</ol><div class="analysis-links"><a href="theory.html#common-loads">静荷重と荷重ケースの考え方 →</a><a href="analysis.html#direct-frequency">周波数応答の荷重設定 →</a><a href="analysis.html#transient">過渡応答の荷重設定 →</a></div></section>
+<li>実行したSUBCASEをそろえ、まず<a href="bulk.html#CASE_OLOAD">OLOAD</a>で機械荷重の成分・合力・モーメントを確認します。合計が合っても向きの違う面や作用点のずれを見落とすので、荷重矢印と位置も照合します。</li>
+<li>通常の静荷重では、<a href="bulk.html#CASE_SPCFORCES">SPCFORCES</a>で各支持が受け持つ反力を読みます。力は共通の座標に直し、支持の反モーメントと各支持力の腕によるモーメントを同じ基準点で足します。全体を囲む収支には内部結合の両側の力を追加しません。部品だけを切り出す場合は<a href="bulk.html#CASE_GPFORCE">GPFORCE</a>で切断面の伝達も調べます。</li>
+</ol>
+<h3>合力は合うが、曲げや反力が合わないとき</h3>
+<p>左端Aを原点とし、右を+x、上を+yとします。600 Nの下向き荷重がAから400 mmに作用すれば、Aまわりの外力モーメントは−240,000 N·mmです。幅600 mmの単純支持梁では右支点の+400 Nがそれを打ち消します。合力が−600 Nでも、モーメントが−120,000 N·mmなら、下向き合力の作用線はAから200 mm相当です。荷重の分布を左右逆にしていないか確認します。この換算は他の偶力がない例です。</p>
+<h3>倍率、面の向き、温度の取違い</h3>
+<ul><li>集中力の大きさだけがずれるなら<a href="bulk.html#FORCE">FORCE</a>の方向ベクトルの長さとLOADの全体・個別倍率を展開します。自重だけがずれるなら質量密度・集中質量・加速度を同じ単位へ直し、重心と作用線も照合します。</li>
+<li>隣接する面の力が打ち消し合うなら、シェルの節点順、ソリッドの載荷面、明示した荷重方向の有無を<a href="bulk.html#PLOAD4">PLOAD4</a>で確認します。</li>
+<li>荷重を重ねるときは同じ支持・剛性・座標・位置の符号付き増分を使います。温度場も重ねる場合、基準温度を一度だけ含めます。MSCで熱応力を回復するときは、合成側の温度場を<a href="bulk.html#CASE_TEMPERATURE">TEMP(LOAD)</a>で選択します。</li></ul>
+<div class="analysis-links"><a href="theory.html#common-loads/verification">荷重の作用点と左右の反力を学ぶ →</a><a href="analysis.html#direct-frequency">周波数応答の荷重設定 →</a><a href="analysis.html#transient">過渡応答の荷重設定 →</a></div></section>
 <section class="analysis-section" id="analysis-common-contact-check"><h2>接触状態を確認する</h2>
 <p>解析前に初期隙間、接触面の向き、接触対象を照合します。解析後は、閉じるはずの面の接触圧、離れるはずの面の開き、摩擦面の滑りと反力を荷重ステップごとに確認します。接触圧を評価するときは、面のどこで出力された値かも確認します。</p>
 <div class="analysis-links"><a href="theory.html#contact">開離・摩擦・締付けの理論 →</a><a href="analysis.html#contact">解析別の接触設定と出力 →</a></div></section>

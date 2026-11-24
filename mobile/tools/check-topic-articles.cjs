@@ -1,6 +1,6 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const dir=path.resolve(__dirname,'../../sites/nastran-learning/dist'),ctx={window:{}};vm.createContext(ctx);
-for(const n of ['lesson-article','lesson-diagrams','teaching-diagrams','theory-topic-visuals','beam-labs','boundary-labs','mesh-wave-labs','mesh-feature-figures','mesh-chapter','material-chapter','boundary-chapter','load-chapter','damping-chapter','contact-chapter','topic-article-data'])vm.runInContext(fs.readFileSync(path.join(dir,n+'.js'),'utf8'),ctx);
+for(const n of ['lesson-article','lesson-diagrams','teaching-diagrams','theory-topic-visuals','beam-labs','boundary-labs','mesh-wave-labs','mesh-feature-figures','mesh-chapter','material-chapter','boundary-chapter','load-labs','load-chapter','damping-chapter','contact-chapter','topic-article-data'])vm.runInContext(fs.readFileSync(path.join(dir,n+'.js'),'utf8'),ctx);
 for(const [key,cfg] of Object.entries(ctx.window.TopicArticleData)){
  const chapter=ctx.window[cfg.api],ids=cfg.articles.flatMap(g=>g.sections),expected=chapter.sections.map(s=>s[0]).filter(id=>!['questions','quiz','sources'].includes(id));
  assert.deepEqual([...ids].sort(),[...expected].sort(),key+' all authored sections exactly once');

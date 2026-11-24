@@ -72,7 +72,7 @@ with sync_playwright() as p:
   assert page.get_by_role('button',name=title,exact=True).count()==0
  page.screenshot(path='.qa/five-tabs-materials.png')
  page.get_by_role('button',name='荷重の理論',exact=True).click()
- for title in ['荷重の基本・集中荷重','分布荷重と等価節点荷重','自重・加速度・回転','初期ひずみ・温度荷重','ケースと結果の組合せ','部分モデル・予荷重・動荷重','荷重の検証']:
+ for title in ['荷重の基本・集中荷重','分布荷重と等価節点荷重','自重・加速度・回転','初期ひずみ・温度荷重','ケースと結果の組合せ','部分モデル・予荷重・動荷重','荷重の作用点と支点反力']:
   assert page.get_by_role('button',name=title,exact=True).count()==1,title
  page.screenshot(path='.qa/load-chapter-menu.png')
  page.get_by_role('button',name='自重・加速度・回転',exact=True).click()
@@ -86,7 +86,7 @@ with sync_playwright() as p:
  page.frame_locator('iframe').locator('#theory-detail').wait_for(state='visible');bottom()
  root('教材')
  page.get_by_role('button',name='境界条件と拘束',exact=True).click()
- for title in ['境界条件・自由度・支持','SPC・指定変位','MPC・独立と従属','結合と支持の選択','自動拘束と結果の検証','剛体運動・座標・対称']:
+ for title in ['境界条件・自由度・支持','SPC・指定変位','MPC・独立と従属','結合と支持の選択','支持が伝えられる力とつり合い','剛体運動・座標・対称']:
   assert page.get_by_role('button',name=title,exact=True).count()==1,title
  page.get_by_role('button',name='MPC・独立と従属',exact=True).click()
  frame=page.frame_locator('iframe')

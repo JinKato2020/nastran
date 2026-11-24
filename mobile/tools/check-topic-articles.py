@@ -26,7 +26,7 @@ with sync_playwright() as pw:
    for link in root.locator('.element-toc a').all():
     href=link.get_attribute('data-jump');link.click();assert page.locator('#'+href).count()==1
    for quiz in root.locator('.theory-quiz details').all():quiz.locator('summary').click();assert quiz.locator('p').is_visible()
-   for fig in root.locator('[data-contact-lab],[data-load-lab],[data-material-lab],[data-boundary-lab],[data-damping-lab],[data-contact-legacy],[data-load-legacy],[data-material-legacy],[data-boundary-legacy]').all():
+   for fig in root.locator('[data-contact-lab],[data-load-lab],[data-material-lab],[data-boundary-lab],[data-damping-lab],[data-contact-legacy],[data-load-legacy],[data-material-legacy],[data-boundary-legacy],#boundary-diagnosis .element-figure,#load-diagnosis .element-figure').all():
     name=fig.evaluate('e=>JSON.stringify(e.dataset)')
     def check():
      assert not any(s in fig.inner_text() for s in ['NaN','Infinity','図を描けませんでした']),(route,name)

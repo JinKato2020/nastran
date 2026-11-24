@@ -26,6 +26,16 @@
  const support=(x,y)=>`<path d="M${x} ${y}l-10 16h20Z" class="el-soft"/>`+line([x-15,y+20],[x+15,y+20]);
  const frame=(c,caption)=>ui.box('',c,caption),table=(h,r)=>A.table(h,r,{narrow:true});
  const out=(e,v)=>Object.entries(v).forEach(([k,x])=>{if(e.out[k])e.out[k].textContent=fmt(+x);});
+ function shelfFigure(){
+  function row(y,x,left,right){
+   return support(55,y)+support(305,y)+line([55,y],[305,y])
+    +arrow([x,y-33],[x,y-3])+text(x,y-41,'600 N')
+    +arrow([55,y+50],[55,y+23],'el-motion')+text(62,y+44,left,'start')
+    +arrow([305,y+50],[305,y+23],'el-motion')+text(298,y+44,right,'end');
+  }
+  return '<figure class="element-figure">'+svg(row(65,180,'300 N','300 N')+row(177,55+250*2/3,'200 N','400 N'),'棚の中央に載せると左右300 Nずつ、右から3分の1の位置に載せると左200 N、右400 N。',235)
+   +'<figcaption>下向き矢印は本の重さをまとめた力、上向き矢印は棚板を支える力です。上段から下段へ重さの中心だけを右に移しました。矢印は作用の向きを表し、大きさは数値で示します。</figcaption></figure>';
+ }
  const labs={
   vector:{html:()=>frame(ui.slider('angle','荷重ベクトルの角度（°）',0,90,5,30)+ui.slider('scale','入力ベクトルの長さ',.5,2,.25,2)+ui.select('kind','大きさの定義',[['force','FORCE：F × N'],['unit','FORCE1：F × 単位方向']],'force'),'係数F=100 N。赤の実線が実際の力、灰色の破線が長さ1の方向を使った100 Nの基準（見分けるため少し平行移動）。FORCE1の方向は2節点から決めます。'),draw(e,v){out(e,v);const r=core.vector(+v.angle,+v.scale,v.kind==='unit'),a=+v.angle*Math.PI/180,o=[55,210],end=[o[0]+r.x,o[1]-r.y];e.plot.innerHTML=svg(arrow(o,[305,210],'el-axis')+arrow(o,[55,25],'el-axis')+text(320,214,'x')+text(42,24,'y')+line([55,224],[55+100*Math.cos(a),224-100*Math.sin(a)],'el-ghost')+text(68+100*Math.cos(a),239-100*Math.sin(a),'100 N','start')+arrow(o,end)+node(...o)+text(55,236,'G'),'方向とベクトルの長さで実際の力が変わる',270)+table(['Fx (N)','Fy (N)','|f| (N)'],[[fmt(r.x),fmt(r.y),fmt(r.mag)]]);e.readout.innerHTML=v.kind==='force'?'<strong>FORCEのNは自動で長さ1になりません。</strong>方向が正しくても、長さを2にすると力も200 Nになります。':'<strong>FORCE1ではG1→G2を単位方向にして使います。</strong>2点間の距離を変えても向きが同じなら大きさは100 Nのままです。';}},
   eccentric:{html:()=>frame(ui.slider('x','作用点のx（mm）',0,100,10,80)+ui.slider('y','作用点のy（mm）',-60,60,10,40)+ui.slider('angle','力の角度（°）',-90,90,15,0),'Oからの位置rに100 Nを加える2次元の例。赤は力、灰色の破線は位置ベクトル。Oへ移すなら同じ力に加えてMzが必要です。'),draw(e,v){out(e,v);const r=core.eccentric(+v.x,+v.y,+v.angle),o=[95,130],p=[95+Number(v.x),130-Number(v.y)],end=[p[0]+.5*r.Fx,p[1]-.5*r.Fy];e.plot.innerHTML=svg(arrow([35,218],[100,218],'el-axis')+arrow([35,218],[35,170],'el-axis')+text(113,222,'x')+text(24,165,'y')+line(o,p,'el-ghost')+node(...o)+node(...p)+arrow(p,end)+text(80,132,'O')+text(p[0]-12,p[1]+22,'P')+text(215,225,'Mz = xFy − yFx'),'偏心した力と基準点まわりのモーメント')+table(['Fx (N)','Fy (N)','Mz (N·mm)'],[[fmt(r.Fx),fmt(r.Fy),fmt(r.M)]]);e.readout.innerHTML='<strong>力の移動では、力の大きさだけを保存しません。</strong>同じ作用線上ならr×Fは変わりませんが、作用線を平行移動するとモーメントが変わります。反時計回りをMzの正としています。';}},
@@ -39,5 +49,5 @@
   combination:{html:()=>frame(ui.slider('a','ケースAの係数 a',-2,2,.25,1)+ui.slider('b','ケースBの係数 b',-2,2,.25,1),'同じ位置・同じ座標での平面応力。ケースA：σx=100 MPa、ケースB：σy=100 MPa、どちらもτxy=0。成分を重ねてからミーゼス応力を計算します。'),draw(e,v){out(e,v);const r=core.combination(+v.a,+v.b),o=[180,125],sx=.4*r.sx,sy=.4*r.sy;let body='<rect x="145" y="90" width="70" height="70" class="el-fill"/>';for(const sign of [-1,1]){const p=[o[0]+sign*42,o[1]];body+=arrow(p,[p[0]+sign*sx,p[1]]);const q=[o[0],o[1]-sign*42];body+=arrow(q,[q[0],q[1]-sign*sy]);}e.plot.innerHTML=svg(body+text(285,146,'σx')+text(209,35,'σy')+text(180,244,'τxy = 0'),'応力成分を先に重ね合わせる',265)+table(['σx (MPa)','σy (MPa)','正しいσVM (MPa)'],[[fmt(r.sx),fmt(r.sy),fmt(r.vm)]])+table(['ミーゼス値を直接足した場合 (MPa)'],[[fmt(r.wrong)]]);e.readout.innerHTML='<strong>最大値・主応力・ミーゼス値は、そのまま加算しません。</strong>a=b=1なら正しい値は100 MPa、個別のミーゼス値の和は200 MPaです。負係数では誤った和が負になる場合すらあります。';}}
  };
  function connect(root){for(const e of root.querySelectorAll('[data-load-lab]'))ui.mount(e,labs[e.dataset.loadLab]);}
- window.LoadLabs={core,labs,connect};
+ window.LoadLabs={core,labs,connect,shelfFigure};
 })();

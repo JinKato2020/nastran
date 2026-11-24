@@ -588,6 +588,22 @@
         "group": "検証・再実行"
       },
       {
+        "title": "拘束の入力と反力",
+        "description": "MPCとSPC1の競合、自動拘束、支持反力を切り分ける",
+        "path": "analysis.html",
+        "hash": "#constraint-check",
+        "kind": "確認・運用",
+        "group": "検証・再実行"
+      },
+      {
+        "title": "荷重の設定と確認",
+        "description": "ケースの有効荷重を追い、合力・作用点・支持反力を照合する",
+        "path": "analysis.html",
+        "hash": "#load-check",
+        "kind": "確認・運用",
+        "group": "検証・再実行"
+      },
+      {
         "title": "リスタート",
         "description": "保存DBからの再開、入力差分とF04・F06の照合",
         "path": "analysis.html",
@@ -702,7 +718,7 @@
       },
       {
         "title": "SPC・指定変位",
-        "description": "拘束セットと指定変位を使い分ける・行列の分割から反力を導く",
+        "description": "支持台の移動と部材の伸びを区別し、ばねの伸びと反力を求める",
         "path": "theory.html",
         "hash": "#boundary/spc"
       },
@@ -719,8 +735,8 @@
         "hash": "#boundary/connections"
       },
       {
-        "title": "自動拘束と結果の検証",
-        "description": "拘束不足・過拘束を結果から診断する・合力とモーメントで支持反力を検算する",
+        "title": "支持が伝えられる力とつり合い",
+        "description": "支点が押す力と引き止める力を区別し、浮き上がる条件を考える",
         "path": "theory.html",
         "hash": "#boundary/verification"
       },
@@ -764,7 +780,7 @@
       },
       {
         "title": "ケースと結果の組合せ",
-        "description": "荷重IDの定義・選択・合成を追う・線形結果の重ね合わせを正しく行う",
+        "description": "同時に起こる荷重を組み合わせ、共通の荷重や支持の沈下を一度だけ数える",
         "path": "theory.html",
         "hash": "#common-loads/cases"
       },
@@ -775,8 +791,8 @@
         "hash": "#common-loads/applications"
       },
       {
-        "title": "荷重の検証",
-        "description": "倍率・向き・収支から誤りを見分ける",
+        "title": "荷重の作用点と支点反力",
+        "description": "本を左右に移す例で、重さの合計と左右の支点反力の違いを学ぶ",
         "path": "theory.html",
         "hash": "#common-loads/verification"
       }
