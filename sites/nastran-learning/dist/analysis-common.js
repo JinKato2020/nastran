@@ -44,11 +44,22 @@ window.AnalysisReferenceHTML = `
 <li>荷重を重ねるときは同じ支持・剛性・座標・位置の符号付き増分を使います。温度場も重ねる場合、基準温度を一度だけ含めます。MSCで熱応力を回復するときは、合成側の温度場を<a href="bulk.html#CASE_TEMPERATURE">TEMP(LOAD)</a>で選択します。</li></ul>
 <div class="analysis-links"><a href="theory.html#common-loads/verification">荷重の作用点と左右の反力を学ぶ →</a><a href="analysis.html#direct-frequency">周波数応答の荷重設定 →</a><a href="analysis.html#transient">過渡応答の荷重設定 →</a></div></section>
 <section class="analysis-section" id="analysis-common-contact-check"><h2>接触状態を確認する</h2>
-<p>解析前に初期隙間、接触面の向き、接触対象を照合します。解析後は、閉じるはずの面の接触圧、離れるはずの面の開き、摩擦面の滑りと反力を荷重ステップごとに確認します。接触圧を評価するときは、面のどこで出力された値かも確認します。</p>
-<div class="analysis-links"><a href="theory.html#contact">開離・摩擦・締付けの理論 →</a><a href="analysis.html#contact">解析別の接触設定と出力 →</a></div></section>
+<p>締付け前、保持直後、外力を加えた後を同じ位置で比べます。圧縮を正とする表示なら、すき間が正で圧力0は開離、すき間0で圧力が正なら押し合っています。両方0は力を伝えずに触れる境界です。ペナルティ方式では小さい貫通も生じるので、出力の定義・符号・許容値と併せて読みます。</p>
+<ol class="analysis-steps"><li><strong>最初から反力が大きい、または素通りする。</strong>表面の法線、シェルの厚さ・オフセット、初期干渉、接触対象の組を図上で照合します。探索距離を広げると裏面まで候補に入る場合があります。</li>
+<li><strong>接触が有効なステップを追う。</strong>MSCの一般接触ではケースの<a href="bulk.html#CASE_BCONTACT">BCONTACT</a>から接触表、対、接触体へ参照を追います。Simplified Supportは片側支持の専用手順で、CDITER・SUPORTと閉じた成分のSPCFORCESを確認します。MSC 2025.1のSOL 101の摩擦は固着側の弾性寄与を扱います。大きな滑りや逆載荷の履歴を評価する場合は非線形手順の適用範囲を確認します。</li>
+<li><strong>保持直後に軸力が消える。</strong>MSC SOL 400で前段の締付け変形を保つ場合、<a href="bulk.html#SPCR">SPCR</a>の相対値とSPCDの総変位を区別します。保持する成分をSPC1で選び、SPCRの荷重セットをケースのLOADで指定します。<a href="bulk.html#BOLT">BOLT</a>の従属側を別の拘束で縛っていないかも確認します。</li>
+<li><strong>面圧が高い、横滑りが早い。</strong>面圧は評価位置・平均化、滑りは増分か累積かを確認します。平行面では片側の面圧を面積で積分して合力と照合します。作用・反作用を足さず、残存締付け力から摩擦上限を見積もります。局所ピークだけが変わる場合は合力・押し跡・開離位置のメッシュ感度も確認します。</li>
+<li><strong>開閉を繰り返して収束しない。</strong>最初に支持がなく自由に動ける部品、過拘束、載荷順に注意します。増分を小さくして開閉の起点を特定し、接触剛性・許容貫通を変える場合は反力と貫通量を併記します。</li></ol>
+<details><summary>製品別の設定とボルトの方式を照合する</summary><p>MSCの接触体はBCBODY系、接触対はBCONECT等、実行段階は接触表とSTEPでたどります。BOLTは切断面の対応点を内部MPCで結ぶ小回転の方式、BOLT1は対象となる高度非線形要素の断面・要素層を使う方式です。Simcenter SOL 401はBCTPARM・NLCNTL、402はBCTPAR2・NLCNTL2など各手順の定義を確認します。予荷重の継承や既定値は製品・版・解法ごとに確認します。</p></details>
+<div class="analysis-links"><a href="theory.html#contact/products">浮き上がり・大滑り・逆滑りを学ぶ →</a><a href="theory.html#contact/verification">面圧から合力と作用位置を求める →</a><a href="analysis.html#contact">製品別の接触解析 →</a></div></section>
 <section class="analysis-section" id="analysis-common-damping-check"><h2>減衰の設定を照合する</h2>
-<p>適用したSOLで使われる減衰入力を確認します。モード減衰を指定した場合はCase ControlのSDAMPINGとTABDMP1のID、周波数軸、減衰の種類を照合します。要素の粘性減衰や材料の構造減衰がある場合は、対象と単位を確認し、同じ散逸を二重に見込んでいないか点検します。</p>
-<div class="analysis-links"><a href="bulk.html#CASE_SDAMPING">SDAMPING →</a><a href="bulk.html#TABDMP1">TABDMP1 →</a><a href="theory.html#damping">減衰比と減衰の種類 →</a></div></section>
+<p>減衰が半分になる、過渡だけ効かない、共振の山が低すぎる場合は、同じモデルで一つずつ切り分けます。</p>
+<ol class="analysis-steps"><li><strong>解法を確認。</strong>通常のSOL 103は質量と剛性から実モードを求めます。減衰による減り方は複素固有値、共振振幅は周波数応答、打撃後の波形は過渡応答で照合します。</li>
+<li><strong>モード減衰が半分。</strong>MSC SOL 111などでは<a href="bulk.html#CASE_SDAMPING">SDAMPING</a>の参照先の<a href="bulk.html#TABDMP1">TABDMP1</a>でTYPEと値を対にして読みます。ζ＝2%ならCRITで0.02、Gで0.04、Qで25です。TYPEの既定はGです。横軸は各モードの固有振動数（時間単位が秒ならHz）。範囲外を外挿して負にならないか確認します。<a href="bulk.html#PARAM_KDAMP">KDAMP</a>による扱いも解法別に確認します。</li>
+<li><strong>周波数応答では効くのに過渡で効かない。</strong>従来のMSC構造過渡で構造減衰を粘性へ換算する場合、全体系Gは<a href="bulk.html#PARAM_W3">W3</a>、材料・要素GEは<a href="bulk.html#PARAM_W4">W4</a>を調べます。0では対応する換算項が働きません。基準が約15.9 Hzなら約100 rad/sです。MSC SOL 112のWMODALを使った換算は要素力回収の対象も確認します。</li>
+<li><strong>ピークが低い。</strong>まず力の大きさと観測位置をそろえ、周波数刻みを細かくします。次にモード数、局所ダンパーの両端の相対速度、材料GEとモード減衰が同じ試験の損失を重ねていないか確認します。時間歴では刻みや積分法への感度も分けて調べます。</li></ol>
+<details><summary>直接法・材料別の指定を追う場合</summary><p>MSC SOL 108のSDAMPINGには粘弾性材料表を指定する用法もあります。直接法でhybrid dampingを使う場合は、RSDAMP → DAMPING → HYBDAMPから固有値抽出と減衰表のIDを追います。HYBDAMPのKDAMP欄はYES/NOで、PARAM KDAMPとは形式が異なります。DAMPING選択時の優先関係、使ったモードと質量の範囲も確認します。</p><p>局所粘性と材料損失は単位が異なります。ブッシュの方向別のB・GEは<a href="bulk.html#PBUSH">PBUSH</a>、周波数依存は<a href="bulk.html#PBUSHT">PBUSHT</a>で照合します。MAT2・MAT9では拡張GEijの指定と単一GEの優先関係も確認します。</p></details>
+<div class="analysis-links"><a href="theory.html#damping/identify">波形から減衰比を求める →</a><a href="analysis.html#modal-frequency">モーダル周波数応答 →</a><a href="analysis.html#transient">過渡応答 →</a></div></section>
 <section class="analysis-section" id="analysis-common-restart"><h2>MSC Nastranのリスタートを指定する</h2>
 <ol class="analysis-steps">
 <li>初回計算で再利用するデータベースを保存します。通常の保存例は実行オプション <code>scr=no</code> です。F04で使用可能な版を確認し、MASTERと対応するデータベースを保管します。</li>

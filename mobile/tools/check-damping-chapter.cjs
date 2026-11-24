@@ -4,6 +4,11 @@ for(const n of ['lesson-article','beam-labs','theory-data','theory-labs','dampin
 const c=ctx.window.DampingLabs.core,near=(a,b,tol=1e-9)=>assert(Math.abs(a-b)<tol*Math.max(1,Math.abs(b)),`${a} != ${b}`);
 for(const z of [.01,.02,.1,.2,1,2]){near(c.free(z,0),1);assert(Math.abs((c.free(z,1e-7)-c.free(z,0))/1e-7)<.001);}
 for(const z of [.01,.02,.1,.2])for(const n of [1,3,8]){const r=c.identify(z,n);near(r.estimate,z);near(c.free(z,r.t),r.a);}
+for(const n of [1,2,3,4])for(const half of [false,true]){
+ const r=c.identify(.02,n,half);
+ near(r.peak,c.free(.02,r.t));near(Math.abs(r.peak),r.a);
+}
+near(c.identify(.02,1).a,0.8819,.0001);
 assert(c.identify(.02,3,true).estimate<.011);
 // Numerical loop integration independently checks the energy formula.
 for(const f of [5,16,40])for(const U of [.25,1,2]){let loss=0;const N=20000,w=2*Math.PI*f,dt=2*Math.PI/N;for(let i=0;i<N;i++){const a=(i+.5)*dt;loss+=(100*U*Math.cos(a)-.04*w*U*Math.sin(a))*(-U*Math.sin(a))*dt;}near(loss,c.loss(.04,w,U),1e-8);}

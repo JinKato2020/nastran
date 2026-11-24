@@ -604,6 +604,22 @@
         "group": "検証・再実行"
       },
       {
+        "title": "接触状態の確認",
+        "description": "開閉・滑り・締付けの継承を照合する",
+        "path": "analysis.html",
+        "hash": "#contact-check",
+        "kind": "確認・運用",
+        "group": "検証・再実行"
+      },
+      {
+        "title": "減衰設定の照合",
+        "description": "減衰表・単位・過渡換算・共振ピークを照合する",
+        "path": "analysis.html",
+        "hash": "#damping-check",
+        "kind": "確認・運用",
+        "group": "検証・再実行"
+      },
+      {
         "title": "リスタート",
         "description": "保存DBからの再開、入力差分とF04・F06の照合",
         "path": "analysis.html",
@@ -817,8 +833,8 @@
         "hash": "#contact/surfaces"
       },
       {
-        "title": "製品・SOL別の接触設定",
-        "description": "SOLと接触方式の適用範囲を区別する",
+        "title": "浮き上がり・大滑り・逆滑り",
+        "description": "荷重の位置・移動距離・往復によって必要な接触の表し方を選ぶ",
         "path": "theory.html",
         "hash": "#contact/products"
       },
@@ -835,8 +851,8 @@
         "hash": "#contact/management"
       },
       {
-        "title": "収束と結果の検証",
-        "description": "接触状態・収支・感度から妥当性を確認する",
+        "title": "押し跡から力と作用位置を読む",
+        "description": "区画ごとの面圧と面積から合力・作用位置を求める",
         "path": "theory.html",
         "hash": "#contact/verification"
       }
@@ -867,8 +883,8 @@
         "hash": "#damping/distribution"
       },
       {
-        "title": "過渡・材料・入力の対応",
-        "description": "SOL・減衰モデル・入力を対応させる",
+        "title": "周波数と材料による減衰の違い",
+        "description": "一つの振動数で合わせた減衰が他の揺れ方にどう効くかを考える",
         "path": "theory.html",
         "hash": "#damping/implementation"
       },
