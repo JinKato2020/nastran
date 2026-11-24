@@ -25,7 +25,7 @@
  const operations=document.getElementById('learning-operations');
  if(operations)operations.innerHTML=nav.operations.map(learningCard).join('');
  const catalog=document.getElementById('learning-catalog');
- if(catalog)catalog.innerHTML=navGroups.map(([title,sections],i)=>learningGroup(title,sections,i===0)).join('');
+ if(catalog)catalog.innerHTML=navGroups.map(([title,sections])=>learningGroup(title,sections)).join('');
  function cards(group){return course[group].map((x,i)=>'<a class="learning-card" href="'+href(x)+'"><span'+(done.includes(x.key)?' class="learning-complete-mark"':'')+'>'+(done.includes(x.key)?'✓':group==='steps'?String(i+1).padStart(2,'0'):group==='next'?'→':'?')+'</span><div><strong>'+esc(x.title)+'</strong><p>'+esc(x.description)+'</p>'+(group==='next'?'<small>'+esc(x.goal)+'</small>':x.kind?'<small>'+esc(x.kind)+'</small>':'')+'</div></a>').join('');}
  function home(){const el=document.getElementById('learning-home');if(!el)return;
   el.innerHTML='<div class="learning-progress"><b>初めての解析の学習記録</b><span>'+done.length+' / 6ステップ</span></div><div class="learning-list">'+cards('steps')+'</div>';

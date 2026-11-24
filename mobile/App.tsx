@@ -256,7 +256,7 @@ function LearningApp({purchaseClient}:{purchaseClient:ProPurchases|null}){
     }catch(e){const text=e instanceof Error?e.message:'操作を完了できませんでした。';reply(session,m.id,false,text);}
   }
   function bookmark(){const p=current.current;if(!p)return;const old=savedRef.current.bookmarks;const exists=old.some(b=>samePlace(b,p));updateSaved({...savedRef.current,bookmarks:exists?old.filter(b=>!samePlace(b,p)):[p,...old].slice(0,100)});}
-  const [materialGroup,setMaterialGroup]=useState('elements');
+  const [materialGroup,setMaterialGroup]=useState('');
   const materialGroups=useMemo(()=>courseIndex.materialChapters.map(chapter=>({
     ...chapter,items:chapter.sources.flatMap(key=>nav[key]),
   })),[courseIndex,nav]);

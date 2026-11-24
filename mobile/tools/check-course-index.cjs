@@ -8,6 +8,8 @@ const index=courseIndexFromHTML(bundle.pages['index.html']);
 assert.notEqual(index,BUNDLED_INDEX,'the shipped OTA index must pass the reader validation');
 assert.deepEqual(index.navigation,bundle.course.navigation);
 assert.deepEqual(index.materialChapters,bundle.course.materialChapters);
+// Older OTA readers start with 'elements' selected. Keep it as a navigation source only.
+assert(!index.materialChapters.some(chapter=>chapter.key==='elements'),'the shipped index must open with every chapter collapsed on older readers');
 assert.deepEqual(index.home,bundle.course.home);
 assert.deepEqual(index.analysisHeadings,bundle.course.analysisHeadings);
 assert.deepEqual(index.retiredLinks,bundle.course.retiredLinks);

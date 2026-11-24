@@ -24,7 +24,9 @@ with sync_playwright() as pw:
     current_group=[group.evaluate(STYLE),toggle.evaluate(STYLE)]
     if group_style is None:group_style=current_group
     assert current_group==group_style,(width,tab,'chapter styles')
-    if toggle.get_attribute('aria-expanded')!='true':toggle.click()
+    expect(page.get_by_test_id('lesson-group-body')).to_have_count(0)
+    expect(toggle).to_have_attribute('aria-expanded','false')
+    toggle.click()
     expect(toggle).to_have_attribute('aria-expanded','true')
     expect(page.get_by_test_id('lesson-group-body')).to_have_count(1)
     card=group.get_by_test_id('lesson-group-body').get_by_role('button').first
