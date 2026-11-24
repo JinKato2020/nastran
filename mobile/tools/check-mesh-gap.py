@@ -114,6 +114,24 @@ with sync_playwright() as pw:
         for key in ("transitions","quality","convergence","waves","sources"):
             page.locator("[data-topic-picker]").select_option(key)
             page.wait_for_function("k=>document.querySelector('#theory-detail').dataset.article===k", arg=key)
+            if key=="waves":
+                spatial=page.locator("[data-mesh-wave-lab=waveSpacing]")
+                readout=spatial.locator(".theory-lab-readout")
+                assert "波長 10 m。1波長あたり 2 要素" in readout.inner_text()
+                assert spatial.locator("svg circle").count()==5
+                assert all(abs(float(y)-88)<1e-6 for y in spatial.locator("svg circle").evaluate_all("dots=>dots.map(d=>d.getAttribute('cy'))"))
+                spatial.locator("input").fill("12.5")
+                assert "進んだ距離 2.5 m" in readout.inner_text()
+                assert abs(float(spatial.locator("svg circle").first.get_attribute("cy"))-123)<1e-6
+                spatial.locator("[data-lab-input=speed]").select_option("100")
+                spatial.locator("[data-lab-input=h]").select_option("0.5")
+                assert "波長 5 m。1波長あたり 10 要素" in readout.inner_text()
+                record=page.locator("[data-mesh-wave-lab=waveRecording]")
+                for every,count,extent in [("10",3,0),("5",5,70),("1",21,70)]:
+                    record.locator("select").select_option(every)
+                    y=record.locator("svg circle").evaluate_all("dots=>dots.map(d=>Number(d.getAttribute('cy')))")
+                    assert len(y)==count and abs(max(y)-min(y)-extent)<1e-6
+                assert page.locator("#mesh-questions details").count()==3
             if key=="convergence":
                 plate=page.locator("[data-mesh-wave-lab=refinePlate]")
                 for rows in (4,8,16):

@@ -57,7 +57,48 @@
    const amplitude=t=>Math.cosh(t)-Math.cos(t)-ratio*(Math.sinh(t)-Math.sin(t));
    return amplitude(b*x)/amplitude(b);
  }
+ // Draw an exact sine wave and the samples taken at equal positions or times.
+ function sampledSine(span, step, displacement, axis, annotations) {
+   const x = value => 28 + 296 * value / span;
+   const point = value => [x(value), 88 - 35 * displacement(value)];
+   const curve = Array.from({length:321}, (_,i) => point(span*i/320));
+   const samples = Array.from({length:Math.round(span/step)+1}, (_,i) => point(i*step));
+   const marks = samples.map(([cx,cy]) => '<circle cx="'+cx+'" cy="'+cy+'" r="2.5" fill="currentColor"/>').join('');
+   return line([[28,44],[28,125]],'b2-guide') + line([[28,88],[327,88]],'b2-guide') +
+     line(curve,'b2-ghost') + line(samples,'b2-move') + marks +
+     text(8,43,'u') + text(24,146,'0') + text(162,146,fmt(span/2)) +
+     text(310,146,fmt(span)) + text(163,162,axis) + (annotations ? annotations(x) : '');
+ }
  const labs = {
+   waveSpacing: {
+     html:()=>ui.box('waveSpacing',
+       ui.slider('ms','時刻を進める（ms）',0,50,2.5,0) +
+       ui.select('h','節点の間隔 h（m）',[[5,'5'],[2.5,'2.5'],[1,'1'],[0.5,'0.5']],5) +
+       ui.select('speed','せん断波速度 Vs（m/s）',[[200,'200'],[100,'100']],200),
+       '横軸は地盤の位置 x。破線は同じ瞬間の地盤の上下変位、●と実線は等間隔で値を読み直線で結んだ形です。縦方向は拡大しています。上の寸法線は隣り合う山の間隔です。'),
+     draw(el,v) {
+       const speed=Number(v.speed), h=Number(v.h), ms=Number(v.ms);
+       const length=speed/20, travel=speed*ms/1000;
+       const firstPeak=(length/4+travel)%length;
+       el.out.ms.textContent=fmt(ms)+' ms';
+       el.plot.innerHTML=svg('右へ進むせん断波の山の間隔と節点で読み取った変位',
+         sampledSine(20,h,x=>Math.sin(2*Math.PI*(x-travel)/length),'x (m)',x=>{
+           const a=x(firstPeak), b=x(firstPeak+length);
+           return line([[a,46],[a,36],[b,36],[b,46]],'b2-sec')+text((a+b)/2-18,29,'λ = '+length+' m');
+         }));
+       el.readout.textContent='波長 '+length+' m。1波長あたり '+fmt(length/h)+' 要素。最初の山が進んだ距離 '+fmt(travel)+' m。';
+     }
+   },
+   waveRecording: {
+     html:()=>ui.box('waveRecording',ui.select('every','変位を保存する間隔',[[10,'10ステップごと'],[5,'5ステップごと'],[1,'毎ステップ']],10),
+       '横軸は時間 t。観測位置は x = 0 mに固定します。破線はこの地点の理論波形、●は保存した値、実線はその点を結んだ線です。縦軸は前図と同じ上下変位です。'),
+     draw(el,v) {
+       const dt=2.5, save=dt*Number(v.every);
+       el.plot.innerHTML=svg('同じ観測位置で保存間隔を変えて比べた一周期の記録',
+         sampledSine(50,save,t=>-Math.sin(2*Math.PI*t/50),'t (ms)'));
+       el.readout.textContent='計算刻み '+dt+' ms。保存間隔 '+fmt(save)+' ms。山から次の山までの1周期（50 ms）を '+fmt(50/save)+' 区間に分けて保存します。';
+     }
+   },
    peakStress: {
      html:()=>ui.box('peakStress',ui.select('size','要素の辺長 h',[['4','粗　4 mm'],['2','中　2 mm'],['1','細　1 mm']],'4'),
        '数値は変化の読み方を示す例示値です。▲と◇の位置、固定辺、荷重はすべての分割で共通です。'),
