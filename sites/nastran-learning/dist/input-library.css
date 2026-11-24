@@ -30,3 +30,11 @@
 
 /* Category is selected in the chapter list; the article has one card picker. */
 .library-selectors{grid-template-columns:minmax(0,1fr)}
+
+.pshell-compare > p,.pshell-compare > figure{margin:.75rem 1rem}
+.pshell-cut{display:block;width:100%;max-width:280px;margin:.4rem auto}
+.pshell-cut polygon{fill:#e8f0f5;stroke:#42566b;stroke-width:1.6}
+.pshell-cut path{fill:none;stroke:#34465a;stroke-width:1.5}
+.pshell-cut .thickness{stroke:#17675e;stroke-width:5}
+.pshell-cut .normal{stroke:#253445;stroke-width:1.5;stroke-dasharray:4 3}
+.pshell-cut text{fill:#253445;font:14px sans-serif}
