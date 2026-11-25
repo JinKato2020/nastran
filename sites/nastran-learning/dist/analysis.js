@@ -146,6 +146,7 @@
   const guide=window.AnalysisScenarioGuides?.[entry.key];
   const quiz=window.AnalysisQuiz?.resolve(entry.key,model.id);
   const specific=window.AnalysisModelGuides?.[model.id];
+  const resultChecks=entry.key==='static'&&model.id==='solid'?[]:window.AnalysisResultChecks.sections(entry.key);
   const quizInput=quiz&&window.AnalysisQuiz.render(entry.key,model.id,'input'),quizResults=quiz&&window.AnalysisQuiz.render(entry.key,model.id,'results');
   const state={current:tabOf(tabKey)};
   // "dat" in the address means the Input tab with the full deck open, so Back from a card returns there.
@@ -160,7 +161,7 @@
        deck&&['自作モデルのDAT',deckSection(deck,tabKey==='dat')],
        !deck&&['入力モデルの扱い','<p>境界条件と入力の役割を比較する理論教材です。この比較用の実行確認済み入力ファイルは未収録です。下記の数値は理論値で、MSC Nastranの実行結果ではありません。</p>'],
        quizInput&&['入力の確認問題',quizInput,'analysis-quiz']],
-      results:[...(entry.key==='modes'?(window.AnalysisModalOutput?.sections(model.id)||[]):[]),['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(specific||guide)],specific?.resultExtra&&['照合する量と条件',specific.resultExtra()],['prestressed-modes','complex-modes','modal-frequency','transient'].includes(entry.key)&&['実モードの結果を確認する',window.AnalysisModalOutput?.reference()||''],['モデル間の比較',compare(comparison,comparison.models.indexOf(model),specific)],specific?.pitfalls?['このモデルで間違えやすい点',conditions(specific.pitfalls)]:guide&&['よくある失敗と直し方',conditions(guide.pitfalls)],quizResults&&['結果の確認問題',quizResults,'analysis-quiz-results']]
+      results:[...(entry.key==='modes'?(window.AnalysisModalOutput?.sections(model.id)||[]):[]),['結果の読み方',list(model.results)+cardLinks(model.check)+verifySteps(specific||guide)],...resultChecks,specific?.resultExtra&&['照合する量と条件',specific.resultExtra()],['prestressed-modes','complex-modes','modal-frequency','transient'].includes(entry.key)&&['実モードの結果を確認する',window.AnalysisModalOutput?.reference()||''],['モデル間の比較',compare(comparison,comparison.models.indexOf(model),specific)],specific?.pitfalls?['このモデルで間違えやすい点',conditions(specific.pitfalls)]:guide&&['よくある失敗と直し方',conditions(guide.pitfalls)],quizResults&&['結果の確認問題',quizResults,'analysis-quiz-results']]
      }))+
    contextLinks(entry,related)+sources(scenario.sources||entry.sources);
   bindTabs(state,()=>history.replaceState(null,'',place(model.id,token())));
@@ -168,6 +169,7 @@
   window.AnalysisStructureLabs?.bind(detail);
   window.AnalysisEigenLabs?.bind(detail);
   window.AnalysisResponseLabs?.bind(detail);
+  window.AnalysisResultChecks.bind(detail);
   window.AnalysisModalOutput?.bind(detail);
   byId('analysis-original-input')?.addEventListener('toggle',()=>history.replaceState(null,'',place(model.id,token())));
   byId('save-original-dat')?.addEventListener('click',()=>saveDeck(deck));
@@ -227,10 +229,11 @@
    detail.innerHTML=head+diagram+tabbed(state.current,{
      model:[[null,readingIntro(entry,null,model)],['モデル化と境界条件',modelBody],['この解析の基礎',guideBasics(guide)]],
      input:[['主要カードの相関図',mapBody,'analysis-relations']],
-     results:[['結果の読み方・照合',resultBody+verifySteps(guide)],['よくある失敗と直し方',conditions(guide.pitfalls)]]
+     results:[['結果の読み方・照合',resultBody+verifySteps(guide)],...window.AnalysisResultChecks.sections(entry.key),['よくある失敗と直し方',conditions(guide.pitfalls)]]
     })+
     contextLinks(entry,related)+sources(entry.sources);
    bindTabs(state,()=>history.replaceState(null,'','#'+entry.key+'/'+(model.id||'msc')+(state.current==='model'?'':'/'+state.current)));
+   window.AnalysisResultChecks.bind(detail);
   }else detail.innerHTML=head+
    section('1 · モデルと境界条件',diagram+modelBody)+
    section('2 · 主要カードの相関図',mapBody,'analysis-relations')+
