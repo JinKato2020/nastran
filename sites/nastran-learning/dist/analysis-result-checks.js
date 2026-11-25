@@ -139,7 +139,7 @@
     question('中央のセンサーに山がない。中央をもっと強く押せば40 Hzの山が出る？','この理想対称梁の曲げ2次では、中央は加振にも観測にも効かない位置です。先に腹にセンサーを置き、荷重点を中央と腹で切り替えると、2次が励起されたかを切り分けられます。')+
     source('https://community.sw.siemens.com/s/article/Modal-Driving-Point-Survey-What-s-at-Stake','加振点の場所と見えるモード（Siemens）')]
   ],
-  static:[['梁とシェルで先端たわみが合わないとき、取付部の回転を調べる','support-rotation-check',
+  static:[['別例 · 取付板までモデル化すると、先端たわみはどう変わるか','support-rotation-check',
    p('板から突き出した腕の先端を下に押します。梁モデルでは根元の1節点を完全固定、シェルモデルでは取付板を面で固定し、腕と板を結びます。荷重と反力の合計は合っているのに、シェルの腕がよくたわむなら、腕の根元が取付板と一緒に回っているかを確認します。')+
    figure('support')+
    p('曲げ剛性EI＝9×10⁸ N·mm²の一様梁で、梁自体の曲げたわみは PL³/(3EI)＝1 mm。根元が θ₀ だけ回ると、同じ梁に根元回転分 Lθ₀ が加わります。この計算例ではせん断たわみを省き、回転剛性だけを変えます。')+
@@ -167,6 +167,6 @@
  }
  const supplements={'mfreq-six':'modal-stress-check','mfreq-antisymmetric':'modal-peak-check'};
  window.AnalysisResultChecks={sections:(key,model)=>(sections[key]||[])
-  .filter(([,id])=>key!=='modal-frequency'||id===supplements[model])
+  .filter(([,id])=>(key!=='modal-frequency'||id===supplements[model])&&(key!=='static'||model==='shell'))
   .map(([title,id,body])=>[key==='modal-frequency'?'別のモデルで確かめる｜'+title:title,body,id]),bind};
 })();

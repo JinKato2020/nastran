@@ -25,7 +25,7 @@
   const parts=e.sections.map(([title,paragraphs,figure,table],i)=>{
    const experiment=Object.hasOwn(window.AnalysisTheoryFigures.labs,figure)?`<figure data-analysis-theory-figure="${esc(figure)}"></figure>`:'';
    const body=(materialVisuals?.[figure]||topicVisuals?.[i]||'')+paragraphs.map(p=>`<p>${esc(p)}</p>`).join('')+
-    experiment+(window.TheoryLabs?.html(figure)||'')+(visual?.[figure]||'')+comparisonTable(table)+(i===0?formula:'');
+    experiment+(window.TheoryLabs?.html(figure)||'')+(visual?.[figure]||'')+comparisonTable(table)+(i===0?(['static','modes'].includes(e.key)?'<details><summary>ここまでの関係を式で確認する</summary>'+formula+'</details>':formula):'');
    return {title:study?title.replace(/^\d+\s*·\s*/,''):title,body,id:'theory-section-'+i};
   });
   parts.push({title:study?'どこまで使えるか':'適用範囲を判断する',body:'<ul>'+e.limits.map(s=>`<li>${esc(s)}</li>`).join('')+'</ul>',id:'theory-limits'});

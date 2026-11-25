@@ -10,11 +10,6 @@
  const key=s=>'<code class="f06-key">'+s+'</code>';
  const lines=(...rows)=>rows.join('\n');
 
- const context={
-  baseline:'選択中の片持ち梁では、弱軸曲げを主に基本Z方向のT3で追います。T1の有効質量比が小さくても、T3の曲げが求まっていないことにはなりません。方向別に確認します。',
-  'tip-mass':'選択中の先端質量付き梁では、CONM2を含めた質量行列で一般化質量・刺激係数・有効質量を評価します。基準梁から総質量だけを置き換えて係数を流用しません。',
-  'both-fixed':'選択中の両端固定梁では、先端G13は観測点に適しません。中央などの自由な節点でモード形を読み、支持の変更に対応したモードと有効質量比を確認します。'
- };
  function bind(root){
   A.bindNavigation(root);
   report.bind(root);
@@ -123,7 +118,8 @@
  function sections(model){
   return [
    ['実固有値解析のF06を読む',p('この結果タブの F06 は、読み方を学ぶための仮想の出力です（実際の解析結果ではありません）。数値を切りの良い値にしてあるので、表どうしのつながりを暗算や電卓で確かめられます。想定した柱は、選択中の梁と同じく基本 X 方向に伸びています。')+
-    p('アプリの梁で自分の F06 を読むとき：'+(context[model]||context.baseline))+
+    p('まず MODE NO. で一つの振動形を選び、CYCLESで1秒の往復回数、同じ番号の固有ベクトルで動く位置を読みます。ここから先の例は別の柱です。梁の振動数と数値合わせをする必要はありません。')+
+    p('その形が基盤を一定方向に揺らす力をどれだけ受けるかまで調べるときに、刺激係数と有効質量へ進みます。刺激係数はその揺すり方とモードの結び付き、有効質量はその寄与を質量で表した量です。')+
     p('このタブでは、F06 の表と数値の読み方、実務での判断を扱います。モード形の大きさが決まる仕組みや、有効質量の考え方は、教材の<a href="theory.html#modes">実固有値解析</a>で説明しています。')+
     '<details class="analysis-shared"><summary>結果の読み方・目次</summary>'+A.toc(topics)+'</details>','modal-output-guide'],
    ['1. F06を開いたら最初に見る6か所',p('F06 は長くなりがちです。最初は次の6か所だけを、この順で見ます。表題は印字のまま書きました。一部の表題は1文字ずつ空けて印字されるので、「REAL EIGENVALUES」と続けて検索しても見つかりません。検索には、空いた語を1語だけ使います（例：E I G E N V A L U E S、E I G E N V E C T O R）。')+
@@ -135,7 +131,7 @@
      ['各モードの主成分',key('MAXIMUM  DISPLACEMENTS'),'各モードの主な動きは','行（モード）ごとに一番大きい列','曲げ・ねじり・軸方向の見当をつける。T と R は単位が違うので混ぜて比べない。'],
      ['モード形',key('R E A L   E I G E N V E C T O R   N O .'),'どこがどう動くか','測定点・取付点の POINT ID の行','腹と節の位置から、センサーと加振点を選ぶ。値は正規化した形で、実際の変位ではない。']
     ].map(([name,title,question,look,next])=>'<strong>'+name+'</strong>　'+title+'<br>問い：'+question+'<br>見る：'+look+'<br>判断：'+next))+
-    p('3・4の表は、ケース制御に '+card('CASE_MEFFMASS','MEFFMASS')+' を書いたときだけ印字されます。何も付けないと総括（SUMMARY）だけで、刺激係数や有効質量の表は ALL や PARTFAC を付けたときに出ます。5の表は、バルクデータに PARAM,PRTMAXIM,YES を書いたときだけ印字されます（既定は NO）。6の固有ベクトルは、'+card('CASE_DISPLACEMENT','DISPLACEMENT')+'（VECTOR も同じ）の出力先が PRINT のとき F06 に出ます。PLOT だけなら F06 には印字されず、OP2・H5 などの結果ファイルで確認します。印字順やページ番号は、実行条件や出力要求で変わります。'),'modal-output-map'],
+    p('3・4の表は、ケース制御に '+card('CASE_MEFFMASS','MEFFMASS')+' を書いたときだけ印字されます。既定は総括（SUMMARY）です。モードごとの刺激係数なら PARTFAC、有効質量なら MEFFM、方向別の割合と累積なら FRACSUM を選びます。PRINT と ALL を指定するとこれらの表をまとめてF06で読めます。5の表は、バルクデータに PARAM,PRTMAXIM,YES を書いたときだけ印字されます（既定は NO）。6の固有ベクトルは、'+card('CASE_DISPLACEMENT','DISPLACEMENT')+'（VECTOR も同じ）の出力先が PRINT のとき F06 に出ます。PLOT だけなら F06 には印字されず、OP2・H5 などの結果ファイルで確認します。印字順やページ番号は、実行条件や出力要求で変わります。'),'modal-output-map'],
    ['2. 仮想のF06を印字順に読む',report.reader(),'modal-output-start'],
    ['3. 方向別の累積比とモード数の判断',ordered([
     '加振の種類を決めます。支持がまとめて動く一様な基盤加振（地震・輸送振動など）か、特定の点に力がかかる局所加振か、回転の揺動かを区別します。',

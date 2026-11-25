@@ -53,7 +53,7 @@
  // Three tabs grouped by purpose; older tab names in saved links map onto them.
  // Questions are not a tab of their own: input questions close the Input tab, result questions close the Results tab.
  const tabLabels=[['model','解説'],['input','入力'],['results','結果']];
- const tabAlias={basics:'model',map:'input',dat:'input',quiz:'input',pitfalls:'results',compare:'results'};
+ const tabAlias={basics:'model',map:'input',dat:'input',quiz:'input',pitfalls:'results',f06:'results',compare:'results'};
  const tabOf=key=>{const tab=tabAlias[key]||key;return tabLabels.some(([id])=>id===tab)?tab:'model';};
  function tabbed(current,blocks){
   const shown=tabLabels.filter(([id])=>blocks[id]);
@@ -146,23 +146,32 @@
   const guide=window.AnalysisScenarioGuides?.[entry.key];
   const quiz=window.AnalysisQuiz?.resolve(entry.key,model.id);
   const specific=window.AnalysisModelGuides?.[model.id];
+  const foundation=window.AnalysisFoundationCases?.[model.id];
   const modalCase=window.ModalFrequencyCases?.[model.id];
-  const resultChecks=entry.key==='static'&&model.id==='solid'?[]:window.AnalysisResultChecks.sections(entry.key,model.id);
+  const study=foundation||modalCase;
+  const sharedF06=entry.key==='modes'&&window.AnalysisModalOutput.sections(model.id)
+   .map(([title,html,id])=>section(title,html,id)).join('');
+  const resultChecks=window.AnalysisResultChecks.sections(entry.key,model.id);
   const quizInput=quiz&&window.AnalysisQuiz.render(entry.key,model.id,'input'),quizResults=quiz&&window.AnalysisQuiz.render(entry.key,model.id,'results');
   const state={current:tabOf(tabKey)};
   // "dat" in the address means the Input tab with the full deck open, so Back from a card returns there.
-  const token=()=>state.current==='input'&&byId('analysis-original-input')?.open?'dat':state.current;
+  const token=()=>{
+   if(state.current==='input'&&byId('analysis-original-input')?.open)return 'dat';
+   if(state.current==='results'&&byId('shared-f06')?.open)return 'f06';
+   return state.current;
+  };
   const place=(id,tab)=>'#'+entry.key+'/'+id+(tab&&tab!=='model'?'/'+tab:'');
-  detail.innerHTML=heading(entry,'')+selection+(modalCase?'':figure)+(tabbed(state.current,{
-      model:[[null,readingIntro(entry,scenario,model,specific)],modalCase&&[null,figure],['モデル化と境界条件',conditions(model.conditions)],specific?.explanation&&['条件から結果までをつなぐ',specific.explanation()],guide&&['この解析で共通する基礎',specific?'<div class=theory-quiz><details><summary>全モデルに共通する用語と手順</summary>'+guideBasics(guide)+'</details></div>':guideBasics(guide)]],
-      input:[modalCase&&[modalCase.input.title,modalCase.input.body,'analysis-model-input'],['カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations'],
+  detail.innerHTML=heading(entry,'')+selection+(study?'':figure)+(tabbed(state.current,{
+      model:[foundation&&[null,'<p>'+esc(foundation.intro)+'</p>'],foundation&&[null,figure],[null,readingIntro(entry,scenario,model,specific)],modalCase&&[null,figure],['モデル化と境界条件',conditions(model.conditions)],specific?.explanation&&['条件から結果までをつなぐ',specific.explanation()],guide&&['この解析で共通する基礎',specific?'<div class=theory-quiz><details><summary>全モデルに共通する用語と手順</summary>'+guideBasics(guide)+'</details></div>':guideBasics(guide)]],
+      input:[study&&[study.input.title,study.input.body,'analysis-model-input'],['カードの相関図',window.renderAnalysisRelations(entry.key,model.id),'analysis-relations'],
        entry.key==='buckling'&&['SOL 105で静解析と座屈を対応させる',bucklingSetup(),'analysis-buckling-setup'],
-       guide?.inputReview&&['入力で確認する指定',cardGroups(guide.inputReview)+sources([{url:'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=38',label:'線形静解析ユーザーガイド 2025.1 · 第2章 PDF 38–40ページ'}])],
-       specific?.inputReview&&['このモデルで指定する内容',modalCase?'<details><summary>関連カードの役割とInputデータを開く</summary>'+cardGroups(specific.inputReview)+'</details>':cardGroups(specific.inputReview)],
+       guide?.inputReview&&['入力で確認する指定',(foundation?'<details><summary>この解析に共通する入力の詳しい説明</summary>'+cardGroups(guide.inputReview)+'</details>':cardGroups(guide.inputReview))+sources([{url:'https://documentation-be.hexagon.com/bundle/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide/raw/resource/enus/MSC_Nastran_2025.1_Linear_Static_Analysis_User_Guide.pdf#page=38',label:'線形静解析ユーザーガイド 2025.1 · 第2章 PDF 38–40ページ'}])],
+       specific?.inputReview&&['このモデルで指定する内容',study?'<details><summary>関連カードの役割とInputデータを開く</summary>'+cardGroups(specific.inputReview)+'</details>':cardGroups(specific.inputReview)],
        deck&&['自作モデルのDAT',deckSection(deck,tabKey==='dat')],
        !deck&&['入力モデルの扱い','<p>境界条件と入力の役割を比較する理論教材です。この比較用の実行確認済み入力ファイルは未収録です。下記の数値は理論値で、MSC Nastranの実行結果ではありません。</p>'],
        quizInput&&['入力の確認問題',quizInput,'analysis-quiz']],
-      results:[modalCase&&[modalCase.result.title,modalCase.result.body(),'analysis-model-results'],...(entry.key==='modes'?(window.AnalysisModalOutput?.sections(model.id)||[]):[]),['結果の読み方',modalCase?ordered(modalCase.readback)+cardLinks(model.check):list(model.results)+cardLinks(model.check)+verifySteps(specific||guide)],...resultChecks,!modalCase&&specific?.resultExtra&&['照合する量と条件',specific.resultExtra()],['prestressed-modes','complex-modes','modal-frequency','transient'].includes(entry.key)&&['実モードの結果を確認する',window.AnalysisModalOutput?.reference()||''],['モデル間の比較',compare(comparison,comparison.models.indexOf(model),specific)],specific?.pitfalls?['このモデルで間違えやすい点',conditions(modalCase?[specific.pitfalls[0],modalCase.pitfall]:specific.pitfalls)]:guide&&['よくある失敗と直し方',conditions(guide.pitfalls)],quizResults&&['結果の確認問題',quizResults,'analysis-quiz-results']]
+      results:[study&&[study.result.title,study.result.body(),'analysis-model-results'],foundation&&[null,cardLinks(model.check)+'<details><summary>数値・成分をさらに照合する</summary>'+ordered(specific.verify)+'</details>'],!foundation&&['結果の読み方',modalCase?ordered(modalCase.readback)+cardLinks(model.check):list(model.results)+cardLinks(model.check)+verifySteps(specific||guide)],...resultChecks,!modalCase&&specific?.resultExtra&&['照合する量と条件',specific.resultExtra()],['prestressed-modes','complex-modes','modal-frequency','transient'].includes(entry.key)&&['実モードの結果を確認する',window.AnalysisModalOutput?.reference()||''],['モデル間の比較',compare(comparison,comparison.models.indexOf(model),specific)],specific?.pitfalls?['このモデルで間違えやすい点',conditions(modalCase?[specific.pitfalls[0],modalCase.pitfall]:specific.pitfalls)]:guide&&['よくある失敗と直し方',conditions(guide.pitfalls)],quizResults&&['結果の確認問題',quizResults,'analysis-quiz-results'],
+       sharedF06&&[null,'<details class="analysis-shared" id="shared-f06"'+(tabKey==='f06'?' open':'')+'><summary>別の柱の仮想F06で、出力表と有効質量の読み方を練習する</summary>'+sharedF06+'</details>']]
      }))+
    contextLinks(entry,related)+sources(scenario.sources||entry.sources);
   bindTabs(state,()=>history.replaceState(null,'',place(model.id,token())));
@@ -172,10 +181,12 @@
   window.AnalysisResponseLabs?.bind(detail);
   window.AnalysisResultChecks.bind(detail);
   window.AnalysisModalOutput?.bind(detail);
+  byId('shared-f06')?.addEventListener('toggle',()=>history.replaceState(null,'',place(model.id,token())));
   byId('analysis-original-input')?.addEventListener('toggle',()=>history.replaceState(null,'',place(model.id,token())));
   byId('save-original-dat')?.addEventListener('click',()=>saveDeck(deck));
   function changeModel(id,controlId){
-   const tab=token();
+   const current=token();
+   const tab=current==='f06'?'results':current;
    history.replaceState(null,'',place(id,tab));
    showScenario(entry,scenario,id,tab);
    byId(controlId)?.focus({preventScroll:true});

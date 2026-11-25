@@ -8,8 +8,50 @@ with sync_playwright() as pw:
  browser=pw.chromium.launch(headless=True,executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe')
  page=browser.new_page(viewport={'width':390,'height':844});errors=[]
  page.on('pageerror',lambda e:errors.append(str(e)))
+ # Keep the same physical observation point when readers change the model on each tab.
+ groups={'static':[('beam','G13'),('shell','G63'),('solid','G368')],
+         'modes':[('baseline','G13'),('tip-mass','G13'),('both-fixed','G7')]}
+ for analysis,models in groups.items():
+  page.goto((DIST/'analysis.html').as_uri()+'#'+analysis)
+  for tab in ['model','input','results']:
+   page.locator(f'[data-analysis-tab="{tab}"]').click()
+   panel=page.locator(f'[data-analysis-panel="{tab}"]')
+   headings=set()
+   for model,grid in models:
+    page.locator('#analysis-example-picker').select_option(model)
+    expect(panel).to_be_visible()
+    if tab=='model':
+     headings.add(panel.locator('p').first.inner_text())
+     assert panel.locator('svg').count()>=1
+    else:
+     first=panel.locator('#analysis-model-'+tab)
+     headings.add(first.locator('h2').inner_text())
+     if tab=='results':
+      expect(first).to_contain_text(grid)
+      fig=first.locator('figure')
+      expect(fig).to_be_visible()
+      assert not re.search(r'[ぁ-んァ-ン一-龯]',fig.locator('svg').text_content())
+      first.locator('summary').click()
+      expect(first.locator('details p')).to_be_visible()
+      if model in ['solid','both-fixed']:
+       fig.evaluate("e=>e.scrollIntoView({block:'center',behavior:'instant'})")
+       fig.screenshot(path=str(OUT/(model+'-observation.png')))
+    for width in [320,390,768]:
+     page.set_viewport_size({'width':width,'height':844})
+     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(analysis,model,tab,width)
+    page.set_viewport_size({'width':390,'height':844})
+   assert len(headings)==len(models),(analysis,tab,headings)
+ for route,selector,phrase in [('theory.html#static','#theory-detail','補間です'),
+                               ('theory.html#modes','#theory-detail','2対6'),
+                               ('bulk.html#CASE_DISPLACEMENT','#card-detail','実際の揺れ幅'),
+                               ('bulk.html#CASE_SPCFORCES','#card-detail','基準点と座標系')]:
+  page.goto((DIST/route.split('#')[0]).as_uri()+'#'+route.split('#')[1])
+  expect(page.locator(selector)).to_contain_text(phrase)
  for model in ['baseline','tip-mass','both-fixed']:
   page.goto((DIST/'analysis.html').as_uri()+'#modes/'+model+'/results',wait_until='domcontentloaded')
+  expect(page.locator('#analysis-model-results')).to_be_visible()
+  assert not page.locator('#shared-f06').evaluate('e=>e.open')
+  page.locator('#shared-f06 > summary').click()
   expect(page.locator('#modal-output-guide')).to_be_visible()
   expect(page.locator('[data-analysis-tab="results"]')).to_have_attribute('aria-selected','true')
   assert page.locator('#modal-output-guide .element-toc li').count()==5
@@ -77,6 +119,7 @@ with sync_playwright() as pw:
   page.go_back()
   expect(page.locator('[data-analysis-tab="results"]')).to_have_attribute('aria-selected','true')
   assert model in page.url
+  expect(page.locator('#modal-output-guide')).to_be_visible()
   page.locator('[data-analysis-tab="input"]').click()
   assert page.locator('[data-analysis-panel="input"] a[href="bulk.html#CASE_MEFFMASS"]').count()>=2
  # Native search receives the same catalog through the generated bulk page; web search must also find it.
