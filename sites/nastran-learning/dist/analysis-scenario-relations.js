@@ -55,7 +55,7 @@
   const panels=[structure('beam'),root(),dynamicLoad('RLOAD1','1 N','全周波数で倍率1'),
    {title:'周波数と減衰',note:'FREQUENCYが計算する周波数のセットを選びます。PARAM,Gは番号の参照を持たず、全体の構造減衰として作用します。',layers:[['case','g'],['freq']],
     nodes:[n('case','FREQUENCY','CASE_FREQUENCY','選択値=60'),n('freq','FREQ1','FREQ1','SID=60 / '+stepDetail),n('g','PARAM,G','PARAM_G','値=0.04')],edges:[e('case','freq','SID=60')]}];
-  if(sol===111)panels.splice(3,0,realModes(count,'モードによる縮約','METHODで選んだ実モードが、応答を解く基底になります。'));
+  if(sol===111)panels.unshift(realModes(count,'モードによる縮約',count===1?'ND=1では形を一つ残します。FREQ1の121点は同じ形で解く加振周波数の数です。':'ND=6では全方向から6個を採用します。弱軸曲げが何個入ったかは固有ベクトルで照合します。'));
   return panels;
  }
  function transient(sol,duration){
@@ -171,7 +171,15 @@
   'pre-none':[103,modeOut],'pre-tension':[103,preOut],'pre-compression':[103,preOut]});
  for(const [key,panels] of Object.entries(maps)){
   if(window.AnalysisRelationMaps[key])throw Error('Duplicate relation map: '+key);
-  window.AnalysisRelationMaps[key]={title:'カード相関図',scope,panels:[control(...controls[key]),...panels]};
+  const exec=control(...controls[key]);
+  if(key==='mfreq-six'){
+   exec.note='掲載DATの出力はG13・T3を含む変位です。根元応力も調べる場合だけ、比較する両ケースにSTRESSを追加し、PBEAMの回復点を照合します。';
+   exec.nodes.push(n('stress','STRESS','CASE_STRESS','+ STRESS(PHASE)'));
+   exec.layers[1].push('stress');
+   exec.edges.push(e('sol','stress','追加時',true));
+  }
+  const ordered=(key==='mfreq-one'||key==='mfreq-six')?[panels[0],exec,...panels.slice(1)]:[exec,...panels];
+  window.AnalysisRelationMaps[key]={title:'カード相関図',scope,panels:ordered};
  }
  window.AnalysisScenarioRelationKeys=Object.keys(maps);
 })();

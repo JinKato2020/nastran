@@ -14,6 +14,12 @@ for(const f of [0,1,3.18,4.5,5.51,8])for(const deg of [0,90,180])for(const g of 
   r.forEach((v,j)=>near(v,d.F[i][j]));
  }
 }
+// Elastic outer-fibre stress from the independent continuous clamped/free solution:
+ // P*z*(sinh(bL)+sin(bL))/(I*(1+iG)*b*(1+cosh(bL)*cos(bL))), b^4=rho*A*w²/(EI*(1+iG)).
+const exactStress=[1.8032169310451043,-.07813100441331315];
+const stress8=C.beamRootStress(10,.04,8);
+for(let i=0;i<2;i++)assert(Math.abs(stress8[i]/exactStress[i]-1)<.004);
+assert(C.amp(C.beamRootStress(10,.04,1))>1.10*C.amp(stress8));
 const missed=C.two(5,.04,'pair',180,1);assert(C.amp(missed.modal[0])<1e-15);assert(C.amp(missed.direct[0])>.001);
 const anti=C.two(Math.sqrt(800)/(2*Math.PI),0,'single',0,2);near(C.amp(anti.direct[0]),0);assert(C.amp(anti.direct[1])>0);
 const timeRef=[[0,.005,0,.003,.24673600588970448],[0,.005,0,.017,-.36250268261431967],[0,.005,0,.071,-.7094615561559641],[0,.005,0,.18,-1.1243768315949467],[.02,.05,0,.003,.24441198681215412],[.02,.05,0,.017,1.5695086445714848],[.02,.05,0,.071,.47994480253140887],[.02,.05,0,.18,.2585341837110809],[.04,.05,.05,.003,.004950408573027623],[.04,.05,.05,.017,.3863763167198347],[.04,.05,.05,.071,.4926822118644406],[.04,.05,.05,.18,-.014293039084410894]];
@@ -25,7 +31,7 @@ for(const tau of [.005,.05])for(const z of [0,.02,.08]){
 }
 near(C.pulse(1/C.fn,1/C.fn,0),0);
 const ctx={window:{},console};vm.createContext(ctx);
-const files=['lesson-article','analysis-data','extended-analysis-data','analysis-relations-data','analysis-scenario-relations','analysis-scenario-guides','analysis-scenarios','analysis-scenario-diagrams','beam-labs','analysis-mode-quiz','analysis-quiz','analysis-model-quiz','analysis-structure-core','analysis-structure-labs','analysis-structure-lessons','analysis-eigen-core','analysis-eigen-labs','analysis-prestress-lessons','analysis-complex-lessons','analysis-response-core','analysis-response-labs','analysis-frequency-lessons','analysis-transient-lessons','analysis-response-quiz'];
+const files=['lesson-article','analysis-data','extended-analysis-data','analysis-relations-data','analysis-scenario-relations','analysis-scenario-guides','analysis-scenarios','analysis-scenario-diagrams','beam-labs','analysis-mode-quiz','analysis-quiz','analysis-model-quiz','analysis-structure-core','analysis-structure-labs','analysis-structure-lessons','analysis-eigen-core','analysis-eigen-labs','analysis-prestress-lessons','analysis-complex-lessons','analysis-response-core','analysis-response-labs','analysis-modal-cases','analysis-frequency-lessons','analysis-transient-lessons','analysis-response-quiz'];
 for(const file of files)vm.runInContext(fs.readFileSync(path.join(dir,file+'.js'),'utf8'),ctx,{filename:file+'.js'});
 const catalogContext={window:{}};vm.createContext(catalogContext);
 for(const file of ['bulk-data','field-guide-model','field-guide-properties','field-guide-constraints','dynamics-data','damping-data','fracture-data','input-controls','sol-reference','input-reference','input-catalog','public-input-cards','qrg-expansion','qrg-enrichment','case-output-reference','reference-review','extended-input-cards','element-input-cards'])vm.runInContext(fs.readFileSync(path.join(dir,file+'.js'),'utf8'),catalogContext);
@@ -37,6 +43,16 @@ for(const key of ['direct-frequency','modal-frequency','transient'])for(const m 
  for(const panel of w.AnalysisRelationMaps[m.id].panels)for(const node of panel.nodes)if(node.card)assert(cardKeys.has(node.card),m.id+' map -> '+node.card);
  assert(g.items.length===3&&g.verify.length>=5,m.id);assert(g.inputReview.flatMap(x=>x[1]).length>=20,m.id);assert(g.pitfalls.length>=5);
  assert(g.explanation().includes('data-response-lab'));assert(!g.explanation().includes('undefined'));
+ if(key==='modal-frequency'){
+  const lesson=w.ModalFrequencyCases[m.id];
+  assert(lesson.input.body.includes('<table'));assert(lesson.result.body().includes('<svg'));
+  assert.equal(q.questions.filter(item=>w.AnalysisQuiz.partOf(key,item)==='input').length,2,m.id);
+  if(m.id==='mfreq-antiresonance'){
+   const loadMap=w.AnalysisRelationMaps[m.id].panels.find(p=>p.nodes.some(n=>n.card==='RLOAD1'));
+   assert.equal(loadMap.nodes.filter(n=>n.card==='RLOAD1').length,1);
+   assert(!loadMap.nodes.some(n=>n.card==='DPHASE'));
+  }
+ }
  assert.equal(q.questions.length,4);
  for(const item of q.questions){questions++;assert.equal(item.options.length,4);assert(item.options[item.answer]);assert.equal(w.AnalysisQuiz.diagnose(String(item.verify.check.expect),item.verify.check)[0],'ok');}
  for(const panel of w.AnalysisRelationMaps[m.id].panels){const ids=new Set(panel.nodes.map(x=>x.id));for(const e of panel.edges)assert(ids.has(e.from)&&ids.has(e.to));}

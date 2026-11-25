@@ -6,15 +6,20 @@
  const beamStructure=[['GRID','G1〜G13の位置と変位座標。観測するT3は全体Zとそろえます。'],['CBEAM','EID101〜112、PID20。支持・メッシュ・向きは解法比較で共通です。'],['PBEAM','PID20→MID70。断面36×6 mm、弱軸I=648 mm⁴。'],['MAT1','E=70,000 MPa、ν=0.33、ρ=2.70×10⁻⁹ tonne/mm³。質量密度と重量密度を混同しません。'],['SPC1','SID10で根元G1の123456固定。先端G13/T3は自由です。'],['PARAM_COUPMASS','既存梁では1。質量定式化を比較途中で変えません。'],['PARAM_GRDPNT','任意に0を指定し、総質量0.000209952 tonneと照合します。']];
  const twoStructure=[['GRID','G1・G2をX方向だけ動く質点位置として定義します。'],['SPC1','SID10で両点の23456を拘束。動かしたいT1は拘束しません。'],['CONM2','各GRIDに1 kg。N・m・s・kg系の比較です。N・mm・s系の値をそのまま移しません。'],['CELAS2','地面–G1、G1–G2、G2–地面の3本、各K=400 N/m。成分1を結び、地面側はG=0。物性・材料カードはこの集中ばねには不要です。']];
  const outputs=[['CASE_DISPLACEMENT','振幅・位相または実部・虚部を周波数ごとに出力します。SORT1/2は並び順、PHASE/REALは表現形式で、別の解析ではありません。'],['CASE_VELOCITY','必要時に速度。複素振幅はv=iωu。変位と同位相ではありません。'],['CASE_ACCELERATION','必要時に加速度。a=−ω²u。N・mm・s系ではmm/s²で、g単位ではありません。'],['CASE_FORCE','ばね力・梁断面力など。変位の収束だけで局所力の収束を代用しません。'],['CASE_SPCFORCES','拘束の反力を確認。動解析では外力だけでなく慣性力・減衰力も含めて釣合います。'],['PARAM_POST','必要時に結果ファイルへ出力。計算周波数や出力要求そのものの代用ではありません。']];
- function cards(sol,{two=false,count=0,g=.04,coarse=false}={}){
+ function cards(sol,{two=false,count=0,g=.04,coarse=false,loadCase}={}){
   return [
    ['解析・条件の選択',[['EXEC_SOL_'+sol,sol===108?'拘束後の物理変数で各周波数の複素連立方程式を解きます。':'選んだ実モードへ縮約して周波数応答を解きます。'],['EXEC_CEND','Executiveを終えてCase Controlへ移ります。'],['CASE_SUBCASE','荷重、拘束、周波数、出力を同じケースで対応させます。'],['CASE_SPC','SPC=10で支持条件を選択します。'],['CASE_DLOAD','DLOAD=50。単独荷重ならRLOAD1 SID50を直接選択。複数荷重の比較ではBulk DLOAD SID50を選択します。'],['CASE_FREQUENCY','FREQUENCY=60は加振周波数セット。固有モードを選ぶMETHODとは別です。']]],
    ['モデル・質量・支持',two?twoStructure:beamStructure],
-   ['荷重の場所・大きさ・位相',two?[
+   ['荷重の場所・大きさ・位相',loadCase==='mfreq-antiresonance'?[
+    ['DLOAD','SID50で有効にする荷重はRLOAD1 511だけ。全体係数と個別係数をともに1とします。'],
+    ['RLOAD1','SID511 → EXCITEID521、TC530。G1の荷重は位相0°、遅れ0。'],
+    ['DAREA','SID521、G1/C1へ1 N。G2の応答を出力するためにG2へ荷重を置く必要はありません。'],
+    ['TABLED1','TID530の実部倍率は1。二つの山の間の谷は、入力の倍率を下げて作ったものではありません。']
+   ]:two?[
     ['DLOAD','SID50からRLOAD1の511・512を係数1で合成。S×Siも掛かるため二重倍率を確認。G1だけの比較では512側の係数を0にします。'],
     ['RLOAD1','511→EXCITEID521、512→522。両方TC=530。第2荷重だけDPHASE=541で位相を参照します。'],
     ['DAREA','SID521はG1/C1へ1 N、522はG2/C1へ1 N。荷重の空間分布であり周波数表ではありません。'],
-    ['DPHASE','SID541のG2/C1に位相0°または180°。位相進みの指定。整数541はカード参照、RLOAD1へ180.と実数で直接書く場合とは区別します。'],
+    ['DPHASE',loadCase==='mfreq-antisymmetric'?'SID541のG2/C1に180°。DAREAとDLOADの倍率はいずれも正に保ちます。':'SID541のG2/C1に位相0°または180°。位相進みの指定。整数541はカード参照、RLOAD1へ180.と実数で直接書く場合とは区別します。'],
     ['TABLED1','TID530：全周波数で実部倍率1。横軸はHz、RLOAD1のTCから参照。'],
     ['DELAY','必要時だけ時間遅れτを指定。位相への寄与は−2πfτで周波数に依存し、一定の180°とは異なります。']
    ]:[
@@ -52,14 +57,28 @@
  for(const [id,d]of Object.entries(info)){
   const s=S[d.key],existing=s.models.find(m=>m.id===id),m=existing||{id,diagram:d.two?(id==='mfreq-antiresonance'?'response-single':'response-pair'):'harmonic',theoretical:true};
   if(!existing)s.models.push(m);
+  const lesson=window.ModalFrequencyCases[id];
   const modal=d.key==='modal-frequency',gg=id==='dfreq-low-damping'?.004:.04;
   m.title=d.title;m.takeaway=d.point;
   m.diagramCaption=d.two?'青い両端は地面。3本のばねは各400 N/m、2質点は各1 kg。G1とG2はX方向だけ動けます。赤は荷重、u₁・u₂は観測変位。':'青い左端G1を123456固定し、自由端G13/T3へ振幅1 N。図は変形結果ではなく、支持・荷重・観測位置の模式図です。';
+  if(id==='mfreq-six'){
+   m.diagram='response-stress';
+   m.diagramCaption='片持ち梁の根元上面（短い帯）で曲げ応力、先端G13でT3変位を観測します。破線は片側へ曲がった瞬間の模式形です。';
+  }
   m.conditions=[['モデルと単位',d.two?'N・m・s・kg。各質点のX以外を拘束。地面ばね2本と連結ばね1本。':'N・mm・s・tonne。L=360 mm、断面36×6 mm、E=70,000 MPa、ρ=2.70×10⁻⁹ tonne/mm³。'],['比較で変えるもの',d.change],['固定するもの',d.two?'質量・3本のばね剛性・支持・構造減衰G=0.04。':'支持、材料、断面、質量、加振方向。変更項目以外は共通。'],['数値の位置づけ',d.two?'図中の2自由度行列を独立計算した理論比較です。完成入力ファイルやNastran実行結果ではありません。':'操作図は一様梁の弱軸曲げ理論。既存CBEAMモデルの実行結果ではなく、せん断・回転慣性・他方向のモードは含みません。']];
   m.results=[d.point,d.two?'f₁=3.18310 Hz（同方向）、f₂=5.51329 Hz（逆方向）をモード形とセットで確認します。':'G13のT3について、同じ加振周波数で振幅・位相を照合します。f₁≈38.1 Hzは弱軸梁理論の目安です。',modal?'保持モードと残余ベクトルの設定を記録し、変位・加速度・力を別々に収束確認します。':'共振付近の周波数を細分し、計算点の最大値が収束するかを調べます。','加速度の振幅は同じ成分でω²|u|。大きさだけでなく符号・位相・単位も対応させます。'];
   m.check=[['CASE_FREQUENCY','周波数の選択'],['FREQ1','周波数間隔'],['CASE_DLOAD','荷重セット'],['RLOAD1','荷重の複素係数'],['PARAM_G','減衰'],['CASE_DISPLACEMENT','出力形式'],...(modal?[['CASE_METHOD','基底選択'],['EIGRL','保持モード'],['CASE_RESVEC','補完の有無']]:[])];
-  G[id]={items:[d.point,d.change,'誤った指定 → 形と数値の変化 → 入力の選び直し → 結果での確認を対応させます。'],
-   explanation:()=>p(d.point)+p('定常調和応答ではu(t)=Re[Ûeⁱʷᵗ]と置きます。1回微分でiω、2回微分で−ω²が掛かります。')+
+  if(lesson){
+   const checkCards={
+    'mfreq-one':[['CASE_METHOD','保持する形'],['EIGRL','保持数'],['FREQ1','加振周波数'],['CASE_DISPLACEMENT','複素変位']],
+    'mfreq-six':[['EIGRL','採用モード'],['CASE_DISPLACEMENT','先端変位'],['CASE_STRESS','梁応力'],['PBEAM','応力回復点']],
+    'mfreq-antisymmetric':[['SPC1','T1が自由か'],['DPHASE','G2の位相'],['EIGRL','逆対称モード'],['CASE_DISPLACEMENT','両点の変位']],
+    'mfreq-antiresonance':[['DAREA','G1だけに加振'],['FREQ1','谷の周辺の周波数'],['CASE_DISPLACEMENT','G1とG2の変位']]
+   };
+   m.check=checkCards[id];
+  }
+  G[id]={goals:lesson?.goals,items:lesson?.points||[d.point,d.change,'誤った指定 → 形と数値の変化 → 入力の選び直し → 結果での確認を対応させます。'],
+   explanation:lesson?()=>p(lesson.lesson)+L.render(id,d.lab):()=>p(d.point)+p('定常調和応答ではu(t)=Re[Ûeⁱʷᵗ]と置きます。1回微分でiω、2回微分で−ω²が掛かります。')+
     f('Mü + Bu̇ + Ku = P(t) → [K − ω²M + iωB]Û = P̂')+
     p('全体の構造減衰Gを使う今回の比較では粘性Bを別途加えず、Kを(1+iG)Kへ置き換えます。fはHz、ω=2πfはrad/s。振幅は|Û|、位相はatan2(ImÛ,ReÛ)です。')+
     f('[(1+iG)K − ω²M]Û = P̂、|Û| = √[(ReÛ)²+(ImÛ)²]')+
@@ -75,7 +94,7 @@
     L.render(id,d.lab)+
     (d.lab==='sweep'?p('構造減衰1モード近似では半値幅は小減衰時にΔf≈Gf₁。半値は振幅が最大の1/√2で、1/2ではありません。刻みはこの幅より十分細かくし、最大値の収束を確認します。'):
      modal?p('モード形の全体倍率を変えても、一般化質量・荷重・復元を整合させれば物理応答は変わりません。規格化されたモードの最大値1を、実際の変位1 mmと解釈しません。'):''),
-   inputReview:cards(modal?111:108,{two:d.two,count:d.count,g:gg,coarse:id==='dfreq-coarse'}),
+   inputReview:cards(modal?111:108,{two:d.two,count:d.count,g:gg,loadCase:id,coarse:id==='dfreq-coarse'}),
    verify:['SOL 103で質量、支持、注目モードの方向と固有振動数を確認します。','Case DLOAD→RLOADi→空間分布とTABLEDiをたどり、倍率・符号・位相・単位を照合します。','FREQUENCYの範囲・点数・刻み、減衰の種類と重複を確認します。',modal?'同じ周波数・同じ物理条件の直接法と比較し、基底と残余ベクトルを段階的に変えます。':'共振付近を細分し、最大値と位相変化が安定するかを確認します。','出力位置・成分・複素形式をそろえ、変位だけでなく評価したい力・応力・加速度を確認します。'],
    resultExtra:()=>table(['照合する量','意味と確認'],[['複素振幅','実部・虚部を合成。異なる周波数の最大値を同時に起きる値として足しません。'],['片振幅・RMS','単一の正弦波ならRMS=片振幅/√2、両振幅=2×片振幅。ランダム振動へそのまま使いません。'],['位相','同じ荷重基準で比較。−180°と+180°の折返しは不連続な物理変化とは限りません。振幅0では位相を定義しません。'],['動的釣合い','外力＋支持反力と慣性・減衰・内部力の対応。反力振幅だけを静解析のように加算しません。']]),
    pitfalls:[d.mistake,['METHODの上限とFREQUENCYの上限を混同した','METHODはモード基底、FREQUENCYは実際に応答を計算する周波数。SOL 108にモード基底は不要です。'],['2%をG=2と入力した','百分率を小数へ直した上で、Gとζの定義を確認します。G=.04とζ=.02は共振付近の小減衰対応です。'],['実部が負なので振幅を負と報告した','振幅は非負で、符号と時間のずれは位相に含まれます。実部の符号を荷重の向きだけで説明しません。'],['大きいモードだけを絶対値で足した','複素成分を加えてから絶対値を取ります。先に絶対値を取ると反共振や相殺を失います。']]
@@ -99,10 +118,21 @@
   const panel=(title,nodes,edges,layers,note)=>({title,nodes,edges,layers,note});
   const panels=[
    panel('2質点・支持・ばね',[node('grid','GRID','GRID','G1・G2 / T1だけ自由'),node('mass','CONM2','CONM2','各1 kg'),node('spring','CELAS2','CELAS2','3本 / 各400 N/m'),node('spc','SPC','CASE_SPC','選択値10'),node('spc1','SPC1','SPC1','SID10 / 両点23456')],[edge('mass','grid','接続'),edge('spring','grid','端点・成分1'),edge('spc','spc1','SID10'),edge('spc1','grid','拘束')],[['mass','spring','spc'],['spc1'],['grid']],'地面側のばね端点は0。物性・材料カードを介さずKを指定します。'),
-   panel('複数荷重の参照',[node('case','DLOAD','CASE_DLOAD','選択値50'),node('sum','DLOAD','DLOAD','SID50 / 511・512を合成'),node('a','RLOAD1','RLOAD1','SID511 / EXCITEID521'),node('b','RLOAD1','RLOAD1','SID512 / EXCITEID522 / DPHASE541'),node('load','DAREA','DAREA','521:G1/C1、522:G2/C1 / 各1 N'),node('table','TABLED1','TABLED1','TID530 / 実部倍率1'),node('phase','DPHASE','DPHASE','SID541 / G2/C1 / 0°または180°')],[edge('case','sum','SID50'),edge('sum','a','L1=511'),edge('sum','b','L2=512'),edge('a','load','521'),edge('b','load','522'),edge('a','table','TC530'),edge('b','table','TC530'),edge('b','phase','541')],[['case'],['sum'],['a','b'],['load','table','phase']],'片側加振では512側係数を0。位相は荷重ごとに対応します。'),
+   id==='mfreq-antiresonance'?panel('G1のみを加振する経路',[
+    node('case','DLOAD','CASE_DLOAD','選択値50'),node('sum','DLOAD','DLOAD','SID50 / S=1 / S1=1 / L1=511'),
+    node('a','RLOAD1','RLOAD1','SID511 / EXCITEID521'),node('load','DAREA','DAREA','SID521 / G1・T1 / 1 N'),
+    node('table','TABLED1','TABLED1','TID530 / 実部倍率1')
+   ],[edge('case','sum','SID50'),edge('sum','a','L1=511'),edge('a','load','521'),edge('a','table','TC530')],
+   [['case'],['sum'],['a'],['load','table']],'有効荷重はG1だけです。G2はDISPLACEMENTで観測します。'):
+   panel('複数荷重の参照',[node('case','DLOAD','CASE_DLOAD','選択値50'),node('sum','DLOAD','DLOAD','SID50 / 511・512を合成'),node('a','RLOAD1','RLOAD1','SID511 / EXCITEID521'),node('b','RLOAD1','RLOAD1','SID512 / EXCITEID522 / DPHASE541'),node('load','DAREA','DAREA','521:G1/C1、522:G2/C1 / 各1 N'),node('table','TABLED1','TABLED1','TID530 / 実部倍率1'),node('phase','DPHASE','DPHASE',id==='mfreq-antisymmetric'?'SID541 / G2/C1 / 180°':'SID541 / G2/C1 / 0°または180°')],[edge('case','sum','SID50'),edge('sum','a','L1=511'),edge('sum','b','L2=512'),edge('a','load','521'),edge('b','load','522'),edge('a','table','TC530'),edge('b','table','TC530'),edge('b','phase','541')],[['case'],['sum'],['a','b'],['load','table','phase']],id==='mfreq-antisymmetric'?'荷重係数は両方とも＋1。G2側の位相だけを180°進めます。':'片側加振では512側係数を0。位相は荷重ごとに対応します。'),
    panel('周波数・出力',[node('sol','SOL '+sol,'EXEC_SOL_'+sol,'解法'),node('freq','FREQUENCY','CASE_FREQUENCY','選択値60'),node('f','FREQ1','FREQ1','SID60 / 0〜8 Hzを細分'),node('g','PARAM,G','PARAM_G','0.04'),node('u','DISPLACEMENT','CASE_DISPLACEMENT','G1/G2 T1の複素変位')],[edge('freq','f','SID60')],[['sol','freq'],['f','g','u']],'数値は理論比較。入力ファイルを実行済みとは扱いません。')
   ];
   if(sol===111)panels.push(panel('保持モード',[node('m','METHOD','CASE_METHOD','選択値30'),node('e','EIGRL','EIGRL','SID30 / ND1または2'),node('r','RESVEC','CASE_RESVEC','打切り比較はNO')],[edge('m','e','SID30')],[['m','r'],['e']],'基底を変える比較。全2モードなら同じ有限自由度系で直接法に一致。'));
+  if(sol===111){
+   // Lead with the active loading chain, then the modal basis, outputs and structure.
+   const [structure,load,output,basis]=panels;
+   panels.splice(0,panels.length,load,basis,output,structure);
+  }
   window.AnalysisRelationMaps[id]={scope:'独立した2自由度の理論比較に対応する設定例。実行済み入力ファイルではありません。',panels};window.AnalysisScenarioRelationKeys.push(id);
  }
  for(const id of ['dfreq-phase','mfreq-antisymmetric','mfreq-antiresonance'])mapTwo(id,id==='dfreq-phase'?108:111);

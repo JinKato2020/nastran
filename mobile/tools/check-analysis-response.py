@@ -27,6 +27,27 @@ with sync_playwright() as pw:
     page.set_viewport_size({'width':width,'height':844})
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth'),(model,tab,width)
    page.set_viewport_size({'width':390,'height':844})
+  if key=='modal-frequency':
+   target=page.locator('#analysis-model-results')
+   assert target.is_visible() and target.locator('svg[role="img"]').count()==1
+   assert page.locator('[data-analysis-panel="results"] [data-result-check]').count()==int(model in ('mfreq-six','mfreq-antisymmetric'))
+   assert page.locator('[data-analysis-panel="input"] .aq-q').count()==2
+   assert page.locator('[data-analysis-panel="results"] .aq-q').count()==2
+   target.screenshot(path=str(OUT/(model+'-result.png')))
+   page.locator('[data-analysis-tab="input"]').click()
+   assert page.locator('#analysis-model-input').is_visible()
+   page.locator('[data-analysis-tab="model"]').click()
+   lab=page.locator('[data-response-lab]')
+   if model=='mfreq-antiresonance':
+    sensor=lab.locator('select[data-lab-input="sensor"]')
+    assert lab.locator('select[data-lab-input="modes"]').input_value()=='2'
+    before=lab.locator('.theory-lab-svg polyline').first.get_attribute('points')
+    sensor.select_option('1')
+    assert before!=lab.locator('.theory-lab-svg polyline').first.get_attribute('points')
+    assert '|u₂|' in lab.locator('.theory-lab-readout').inner_text()
+    sensor.select_option('0')
+   if model=='mfreq-six':
+    assert lab.locator('svg[aria-label="根元表面の曲げ応力振幅"]').count()==1
   qdata=page.evaluate('([k,m])=>AnalysisQuiz.resolve(k,m).questions.map(q=>({answer:q.answer,value:q.verify.check.expect}))',[key,model])
   assert page.locator('.aq-q').count()==4
   seen_n=[]

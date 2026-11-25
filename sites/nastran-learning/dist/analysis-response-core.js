@@ -13,10 +13,24 @@
   const omega=2*Math.PI*f;
   return wn.slice(0,count).reduce((sum,w)=>add(sum,div([4/mass,0],[w*w-omega*omega,g*w*w])),[0,0]);
  }
+ // With unit tip displacement, root curvature of cantilever mode j is
+ // (-1)^(j-1) beta_j²/L². Recover the outer-fibre bending stress at z=3 mm.
+ function beamRootStress(f,g=.04,count=8){
+  const omega=2*Math.PI*f;
+  return wn.slice(0,count).reduce((sum,w,i)=>{
+   const curvature=(i%2?-1:1)*(beta[i]/B.L)**2;
+   return add(sum,div([4*B.E*3*curvature/mass,0],[w*w-omega*omega,g*w*w]));
+  },[0,0]);
+ }
  function sweep(start,step,intervals,g=.04){return Array.from({length:intervals+1},(_,i)=>{const f=start+step*i;return[f,amp(beam(f,g))];});}
  // Independent two-mass model: both masses have a 400 N/m ground spring, plus a 400 N/m coupling spring.
  const lambdas=[400,1200],phi=[[Math.SQRT1_2,Math.SQRT1_2],[Math.SQRT1_2,-Math.SQRT1_2]];
- function forces(kind='single',degrees=0){return [[1,0],kind==='single'?[0,0]:[Math.cos(degrees*Math.PI/180),Math.sin(degrees*Math.PI/180)]];}
+ function forces(kind='single',degrees=0){
+  if(kind==='single')return [[1,0],[0,0]];
+  if(degrees===180)return [[1,0],[-1,0]];
+  const radians=degrees*Math.PI/180;
+  return [[1,0],[Math.cos(radians),Math.sin(radians)]];
+ }
  function two(f,g=.04,kind='single',degrees=0,count=2){
   const w=2*Math.PI*f,F=forces(kind,degrees),a=[800-w*w,800*g],b=[-400,-400*g],det=sub(mul(a,a),mul(b,b));
   const direct=[div(sub(mul(a,F[0]),mul(b,F[1])),det),div(sub(mul(a,F[1]),mul(b,F[0])),det)];
@@ -60,7 +74,7 @@
   }
   return out;
  }
- const api={B,mass,k,wn,fn,beta,beam,sweep,two,forces,amp,phase,add,sub,mul,div,scale,step,ramp,pulse,load,newmark};
+ const api={B,mass,k,wn,fn,beta,beam,beamRootStress,sweep,two,forces,amp,phase,add,sub,mul,div,scale,step,ramp,pulse,load,newmark};
  if(typeof module==='object'&&module.exports)module.exports=api;
  if(root)root.AnalysisResponseCore=api;
 })(typeof window==='undefined'?null:window);

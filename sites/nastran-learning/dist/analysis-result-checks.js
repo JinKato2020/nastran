@@ -135,7 +135,7 @@
      ['2. 周波数点と基底','SOL 111で対象モードが基底に入り、その固有振動数付近を十分細かく計算しているかを確認します。METHODとFREQUENCYをそれぞれ照合します。'],
      ['3. 片方ずつ変えて比較','元の荷重点を固定して観測点だけを節から腹へ移します。次に腹での観測を固定し、荷重点だけを移します。変位の振幅と位相を同じ加振基準で比較します。']
     ])+
-    p('固有値表の読み方は <a href="analysis.html#modes/baseline/results">実固有値解析の結果</a>、節と腹の意味は <a href="theory.html#modal-frequency">モーダル周波数応答の理論</a> で確認できます。')+
+    p('節と腹の意味は <a href="theory.html#modal-frequency">モーダル周波数応答の理論</a> で確認できます。')+
     question('中央のセンサーに山がない。中央をもっと強く押せば40 Hzの山が出る？','この理想対称梁の曲げ2次では、中央は加振にも観測にも効かない位置です。先に腹にセンサーを置き、荷重点を中央と腹で切り替えると、2次が励起されたかを切り分けられます。')+
     source('https://community.sw.siemens.com/s/article/Modal-Driving-Point-Survey-What-s-at-Stake','加振点の場所と見えるモード（Siemens）')]
   ],
@@ -165,5 +165,8 @@
  function bind(root){
   for(const node of root.querySelectorAll('[data-result-check]'))ui.mount(node,labs[node.dataset.resultCheck]);
  }
- window.AnalysisResultChecks={sections:(key)=>(sections[key]||[]).map(([title,id,body])=>[title,body,id]),bind};
+ const supplements={'mfreq-six':'modal-stress-check','mfreq-antisymmetric':'modal-peak-check'};
+ window.AnalysisResultChecks={sections:(key,model)=>(sections[key]||[])
+  .filter(([,id])=>key!=='modal-frequency'||id===supplements[model])
+  .map(([title,id,body])=>[key==='modal-frequency'?'別のモデルで確かめる｜'+title:title,body,id]),bind};
 })();
