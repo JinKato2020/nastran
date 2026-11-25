@@ -19,7 +19,7 @@
   "analysisHeadings":{
     "構造・静解析":{"title":"構造・静解析","description":"静解析・内圧とメッシュ収束・線形座屈"},
     "振動・動解析":{"title":"振動・動解析","description":"固有値・周波数応答・過渡応答"},
-    "熱解析":{"title":"熱解析","description":"熱伝導・温度変化による熱応力"},
+    "熱伝導・熱応力":{"title":"熱伝導・熱応力","description":"温度分布を求める熱伝導と、温度変化による変形・応力"},
     "非線形・破壊":{"title":"非線形・破壊","description":"大変形・弾塑性・接触と締結・亀裂先端"},
     "検証・再実行":{"title":"検証・再実行","description":"モデル検証・リスタート・データベース管理"}
   },
@@ -371,14 +371,14 @@
         "description": "熱収支・伝導・対流・断熱",
         "path": "theory.html",
         "hash": "#heat",
-        "group": "熱解析"
+        "group": "熱伝導・熱応力"
       },
       {
         "title": "熱ひずみ・熱応力と重ね合わせ",
         "description": "温度変化が生む自由ひずみと、連続する構造が実際に許す変形との差が弾性応力になります。線形の剛性が同じなら機械荷重と温度荷重の応答を重ね合わせられます。",
         "path": "theory.html",
         "hash": "#thermal-stress",
-        "group": "熱解析"
+        "group": "熱伝導・熱応力"
       },
       {
         "title": "幾何学非線形と釣合い経路",
@@ -537,7 +537,7 @@
         "path": "analysis.html",
         "hash": "#heat",
         "kind": "SOL 153",
-        "group": "熱解析"
+        "group": "熱伝導・熱応力"
       },
       {
         "title": "熱応力解析 — 加熱と拘束",
@@ -545,7 +545,7 @@
         "path": "analysis.html",
         "hash": "#thermal-stress",
         "kind": "SOL 101",
-        "group": "熱解析"
+        "group": "熱伝導・熱応力"
       },
       {
         "title": "大変形・スナップスルー解析",
